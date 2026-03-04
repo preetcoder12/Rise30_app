@@ -1,0 +1,27 @@
+# Gradle
+.gradle/
+build/
+**/build/
+gradle-8.9-bin.zip
+!gradle/wrapper/gradle-wrapper.jar
+!gradle/wrapper/gradle-wrapper.properties
+
+# JDK (portable - don't commit)
+jdk/
+temurin-jdk17.zip
+
+# Android SDK (portable - don't commit)
+tools/
+cmdline-tools.zip
+
+# Local config
+local.properties
+*.iml
+.idea/
+.DS_Store
+
+# Kotlin
+*.class
+*.log
+*.jar
+!gradle/wrapper/*.jar
