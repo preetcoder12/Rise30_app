@@ -1,0 +1,10 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <string name="app_name">Rise30</string>
+
+    <!--
+      Google OAuth "Web client ID" (server client ID), e.g. 1234567890-abcdefg.apps.googleusercontent.com
+      Used to request an ID token via GoogleSignInOptions.requestIdToken().
+    -->
+    <string name="google_server_client_id">831401774383-4sook7ujjjmt8a5liovdqrukq2lf8b49.apps.googleusercontent.com</string>
+</resources>

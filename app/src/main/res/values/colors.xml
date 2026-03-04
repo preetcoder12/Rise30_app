@@ -1,0 +1,9 @@
+<?xml version="1.0" encoding="utf-8"?>
+<resources>
+    <!-- Brand colors -->
+    <color name="lemon_yellow">#FFF44F</color>
+    <color name="charcoal">#2E2E2E</color>
+    <color name="charcoal_light">#3B3B3B</color>
+    <color name="error_red">#FF4B4B</color>
+</resources>
+

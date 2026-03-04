@@ -1,0 +1,132 @@
+Got it! Let’s translate your vision into a *developer-friendly technical description / blueprint* that your cursor or dev tools can immediately use, with modern stacks like Supabase, Prisma, Express, and Kotlin. I’ll make it actionable, structured, and clear for building the app.
+
+---
+
+# 📝 App Description for Developer Reference
+
+*App Name Rise30:* FocusFlow – 30-Day Challenge Builder
+
+*Core Concept:*
+A mobile-first app that helps users build habits, improve skills, or boost productivity via structured daily challenges. The app emphasizes *streaks, micro-dopamine rewards, and adaptive difficulty* to maximize retention. Users can start with 7, 14, or 30-day challenges and optionally invite friends for accountability.
+
+*Primary Goal:*
+✅ Users complete at least 7 consecutive days of their chosen challenge. Retention metrics are the single most important success metric.
+
+---
+
+# ⚙️ Technical Stack
+
+### Frontend
+
+* *Mobile Client:* Kotlin (for Android; optionally use Kotlin Multiplatform for iOS later)
+* *UI Framework:* Jetpack Compose (modern, reactive UI)
+* *Notifications:* Firebase Cloud Messaging (FCM) for push notifications
+* *Local Storage:* Room DB (for offline caching of streaks and daily tasks)
+
+### Backend
+
+* *API Layer:* Express.js (Node.js)
+* *Database:* Supabase (PostgreSQL) with Prisma ORM
+* *Authentication:* Supabase Auth (email/password, social logins optional)
+* *Hosting:* Vercel / Railway (for Express backend)
+* *Analytics:* Mixpanel / Supabase built-in logs
+
+### Data Modeling (Prisma Schema Concept)
+
+prisma
+model User {
+  id            String      @id @default(uuid())
+  email         String      @unique
+  password      String
+  createdAt     DateTime    @default(now())
+  challenges    Challenge[]
+  streaks       Streak[]
+  dailyEntries  DailyEntry[]
+}
+
+model Challenge {
+  id          String      @id @default(uuid())
+  userId      String
+  name        String
+  type        String      // skill, productivity, fitness
+  duration    Int         // days (7/14/30)
+  startDate   DateTime
+  endDate     DateTime
+  dailyTasks  DailyEntry[]
+}
+
+model DailyEntry {
+  id          String      @id @default(uuid())
+  challengeId String
+  dayNumber   Int
+  completed   Boolean     @default(false)
+  completedAt DateTime?
+}
+
+model Streak {
+  id      String      @id @default(uuid())
+  userId  String
+  challengeId String
+  length  Int
+  lastUpdated DateTime
+}
+
+
+---
+
+# 🖥️ API Endpoints (Express)
+
+| Endpoint                                    | Method | Purpose                                 |
+| ------------------------------------------- | ------ | --------------------------------------- |
+| /auth/signup                              | POST   | Create user (Supabase Auth integration) |
+| /auth/login                               | POST   | Login user                              |
+| /challenges                               | GET    | List all user challenges                |
+| /challenges                               | POST   | Create new challenge                    |
+| /challenges/:id                           | GET    | Get challenge details                   |
+| /challenges/:id/daily/:dayNumber/complete | POST   | Mark daily task complete                |
+| /streaks/:challengeId                     | GET    | Get current streak info                 |
+| /notifications                            | POST   | Schedule push notification              |
+
+---
+
+# 📱 Client-Side Architecture (Kotlin)
+
+* *Screens:*
+
+  1. Onboarding → select goal, choose challenge template
+  2. Dashboard → Day X of Y, task description, mark complete button
+  3. Challenge Detail → past entries, streak, stats
+  4. Notifications → set reminder times
+  5. Profile → achievements, certificates, premium unlocks
+
+* *State Management:* ViewModels + LiveData / StateFlow
+
+* *Network Layer:* Retrofit + Coroutine flows
+
+* *Local Caching:* Room for offline support
+
+---
+
+# 🔔 Retention & Reward Mechanics
+
+* Daily “Mark Complete” button → triggers micro-dopamine animations (confetti, progress bar)
+* Streak tracker → prevents chain breaking
+* Weekly badges (Day 7, 14, 21)
+* Optional: shareable progress card image (generated via backend, returned as PNG)
+
+---
+
+# 💡 Phase 1 MVP Focus
+
+1. Core challenge flow (7-day minimum, skill/productivity oriented)
+2. Local notifications + reminders
+3. Simple dashboard (Day X, task, progress)
+4. Track completion metrics (Day 3 & Day 7 retention)
+
+> Keep backend simple with Prisma + Supabase to allow *scalable schema evolution* for Phase 2+ features.
+
+---
+
+If you want, I can *also draw a full visual roadmap* showing *each phase month-by-month, with **database tables, API endpoints, client screens, and push notifications mapped*, so your cursor can basically start scaffolding the entire app immediately.
+
+Do you want me to do that next?
