@@ -6,5 +6,12 @@
         <item name="android:navigationBarColor">@color/charcoal</item>
     </style>
 
+    <!-- Splash screen theme using launcher icon from app_logo/android -->
+    <style name="Theme.Rise30.Splash" parent="Theme.SplashScreen">
+        <item name="windowSplashScreenBackground">@color/charcoal</item>
+        <item name="windowSplashScreenAnimatedIcon">@mipmap/ic_launcher</item>
+        <item name="postSplashScreenTheme">@style/Theme.Rise30</item>
+    </style>
+
 </resources>
 

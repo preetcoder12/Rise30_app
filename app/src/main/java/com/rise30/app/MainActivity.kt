@@ -24,6 +24,7 @@ import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.material3.TextButton
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.LaunchedEffect
 import androidx.compose.runtime.getValue
 import androidx.compose.runtime.mutableStateOf
 import androidx.compose.runtime.remember
@@ -38,6 +39,7 @@ import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
 import com.google.android.gms.auth.api.signin.GoogleSignIn
@@ -64,6 +66,13 @@ enum class AuthPage {
     ForgotPassword
 }
 
+enum class MainTab {
+    Home,
+    Challenges,
+    Notifications,
+    Profile
+}
+
 class MainActivity : ComponentActivity() {
 
     private val viewModel: AuthViewModel by viewModels()
@@ -71,6 +80,8 @@ class MainActivity : ComponentActivity() {
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
 
     override fun onCreate(savedInstanceState: Bundle?) {
+        // Install Android 12+ splash screen using Theme.Rise30.Splash
+        installSplashScreen()
         super.onCreate(savedInstanceState)
 
         // Handle Supabase OAuth/OTP deep links
@@ -105,46 +116,80 @@ class MainActivity : ComponentActivity() {
             }
 
         setContent {
-            var page by remember { mutableStateOf(AuthPage.SignIn) }
-            val state = viewModel.state
+            Rise30Theme {
+                var page by remember { mutableStateOf(AuthPage.SignIn) }
+                var currentTab by remember { mutableStateOf(MainTab.Home) }
+                val state = viewModel.state
 
-            if (state.currentUser != null) {
-                SignedInScreen(
-                    session = state.currentUser,
-                    info = state.info,
-                    onSignOut = { viewModel.signOut() }
-                )
-            } else {
-                when (page) {
-                    AuthPage.SignIn -> SignInScreen(
-                        state = state,
-                        onEmailPasswordLogin = { email, password ->
-                            viewModel.loginWithEmailPassword(email, password)
-                        },
-                        onSendOtp = { email ->
-                            viewModel.sendOtp(email)
-                        },
-                        onGoogleLogin = {
-                            viewModel.onAuthLoading()
-                            googleSignInLauncher.launch(googleSignInClient.signInIntent)
-                        },
-                        onGoToSignUp = { page = AuthPage.SignUp },
-                        onGoToForgotPassword = { page = AuthPage.ForgotPassword }
-                    )
-                    AuthPage.SignUp -> SignUpScreen(
-                        state = state,
-                        onEmailPasswordSignup = { email, password ->
-                            viewModel.signUpWithEmailPassword(email, password)
-                        },
-                        onGoToSignIn = { page = AuthPage.SignIn }
-                    )
-                    AuthPage.ForgotPassword -> ForgotPasswordScreen(
-                        state = state,
-                        onSendReset = { email ->
-                            viewModel.sendPasswordResetEmail(email)
-                        },
-                        onBackToSignIn = { page = AuthPage.SignIn }
-                    )
+                // Reset to Home tab whenever user successfully logs in or signs up
+                LaunchedEffect(state.currentUser) {
+                    if (state.currentUser != null) {
+                        currentTab = MainTab.Home
+                    }
+                }
+
+                if (state.currentUser != null) {
+                    val displayName = state.currentUser.user?.email ?: "Alex"
+                    when (currentTab) {
+                        MainTab.Home -> HomePage(
+                            userName = displayName.substringBefore("@"),
+                            onMarkComplete = { /* TODO: hook into completion flow */ },
+                            onSignOut = { viewModel.signOut() },
+                            currentTab = currentTab,
+                            onTabSelected = { selected -> currentTab = selected }
+                        )
+                        MainTab.Challenges -> ChallengesPage(
+                            userName = displayName.substringBefore("@"),
+                            onStartChallenge = { /* TODO: start challenge flow */ },
+                            currentTab = currentTab,
+                            onTabSelected = { selected -> currentTab = selected }
+                        )
+                        MainTab.Profile -> ProfilePage(
+                            userName = displayName.substringBefore("@"),
+                            onSignOut = { viewModel.signOut() },
+                            currentTab = currentTab,
+                            onTabSelected = { selected -> currentTab = selected }
+                        )
+                        else -> HomePage(
+                            userName = displayName.substringBefore("@"),
+                            onMarkComplete = { /* TODO: hook into completion flow */ },
+                            onSignOut = { viewModel.signOut() },
+                            currentTab = currentTab,
+                            onTabSelected = { selected -> currentTab = selected }
+                        )
+                    }
+                } else {
+                    when (page) {
+                        AuthPage.SignIn -> SignInScreen(
+                            state = state,
+                            onEmailPasswordLogin = { email, password ->
+                                viewModel.loginWithEmailPassword(email, password)
+                            },
+                            onSendOtp = { email ->
+                                viewModel.sendOtp(email)
+                            },
+                            onGoogleLogin = {
+                                viewModel.onAuthLoading()
+                                googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                            },
+                            onGoToSignUp = { page = AuthPage.SignUp },
+                            onGoToForgotPassword = { page = AuthPage.ForgotPassword }
+                        )
+                        AuthPage.SignUp -> SignUpScreen(
+                            state = state,
+                            onEmailPasswordSignup = { email, password ->
+                                viewModel.signUpWithEmailPassword(email, password)
+                            },
+                            onGoToSignIn = { page = AuthPage.SignIn }
+                        )
+                        AuthPage.ForgotPassword -> ForgotPasswordScreen(
+                            state = state,
+                            onSendReset = { email ->
+                                viewModel.sendPasswordResetEmail(email)
+                            },
+                            onBackToSignIn = { page = AuthPage.SignIn }
+                        )
+                    }
                 }
             }
         }

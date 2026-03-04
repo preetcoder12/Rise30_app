@@ -34,6 +34,13 @@ android {
         sourceCompatibility = JavaVersion.VERSION_17
         targetCompatibility = JavaVersion.VERSION_17
     }
+
+    // Include custom launcher icon resources stored under app_logo/android
+    sourceSets {
+        getByName("main") {
+            res.srcDirs("src/main/res", "app_logo/android")
+        }
+    }
 }
 
 kotlin {
@@ -50,6 +57,7 @@ dependencies {
     implementation("androidx.compose.ui:ui")
     implementation("androidx.compose.ui:ui-text")
     implementation("androidx.compose.material3:material3")
+    implementation("androidx.compose.material:material-icons-extended")
     implementation("androidx.compose.ui:ui-tooling-preview")
     debugImplementation("androidx.compose.ui:ui-tooling")
 
@@ -61,6 +69,9 @@ dependencies {
 
     implementation("com.google.android.material:material:1.12.0")
     implementation("io.ktor:ktor-client-android:3.4.0")
+
+    // Android 12+ splash screen compatibility
+    implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Native Google Sign-In (ID token)
     implementation("com.google.android.gms:play-services-auth:21.5.1")

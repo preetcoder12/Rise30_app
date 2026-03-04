@@ -30,7 +30,6 @@ import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.ImeAction
 import androidx.compose.ui.text.input.KeyboardType
@@ -74,7 +73,6 @@ fun SignInScreen(
                 fontSize = 40.sp, // Slightly larger for impact
                 fontWeight = FontWeight.ExtraBold,
                 color = LemonYellow,
-                fontFamily = FontFamily.Serif,
                 textAlign = TextAlign.Center,
                 letterSpacing = 1.sp
             )
