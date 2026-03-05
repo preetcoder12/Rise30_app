@@ -67,6 +67,18 @@ router.post('/', async (req, res) => {
       icon
     } = req.body
 
+    // Ensure user exists in database
+    const user = await prisma.user.findUnique({ where: { id: userId } })
+    if (!user) {
+      // Auto-create user with a placeholder email if not exists
+      await prisma.user.create({
+        data: {
+          id: userId,
+          email: `user_${userId.substring(0, 8)}@rise30.app`
+        }
+      })
+    }
+
     const startDate = new Date()
     const endDate = new Date()
     endDate.setDate(endDate.getDate() + duration)
