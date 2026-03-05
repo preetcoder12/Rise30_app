@@ -271,6 +271,7 @@ fun HomeFloatingBottomBar(
     ) {
         Surface(
             modifier = Modifier
+                .navigationBarsPadding()
                 .padding(bottom = 16.dp)
                 .fillMaxWidth()
                 .padding(horizontal = 24.dp)
@@ -361,8 +362,9 @@ fun HomePage(
             Column(
                 modifier = Modifier
                     .fillMaxSize()
+                    .statusBarsPadding()
                     .verticalScroll(scrollState)
-                    .padding(20.dp)
+                    .padding(horizontal = 20.dp)
             ) {
 
                 TopSection(userName, onSignOut)
