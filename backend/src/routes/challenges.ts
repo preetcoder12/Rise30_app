@@ -22,27 +22,46 @@ router.get('/user/:userId', async (req, res) => {
       orderBy: { createdAt: 'desc' }
     })
 
-    const formattedChallenges = challenges.map(c => ({
-      id: c.id,
-      name: c.name,
-      description: c.description,
-      type: c.type,
-      category: c.category,
-      duration: c.duration,
-      startDate: c.startDate,
-      endDate: c.endDate,
-      targetValue: c.targetValue,
-      unit: c.unit,
-      color: c.color,
-      icon: c.icon,
-      isActive: c.isActive,
-      progress: {
-        completedDays: c._count.dailyTasks,
-        totalDays: c.duration,
-        percentage: Math.round((c._count.dailyTasks / c.duration) * 100),
-        currentStreak: c.streaks[0]?.length || 0
+    const today = new Date()
+    today.setHours(0, 0, 0, 0)
+    
+    const formattedChallenges = challenges.map(c => {
+      // Calculate current day number
+      const startDate = new Date(c.startDate)
+      startDate.setHours(0, 0, 0, 0)
+      const currentDayNumber = Math.min(
+        Math.floor((today.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+        c.duration
+      )
+      
+      // Check if today's task is completed
+      const todayEntry = c.dailyTasks.find(d => d.dayNumber === currentDayNumber)
+      const isTodayCompleted = todayEntry?.completed || false
+      
+      return {
+        id: c.id,
+        name: c.name,
+        description: c.description,
+        type: c.type,
+        category: c.category,
+        duration: c.duration,
+        startDate: c.startDate,
+        endDate: c.endDate,
+        targetValue: c.targetValue,
+        unit: c.unit,
+        color: c.color,
+        icon: c.icon,
+        isActive: c.isActive,
+        progress: {
+          completedDays: c._count.dailyTasks,
+          totalDays: c.duration,
+          percentage: Math.round((c._count.dailyTasks / c.duration) * 100),
+          currentStreak: c.streaks[0]?.length || 0,
+          isTodayCompleted,
+          currentDayNumber
+        }
       }
-    }))
+    })
 
     res.json({ success: true, challenges: formattedChallenges })
   } catch (error) {
@@ -184,6 +203,15 @@ router.post('/:challengeId/day/:dayNumber/toggle', async (req, res) => {
     const { challengeId, dayNumber } = req.params
     const { userId, completed } = req.body
 
+    // Verify challenge belongs to user first
+    const challengeVerify = await prisma.challenge.findFirst({
+      where: { id: challengeId, userId }
+    })
+    
+    if (!challengeVerify) {
+      return res.status(403).json({ success: false, error: 'Challenge not found or access denied' })
+    }
+
     const updatedEntry = await prisma.dailyEntry.updateMany({
       where: {
         challengeId,
@@ -196,7 +224,7 @@ router.post('/:challengeId/day/:dayNumber/toggle', async (req, res) => {
       }
     })
 
-    // Update streak
+    // Update streak - use verified challenge
     const challenge = await prisma.challenge.findUnique({
       where: { id: challengeId },
       include: {
@@ -239,12 +267,13 @@ router.post('/:challengeId/mark-today', async (req, res) => {
     const { challengeId } = req.params
     const { userId } = req.body
 
-    const challenge = await prisma.challenge.findUnique({
-      where: { id: challengeId }
+    // Verify challenge belongs to user
+    const challenge = await prisma.challenge.findFirst({
+      where: { id: challengeId, userId }
     })
 
     if (!challenge) {
-      return res.status(404).json({ success: false, error: 'Challenge not found' })
+      return res.status(404).json({ success: false, error: 'Challenge not found or access denied' })
     }
 
     const currentDay = Math.min(

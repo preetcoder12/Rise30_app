@@ -95,7 +95,9 @@ fun CreateChallengeScreen(
             ) {
                 // Header
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 15.dp, bottom = 15.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     IconButton(onClick = onBack) {
@@ -115,7 +117,7 @@ fun CreateChallengeScreen(
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(20.dp))
+                Spacer(modifier = Modifier.height(5.dp))
                 
                 // Preview Card
                 ChallengePreviewCard(
@@ -404,7 +406,7 @@ fun CreateChallengeScreen(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(96.dp))
+                Spacer(modifier = Modifier.height(106.dp))
             }
             
             HomeFloatingBottomBar(

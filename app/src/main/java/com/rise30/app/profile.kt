@@ -105,24 +105,26 @@ fun ProfilePage(
             ) {
                 // --- Header ---
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 15.dp, bottom = 15.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "Rise30",
                         color = Accent,
-                        fontSize = 26.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.ExtraBold
                     )
                     Text(
                         text = "Monday, July 22", // Should be dynamic in real app
                         color = Color.LightGray,
-                        fontSize = 13.sp
+                        fontSize = 14.sp
                     )
                 }
 
-                Spacer(modifier = Modifier.height(24.dp))
+                Spacer(modifier = Modifier.height(9.dp))
 
                 // --- Profile Info ---
                 Column(
@@ -346,7 +348,7 @@ fun ProfilePage(
                     Text(text = "Sign Out", color = Color.Red)
                 }
 
-                Spacer(modifier = Modifier.height(120.dp))
+                Spacer(modifier = Modifier.height(130.dp))
             }
 
             // Bottom Nav

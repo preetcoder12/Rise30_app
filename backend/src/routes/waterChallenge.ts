@@ -13,6 +13,7 @@ router.post('/create', async (req: Request, res: Response) => {
     }
 
     const start = startDate ? new Date(startDate) : new Date()
+    start.setHours(0, 0, 0, 0)
     const end = new Date(start)
     end.setDate(end.getDate() + 30)
 
@@ -33,17 +34,19 @@ router.post('/create', async (req: Request, res: Response) => {
       }
     })
 
-    // Create daily entries
+    // Create daily entries with normalized dates (midnight UTC)
     const dailyEntries = []
     for (let i = 1; i <= 30; i++) {
       const date = new Date(start)
       date.setDate(date.getDate() + (i - 1))
+      date.setHours(0, 0, 0, 0)
       dailyEntries.push({
         userId,
         challengeId: challenge.id,
         dayNumber: i,
         date,
-        completed: false
+        completed: false,
+        value: 0
       })
     }
     await prisma.dailyEntry.createMany({ data: dailyEntries })
@@ -82,21 +85,19 @@ router.get('/active/:userId', async (req: Request, res: Response) => {
       return res.json({ active: false })
     }
 
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // Calculate current day number
+    const startDate = new Date(challenge.startDate)
+    startDate.setHours(0, 0, 0, 0)
+    const currentDay = Math.min(
+      Math.floor((Date.now() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+      30
+    )
 
-    const todayEntry = challenge.dailyTasks.find((entry: any) => {
-      const entryDate = new Date(entry.date)
-      entryDate.setHours(0, 0, 0, 0)
-      return entryDate.getTime() === today.getTime()
-    })
+    // Find today's entry by day number (more reliable than date comparison)
+    const todayEntry = challenge.dailyTasks.find((entry: any) => entry.dayNumber === currentDay)
 
     const completedDays = challenge.dailyTasks.filter((e: any) => e.completed).length
     const currentStreak = challenge.streaks[0]?.length || 0
-    const currentDay = Math.min(
-      Math.floor((Date.now() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1,
-      30
-    )
 
     res.json({
       active: true,
@@ -121,15 +122,39 @@ router.post('/log', async (req: Request, res: Response) => {
   try {
     const { userId, challengeId, amount } = req.body
     
-    const today = new Date()
-    today.setHours(0, 0, 0, 0)
+    // Verify challenge belongs to user
+    const challengeVerify = await prisma.challenge.findFirst({
+      where: { id: challengeId, userId }
+    })
+    
+    if (!challengeVerify) {
+      return res.status(403).json({ error: 'Challenge not found or access denied' })
+    }
+    
+    const now = new Date()
+    
+    // Calculate current day number based on challenge start date
+    const challenge = await prisma.challenge.findUnique({
+      where: { id: challengeId }
+    })
+    
+    if (!challenge) {
+      return res.status(404).json({ error: 'Challenge not found' })
+    }
+    
+    const startDate = new Date(challenge.startDate)
+    startDate.setHours(0, 0, 0, 0)
+    const currentDayNumber = Math.min(
+      Math.floor((now.getTime() - startDate.getTime()) / (1000 * 60 * 60 * 24)) + 1,
+      challenge.duration
+    )
 
-    // Update or create daily entry
-    const existingEntry = await prisma.dailyEntry.findFirst({
+    // Find existing entry by day number (most reliable)
+    let existingEntry = await prisma.dailyEntry.findFirst({
       where: {
         userId,
         challengeId,
-        date: { gte: today }
+        dayNumber: currentDayNumber
       }
     })
 
@@ -148,12 +173,14 @@ router.post('/log', async (req: Request, res: Response) => {
       })
     } else {
       const completed = amount >= 2.0
+      const todayDate = new Date()
+      todayDate.setHours(0, 0, 0, 0)
       updatedEntry = await prisma.dailyEntry.create({
         data: {
           userId,
           challengeId,
-          dayNumber: Math.floor((Date.now() - today.getTime()) / (1000 * 60 * 60 * 24)) + 1,
-          date: today,
+          dayNumber: currentDayNumber,
+          date: todayDate,
           value: amount,
           completed,
           completedAt: completed ? new Date() : null
@@ -162,7 +189,7 @@ router.post('/log', async (req: Request, res: Response) => {
     }
 
     // Update streak
-    const challenge = await prisma.challenge.findUnique({
+    const challengeWithStreak = await prisma.challenge.findUnique({
       where: { id: challengeId },
       include: {
         dailyTasks: { where: { completed: true } },
@@ -170,8 +197,8 @@ router.post('/log', async (req: Request, res: Response) => {
       }
     })
 
-    if (challenge && challenge.streaks.length > 0) {
-      const completedDays = challenge.dailyTasks
+    if (challengeWithStreak && challengeWithStreak.streaks.length > 0) {
+      const completedDays = challengeWithStreak.dailyTasks
         .map((d: any) => d.dayNumber)
         .sort((a: number, b: number) => a - b)
 
@@ -185,7 +212,7 @@ router.post('/log', async (req: Request, res: Response) => {
       }
 
       await prisma.streak.update({
-        where: { id: challenge.streaks[0].id },
+        where: { id: challengeWithStreak.streaks[0].id },
         data: { length: streak, lastUpdated: new Date() }
       })
     }

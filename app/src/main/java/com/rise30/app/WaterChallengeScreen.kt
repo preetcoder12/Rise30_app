@@ -9,6 +9,10 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -62,9 +66,11 @@ fun WaterChallengeScreen(
     var challengeId by remember { mutableStateOf<String?>(null) }
     var isLoading by remember { mutableStateOf(false) }
     var showAnalytics by remember { mutableStateOf(false) }
+    var refreshTrigger by remember { mutableStateOf(0) }
     
-    // Load initial data
-    LaunchedEffect(userId) {
+    // Load initial data - refresh every time screen is shown
+    LaunchedEffect(userId, refreshTrigger) {
+        isLoading = true
         loadWaterChallengeData(userId) { data ->
             currentAmount = data.todayAmount
             targetAmount = data.todayTarget
@@ -73,6 +79,7 @@ fun WaterChallengeScreen(
             completedDays = data.completedDays
             currentStreak = data.currentStreak
             challengeId = data.challengeId
+            isLoading = false
         }
     }
     
@@ -93,7 +100,9 @@ fun WaterChallengeScreen(
             ) {
                 // Header
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 15.dp, bottom = 15.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
@@ -171,6 +180,8 @@ fun WaterChallengeScreen(
                                         if (updatedAmount >= targetAmount && currentAmount < targetAmount) {
                                             completedDays = (completedDays + 1).coerceAtMost(totalDays)
                                         }
+                                        // Refresh data from server to ensure consistency
+                                        refreshTrigger++
                                     }
                                 }
                             }
@@ -196,7 +207,7 @@ fun WaterChallengeScreen(
                     WaterTipsCard()
                 }
                 
-                Spacer(modifier = Modifier.height(96.dp))
+                Spacer(modifier = Modifier.height(106.dp))
             }
             
             HomeFloatingBottomBar(
@@ -398,9 +409,11 @@ private fun WaterAddButton(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Text(
-                text = "💧",
-                fontSize = 24.sp
+            Icon(
+                imageVector = Icons.Filled.WaterDrop,
+                contentDescription = "Water",
+                tint = Color(0xFF4FC3F7),
+                modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
@@ -516,9 +529,11 @@ private fun StreakCard(streak: Int) {
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "🔥",
-                    fontSize = 28.sp
+                Icon(
+                    imageVector = Icons.Filled.LocalFireDepartment,
+                    contentDescription = "Streak",
+                    tint = Color.White,
+                    modifier = Modifier.size(28.dp)
                 )
             }
             
@@ -712,9 +727,11 @@ private fun WaterAnalyticsSection(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "💧",
-                    fontSize = 40.sp
+                Icon(
+                    imageVector = Icons.Filled.WaterDrop,
+                    contentDescription = "Total Water",
+                    tint = WaterBlue,
+                    modifier = Modifier.size(40.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 Text(

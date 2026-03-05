@@ -11,14 +11,20 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
+import androidx.compose.material.icons.automirrored.filled.ArrowBack
+import androidx.compose.material.icons.filled.BarChart
+import androidx.compose.material.icons.filled.LocalFireDepartment
+import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -224,7 +230,7 @@ fun ChallengeDetailScreen(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(96.dp))
+                    Spacer(modifier = Modifier.height(106.dp))
                 }
             }
             
@@ -270,38 +276,65 @@ private fun ChallengeDetailHeader(
     onToggleAnalytics: () -> Unit
 ) {
     Row(
-        modifier = Modifier.fillMaxWidth(),
+        modifier = Modifier
+            .fillMaxWidth()
+            .padding(top = 23.dp, bottom = 23.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        TextButton(onClick = onBack) {
-            Text(
-                text = "← Back",
-                color = challengeColor,
-                fontSize = 16.sp
+        // Back Button with glassmorphism effect
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(Color.White.copy(alpha = 0.08f))
+                .clickable(onClick = onBack),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
+                contentDescription = "Back",
+                tint = Color.White,
+                modifier = Modifier.size(24.dp)
             )
         }
         
-        Row(verticalAlignment = Alignment.CenterVertically) {
+        // Title with icon
+        Row(
+            verticalAlignment = Alignment.CenterVertically,
+            modifier = Modifier
+                .clip(RoundedCornerShape(16.dp))
+                .background(Color.White.copy(alpha = 0.05f))
+                .padding(horizontal = 16.dp, vertical = 8.dp)
+        ) {
             Text(
                 text = challengeIcon,
-                fontSize = 24.sp,
+                fontSize = 20.sp,
                 modifier = Modifier.padding(end = 8.dp)
             )
             Text(
                 text = challengeName,
                 color = Color.White,
                 fontSize = 18.sp,
-                fontWeight = FontWeight.Bold,
+                fontWeight = FontWeight.SemiBold,
                 maxLines = 1
             )
         }
         
-        TextButton(onClick = onToggleAnalytics) {
-            Text(
-                text = "Stats",
-                color = challengeColor,
-                fontSize = 14.sp
+        // Stats Button
+        Box(
+            modifier = Modifier
+                .size(44.dp)
+                .clip(CircleShape)
+                .background(challengeColor.copy(alpha = 0.15f))
+                .clickable(onClick = onToggleAnalytics),
+            contentAlignment = Alignment.Center
+        ) {
+            Icon(
+                imageVector = Icons.Filled.BarChart,
+                contentDescription = "Analytics",
+                tint = challengeColor,
+                modifier = Modifier.size(22.dp)
             )
         }
     }
@@ -317,16 +350,28 @@ private fun ChallengeProgressOverview(
     val percentage = progress?.percentage ?: 0
     val animatedProgress by animateFloatAsState(
         targetValue = percentage / 100f,
-        animationSpec = tween(1000, easing = FastOutSlowInEasing),
+        animationSpec = tween(1500, easing = FastOutSlowInEasing),
         label = "progress"
     )
     
-    Card(
+    // Premium gradient card
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(horizontal = 8.dp),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(24.dp)
+            .padding(horizontal = 4.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        CardDark,
+                        CardDark.copy(alpha = 0.95f),
+                        challengeColor.copy(alpha = 0.08f)
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
+                )
+            )
+            .padding(1.dp)
     ) {
         Column(
             modifier = Modifier
@@ -334,85 +379,167 @@ private fun ChallengeProgressOverview(
                 .padding(24.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            // Icon and Title
-            Box(
-                modifier = Modifier
-                    .size(80.dp)
-                    .clip(CircleShape)
-                    .background(challengeColor.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
+            // Top Row: Icon and Quick Stats
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text(
-                    text = challengeIcon,
-                    fontSize = 40.sp
-                )
+                // Animated Icon
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(
+                            brush = Brush.radialGradient(
+                                colors = listOf(
+                                    challengeColor.copy(alpha = 0.3f),
+                                    challengeColor.copy(alpha = 0.1f)
+                                )
+                            )
+                        ),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = challengeIcon,
+                        fontSize = 32.sp
+                    )
+                }
+                
+                // Quick Stats
+                Row(horizontalArrangement = Arrangement.spacedBy(16.dp)) {
+                    QuickStat(
+                        value = "${progress?.completedDays ?: 0}",
+                        label = "Done",
+                        color = challengeColor
+                    )
+                    QuickStat(
+                        value = "${progress?.currentStreak ?: 0}",
+                        label = "Streak",
+                        color = challengeColor
+                    )
+                }
             }
             
-            Spacer(modifier = Modifier.height(16.dp))
+            Spacer(modifier = Modifier.height(20.dp))
             
-            // Progress Circle
+            // Premium Progress Circle with Glow
             Box(
-                modifier = Modifier.size(140.dp),
+                modifier = Modifier.size(160.dp),
                 contentAlignment = Alignment.Center
             ) {
+                // Outer glow
+                Box(
+                    modifier = Modifier
+                        .size(156.dp)
+                        .clip(CircleShape)
+                        .background(challengeColor.copy(alpha = 0.1f))
+                )
+                
+                // Background track
                 CircularProgressIndicator(
                     progress = { 1f },
                     modifier = Modifier.fillMaxSize(),
                     color = Color(0xFF2A2A30),
-                    strokeWidth = 12.dp,
+                    strokeWidth = 14.dp,
                     trackColor = Color.Transparent
                 )
+                
+                // Progress indicator with gradient effect
                 CircularProgressIndicator(
                     progress = { animatedProgress },
                     modifier = Modifier.fillMaxSize(),
                     color = challengeColor,
-                    strokeWidth = 12.dp,
-                    trackColor = Color.Transparent
+                    strokeWidth = 14.dp,
+                    trackColor = Color.Transparent,
+                    strokeCap = StrokeCap.Round
                 )
+                
+                // Center content
                 Column(horizontalAlignment = Alignment.CenterHorizontally) {
                     Text(
                         text = "$percentage%",
                         color = Color.White,
-                        fontSize = 32.sp,
+                        fontSize = 36.sp,
                         fontWeight = FontWeight.Bold
                     )
                     Text(
-                        text = "${progress?.completedDays ?: 0}/${progress?.totalDays ?: 30}",
+                        text = "COMPLETED",
                         color = Color.Gray,
-                        fontSize = 14.sp
+                        fontSize = 11.sp,
+                        letterSpacing = 2.sp
                     )
                 }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
             
-            // Current Day Info
-            Text(
-                text = "Day ${progress?.currentDay ?: 1} of ${progress?.totalDays ?: 30}",
-                color = Color.Gray,
-                fontSize = 16.sp
-            )
-            
-            Spacer(modifier = Modifier.height(16.dp))
-            
-            // Mark Today Button
-            Button(
-                onClick = onMarkToday,
-                shape = RoundedCornerShape(20.dp),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = challengeColor,
-                    contentColor = Color.Black
-                ),
-                modifier = Modifier.fillMaxWidth()
+            // Day indicator pill
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(20.dp))
+                    .background(Color.White.copy(alpha = 0.06f))
+                    .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
                 Text(
-                    text = "✓ Mark Today Complete",
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    modifier = Modifier.padding(vertical = 4.dp)
+                    text = "Day ${progress?.currentDay ?: 1} of ${progress?.totalDays ?: 30}",
+                    color = Color.White,
+                    fontSize = 14.sp,
+                    fontWeight = FontWeight.Medium
                 )
             }
+            
+            Spacer(modifier = Modifier.height(20.dp))
+            
+            // Premium Mark Today Button
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(52.dp)
+                    .clip(RoundedCornerShape(16.dp))
+                    .background(challengeColor)
+                    .clickable(onClick = onMarkToday),
+                contentAlignment = Alignment.Center
+            ) {
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    Text(
+                        text = "✓",
+                        color = Color.Black,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold,
+                        modifier = Modifier.padding(end = 8.dp)
+                    )
+                    Text(
+                        text = "Mark Today Complete",
+                        color = Color.Black,
+                        fontSize = 16.sp,
+                        fontWeight = FontWeight.SemiBold
+                    )
+                }
+            }
         }
+    }
+}
+
+@Composable
+private fun QuickStat(
+    value: String,
+    label: String,
+    color: Color
+) {
+    Column(horizontalAlignment = Alignment.CenterHorizontally) {
+        Text(
+            text = value,
+            color = color,
+            fontSize = 24.sp,
+            fontWeight = FontWeight.Bold
+        )
+        Text(
+            text = label,
+            color = Color.Gray,
+            fontSize = 11.sp,
+            letterSpacing = 1.sp
+        )
     }
 }
 
@@ -424,42 +551,86 @@ private fun ChallengeDayGrid(
     onDayClick: (DayEntry) -> Unit
 ) {
     Column {
-        Text(
-            text = "30-Day Tracker",
-            color = Color.White,
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold
-        )
-        
-        Spacer(modifier = Modifier.height(12.dp))
-        
-        Card(
+        // Premium Header
+        Row(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = CardDark),
-            shape = RoundedCornerShape(20.dp)
+            horizontalArrangement = Arrangement.SpaceBetween,
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Column(modifier = Modifier.padding(16.dp)) {
-                // Legend
+            Text(
+                text = "30-Day Journey",
+                color = Color.White,
+                fontSize = 20.sp,
+                fontWeight = FontWeight.Bold
+            )
+            
+            // Progress mini indicator
+            Box(
+                modifier = Modifier
+                    .clip(RoundedCornerShape(12.dp))
+                    .background(challengeColor.copy(alpha = 0.15f))
+                    .padding(horizontal = 12.dp, vertical = 6.dp)
+            ) {
+                Text(
+                    text = "${dayEntries.count { it.completed }}/30",
+                    color = challengeColor,
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
+        }
+        
+        Spacer(modifier = Modifier.height(16.dp))
+        
+        // Premium Card with subtle gradient
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(24.dp))
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            CardDark,
+                            CardDark.copy(alpha = 0.98f)
+                        )
+                    )
+                )
+                .padding(20.dp)
+        ) {
+            Column {
+                // Modern Legend
                 Row(
                     modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    horizontalArrangement = Arrangement.SpaceBetween
                 ) {
-                    LegendItem(color = challengeColor, label = "Completed")
-                    LegendItem(color = Color(0xFF2A2A30), label = "Pending")
-                    LegendItem(color = challengeColor.copy(alpha = 0.5f), label = "Today")
+                    ModernLegendItem(
+                        color = challengeColor,
+                        label = "Done",
+                        icon = "✓"
+                    )
+                    ModernLegendItem(
+                        color = Color(0xFF3A3A40),
+                        label = "Upcoming",
+                        icon = "○"
+                    )
+                    ModernLegendItem(
+                        color = challengeColor.copy(alpha = 0.4f),
+                        label = "Today",
+                        icon = "◉"
+                    )
                 }
                 
-                Spacer(modifier = Modifier.height(16.dp))
+                Spacer(modifier = Modifier.height(20.dp))
                 
-                // Day Grid - 6 columns x 5 rows
+                // Premium Day Grid - 6 columns x 5 rows
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(6),
-                    modifier = Modifier.height(300.dp),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp),
-                    verticalArrangement = Arrangement.spacedBy(8.dp)
+                    modifier = Modifier.height(320.dp),
+                    horizontalArrangement = Arrangement.spacedBy(10.dp),
+                    verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     items(dayEntries) { day ->
-                        DayCell(
+                        PremiumDayCell(
                             day = day,
                             isToday = day.dayNumber == currentDay,
                             challengeColor = challengeColor,
@@ -473,7 +644,7 @@ private fun ChallengeDayGrid(
 }
 
 @Composable
-private fun DayCell(
+private fun PremiumDayCell(
     day: DayEntry,
     isToday: Boolean,
     challengeColor: Color,
@@ -482,47 +653,115 @@ private fun DayCell(
     val backgroundColor by animateColorAsState(
         targetValue = when {
             day.completed -> challengeColor
-            isToday -> challengeColor.copy(alpha = 0.3f)
+            isToday -> challengeColor.copy(alpha = 0.25f)
             else -> Color(0xFF2A2A30)
         },
+        animationSpec = tween(300),
         label = "dayBackground"
     )
     
     val scale by animateFloatAsState(
-        targetValue = if (isToday) 1.1f else 1f,
+        targetValue = if (isToday) 1.08f else 1f,
         animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
         label = "dayScale"
     )
     
+    val glowAlpha by animateFloatAsState(
+        targetValue = if (isToday) 0.6f else 0f,
+        animationSpec = tween(400),
+        label = "glowAlpha"
+    )
+    
     Box(
         modifier = Modifier
-            .size(44.dp)
-            .scale(scale)
-            .clip(RoundedCornerShape(12.dp))
-            .background(backgroundColor)
-            .border(
-                width = if (isToday) 2.dp else 0.dp,
-                color = if (isToday) challengeColor else Color.Transparent,
-                shape = RoundedCornerShape(12.dp)
-            )
-            .clickable(onClick = onClick),
+            .size(48.dp)
+            .scale(scale),
         contentAlignment = Alignment.Center
     ) {
-        if (day.completed) {
-            Icon(
-                imageVector = Icons.Default.Check,
-                contentDescription = "Completed",
-                tint = Color.Black,
-                modifier = Modifier.size(20.dp)
-            )
-        } else {
-            Text(
-                text = day.dayNumber.toString(),
-                color = if (isToday) challengeColor else Color.Gray,
-                fontSize = 14.sp,
-                fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
+        // Glow effect for today
+        if (isToday) {
+            Box(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .clip(RoundedCornerShape(14.dp))
+                    .background(challengeColor.copy(alpha = glowAlpha * 0.3f))
             )
         }
+        
+        // Main cell
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .clip(RoundedCornerShape(14.dp))
+                .background(backgroundColor)
+                .border(
+                    width = when {
+                        isToday -> 2.dp
+                        day.completed -> 0.dp
+                        else -> 1.dp
+                    },
+                    color = when {
+                        isToday -> challengeColor
+                        day.completed -> Color.Transparent
+                        else -> Color(0xFF3A3A40)
+                    },
+                    shape = RoundedCornerShape(14.dp)
+                )
+                .clickable(onClick = onClick),
+            contentAlignment = Alignment.Center
+        ) {
+            if (day.completed) {
+                // Premium checkmark
+                Box(
+                    modifier = Modifier
+                        .size(24.dp)
+                        .clip(CircleShape)
+                        .background(Color.Black.copy(alpha = 0.2f)),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = "✓",
+                        color = Color.Black,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            } else {
+                Text(
+                    text = day.dayNumber.toString(),
+                    color = when {
+                        isToday -> challengeColor
+                        else -> Color(0xFF888888)
+                    },
+                    fontSize = 13.sp,
+                    fontWeight = if (isToday) FontWeight.Bold else FontWeight.Medium
+                )
+            }
+        }
+    }
+}
+
+@Composable
+private fun ModernLegendItem(color: Color, label: String, icon: String) {
+    Row(
+        verticalAlignment = Alignment.CenterVertically,
+        modifier = Modifier
+            .clip(RoundedCornerShape(8.dp))
+            .background(Color.White.copy(alpha = 0.03f))
+            .padding(horizontal = 8.dp, vertical = 5.dp)
+    ) {
+        Box(
+            modifier = Modifier
+                .size(8.dp)
+                .clip(CircleShape)
+                .background(color)
+        )
+        Spacer(modifier = Modifier.width(5.dp))
+        Text(
+            text = label,
+            color = Color.Gray,
+            fontSize = 11.sp
+        )
     }
 }
 
@@ -549,50 +788,109 @@ private fun ChallengeStreakCard(
     currentStreak: Int,
     challengeColor: Color
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(20.dp)
+    // Premium streak card with animated gradient
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(24.dp))
+            .background(
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        CardDark,
+                        challengeColor.copy(alpha = 0.08f)
+                    ),
+                    start = Offset(0f, 0f),
+                    end = Offset(Float.POSITIVE_INFINITY, 0f)
+                )
+            )
+            .padding(1.dp)
     ) {
         Row(
-            modifier = Modifier.padding(20.dp),
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Animated fire icon container
             Box(
                 modifier = Modifier
-                    .size(60.dp)
+                    .size(64.dp)
                     .clip(CircleShape)
                     .background(
-                        Brush.linearGradient(
-                            colors = listOf(challengeColor, challengeColor.copy(alpha = 0.7f))
+                        brush = Brush.radialGradient(
+                            colors = listOf(
+                                challengeColor.copy(alpha = 0.4f),
+                                challengeColor.copy(alpha = 0.1f)
+                            )
                         )
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "🔥",
-                    fontSize = 32.sp
+                // Pulsing animation for the fire
+                val infiniteTransition = rememberInfiniteTransition(label = "fire")
+                val scale by infiniteTransition.animateFloat(
+                    initialValue = 1f,
+                    targetValue = 1.1f,
+                    animationSpec = infiniteRepeatable(
+                        animation = tween(1000, easing = FastOutSlowInEasing),
+                        repeatMode = RepeatMode.Reverse
+                    ),
+                    label = "fireScale"
+                )
+                
+                Icon(
+                    imageVector = Icons.Filled.LocalFireDepartment,
+                    contentDescription = "Streak",
+                    tint = challengeColor,
+                    modifier = Modifier.size(36.dp).scale(scale)
                 )
             }
             
             Spacer(modifier = Modifier.width(16.dp))
             
-            Column {
-                Text(
-                    text = "$currentStreak Day Streak",
-                    color = Color.White,
-                    fontSize = 20.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(4.dp))
+            Column(modifier = Modifier.weight(1f)) {
+                Row(verticalAlignment = Alignment.Bottom) {
+                    Text(
+                        text = "$currentStreak",
+                        color = challengeColor,
+                        fontSize = 32.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Text(
+                        text = " Day Streak",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.SemiBold,
+                        modifier = Modifier.padding(bottom = 4.dp)
+                    )
+                }
+                Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = if (currentStreak > 0) 
-                        "Keep going! You're building a great habit!" 
+                        "🔥 Keep the momentum going!" 
                     else 
-                        "Start your streak by completing today's task!",
+                        "✨ Start your streak today!",
                     color = Color.Gray,
-                    fontSize = 14.sp
+                    fontSize = 13.sp
                 )
+            }
+            
+            // Streak badge
+            if (currentStreak >= 7) {
+                Box(
+                    modifier = Modifier
+                        .clip(RoundedCornerShape(12.dp))
+                        .background(challengeColor.copy(alpha = 0.2f))
+                        .padding(horizontal = 12.dp, vertical = 8.dp)
+                ) {
+                    Text(
+                        text = "ON FIRE!",
+                        color = challengeColor,
+                        fontSize = 11.sp,
+                        fontWeight = FontWeight.Bold,
+                        letterSpacing = 1.sp
+                    )
+                }
             }
         }
     }
@@ -687,9 +985,11 @@ private fun ChallengeAnalyticsSection(
                 modifier = Modifier.padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Text(
-                    text = "💪",
-                    fontSize = 48.sp
+                Icon(
+                    imageVector = Icons.Filled.FitnessCenter,
+                    contentDescription = "Motivation",
+                    tint = challengeColor,
+                    modifier = Modifier.size(48.dp)
                 )
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(

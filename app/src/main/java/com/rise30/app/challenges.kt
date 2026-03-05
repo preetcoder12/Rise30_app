@@ -9,8 +9,11 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
+import androidx.compose.material.icons.filled.EmojiEvents
+import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -60,19 +63,22 @@ fun ChallengesPage(
     var challenges by remember { mutableStateOf<List<ChallengeSummary>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
+    var refreshTrigger by remember { mutableStateOf(0) }
     
     // Load challenges from real database
-    LaunchedEffect(userId) {
-        isLoading = true
-        errorMessage = null
-        try {
-            loadUserChallengesFromApi(userId) { loadedChallenges ->
-                challenges = loadedChallenges
+    LaunchedEffect(userId, refreshTrigger, currentTab) {
+        if (currentTab == MainTab.Challenges) {
+            isLoading = true
+            errorMessage = null
+            try {
+                loadUserChallengesFromApi(userId) { loadedChallenges ->
+                    challenges = loadedChallenges
+                    isLoading = false
+                }
+            } catch (e: Exception) {
+                errorMessage = "Failed to load challenges: ${e.message}"
                 isLoading = false
             }
-        } catch (e: Exception) {
-            errorMessage = "Failed to load challenges: ${e.message}"
-            isLoading = false
         }
     }
     
@@ -98,14 +104,16 @@ fun ChallengesPage(
             ) {
                 // Header
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(top = 15.dp, bottom = 15.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "My Challenges",
                         color = Color.White,
-                        fontSize = 22.sp,
+                        fontSize = 20.sp,
                         fontWeight = FontWeight.Bold
                     )
                     
@@ -117,16 +125,20 @@ fun ChallengesPage(
                     )
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(3.dp))
                 
-                // Featured Water Challenge Card
-                WaterChallengeCard(onStartWaterChallenge)
+                // Featured Water Challenge Card - only show if no water challenge exists
+                val hasWaterChallenge = challenges.any { it.type == "water" }
+                if (!hasWaterChallenge) {
+                    WaterChallengeCard(onStartWaterChallenge)
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
 
-                Spacer(modifier = Modifier.height(20.dp))
-
-                // Category tabs
+                // Category tabs - horizontally scrollable
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
                     categories.forEach { category ->
@@ -138,7 +150,7 @@ fun ChallengesPage(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(18.dp))
+                Spacer(modifier = Modifier.height(5.dp))
 
                 // Challenges List
                 if (isLoading) {
@@ -165,7 +177,7 @@ fun ChallengesPage(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(96.dp))
+                Spacer(modifier = Modifier.height(106.dp))
             }
 
             // FAB for creating new challenge
@@ -173,7 +185,7 @@ fun ChallengesPage(
                 onClick = onCreateChallenge,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 20.dp, bottom = 100.dp),
+                    .padding(end = 20.dp, bottom = 140.dp),
                 containerColor = Accent,
                 contentColor = Color.Black,
                 shape = RoundedCornerShape(16.dp)
@@ -288,9 +300,11 @@ private fun EmptyChallengesView(
                 .padding(32.dp),
             horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Text(
-                text = "🎯",
-                fontSize = 48.sp
+            Icon(
+                imageVector = Icons.Filled.EmojiEvents,
+                contentDescription = "No Challenges",
+                tint = Accent,
+                modifier = Modifier.size(48.dp)
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
@@ -384,7 +398,9 @@ data class ChallengeProgressData(
     val completedDays: Int,
     val totalDays: Int,
     val percentage: Int,
-    val currentStreak: Int
+    val currentStreak: Int,
+    val isTodayCompleted: Boolean = false,
+    val currentDayNumber: Int = 1
 )
 
 @Composable
@@ -406,14 +422,14 @@ private fun WaterChallengeCard(
                 Text(
                     text = "Health & Wellness",
                     color = Color(0xFF4FC3F7),
-                    fontSize = 12.sp,
+                    fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = "30-Day Water Challenge",
                     color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = 18.sp,
                     fontWeight = FontWeight.SemiBold
                 )
                 Spacer(modifier = Modifier.height(4.dp))
@@ -458,9 +474,11 @@ private fun WaterChallengeCard(
                     .background(Color(0xFF1E3A5F)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = "💧",
-                    fontSize = 48.sp
+                Icon(
+                    imageVector = Icons.Filled.WaterDrop,
+                    contentDescription = "Water",
+                    tint = Color(0xFF4FC3F7),
+                    modifier = Modifier.size(48.dp)
                 )
             }
         }

@@ -60,6 +60,8 @@ data class CategoryStat(
     val completed: Int
 )
 
+// Using ChallengeSummary and ChallengesResponse from challenges.kt
+
 @Composable
 private fun TopSection(
     userName: String,
@@ -67,7 +69,8 @@ private fun TopSection(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(top = 15.dp, bottom = 15.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -77,13 +80,13 @@ private fun TopSection(
             Text(
                 text = "Welcome back,",
                 color = Color.Gray,
-                fontSize = 14.sp
+                fontSize = 16.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = userName,
                 color = Color.White,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -103,12 +106,21 @@ private fun TopSection(
 
 @Composable
 private fun MainChallengeCard(
-    currentDay: Int,
-    totalDays: Int,
+    challenge: ChallengeApiData?,
     onMarkComplete: () -> Unit
 ) {
+    val currentDay = challenge?.progress?.completedDays ?: 0
+    val totalDays = challenge?.progress?.totalDays ?: challenge?.duration ?: 30
     val progress = remember(currentDay, totalDays) {
         (currentDay.coerceAtLeast(0).coerceAtMost(totalDays).toFloat() / totalDays.coerceAtLeast(1))
+    }
+    
+    val challengeColor = remember(challenge?.color) {
+        try {
+            Color(android.graphics.Color.parseColor(challenge?.color ?: "#FFD54F"))
+        } catch (e: Exception) {
+            Accent
+        }
     }
 
     Card(
@@ -135,13 +147,13 @@ private fun MainChallengeCard(
 
                     // Background circle
                     drawCircle(
-                        color = AccentSoft,
+                        color = challengeColor.copy(alpha = 0.2f),
                         style = Stroke(width = strokeWidth)
                     )
 
                     // Progress arc
                     drawArc(
-                        color = Accent,
+                        color = challengeColor,
                         startAngle = -90f,
                         sweepAngle = 360f * progress,
                         useCenter = false,
@@ -169,29 +181,39 @@ private fun MainChallengeCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Rise30 Focus Challenge",
+                    text = challenge?.name ?: "No Active Challenge",
                     color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Lock in one deep-work block every day for 30 days.",
+                    text = challenge?.description ?: "Create a challenge to start your journey!",
                     color = Color.Gray,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    maxLines = 2
                 )
                 Spacer(modifier = Modifier.height(12.dp))
+                
+                val isTodayCompleted = challenge?.progress?.isTodayCompleted ?: false
+                
                 Button(
                     onClick = onMarkComplete,
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Accent,
+                        containerColor = if (isTodayCompleted) Color(0xFF4CAF50) else challengeColor,
                         contentColor = Color.Black
                     ),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    enabled = challenge != null && !isTodayCompleted
                 ) {
                     Text(
-                        text = "Mark today complete",
+                        text = when {
+                            challenge == null -> "Create Challenge"
+                            isTodayCompleted -> "Daily Task Completed ✓"
+                            else -> "Mark Complete Today"
+                        },
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -336,7 +358,7 @@ fun HomeFloatingBottomBar(
         Box(
             modifier = Modifier
                 .navigationBarsPadding()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 26.dp)
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
                 .height(72.dp)
@@ -502,6 +524,29 @@ fun HomePage(
     onTabSelected: (MainTab) -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    
+    // State for user's most recent challenge
+    var recentChallenge by remember { mutableStateOf<ChallengeApiData?>(null) }
+    var isLoadingChallenge by remember { mutableStateOf(true) }
+    
+    // Load user's challenges
+    LaunchedEffect(userId) {
+        scope.launch {
+            try {
+                val response: ChallengesResponse = httpClient.get("$BASE_URL/api/challenges/user/$userId").body()
+                if (response.success && response.challenges.isNotEmpty()) {
+                    // Get the first active challenge, or the first challenge if none are active
+                    recentChallenge = response.challenges
+                        .firstOrNull { it.isActive } 
+                        ?: response.challenges.firstOrNull()
+                }
+            } catch (e: Exception) {
+                // Keep null on error
+            }
+            isLoadingChallenge = false
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -521,8 +566,7 @@ fun HomePage(
                 Spacer(modifier = Modifier.height(30.dp))
 
                 MainChallengeCard(
-                    currentDay = 12,
-                    totalDays = 30,
+                    challenge = recentChallenge,
                     onMarkComplete = onMarkComplete
                 )
 
