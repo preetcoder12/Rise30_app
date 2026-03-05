@@ -203,6 +203,7 @@ class MainActivity : ComponentActivity() {
                                 ) { tab ->
                                     when (tab) {
                                         MainTab.Home -> HomePage(
+                                            userId = userId,
                                             userName = displayName.substringBefore("@"),
                                             onMarkComplete = { },
                                             onSignOut = { viewModel.signOut() },
@@ -232,6 +233,7 @@ class MainActivity : ComponentActivity() {
                                             onTabSelected = { selected -> currentTab = selected }
                                         )
                                         MainTab.Profile -> ProfilePage(
+                                            userId = userId,
                                             userName = displayName.substringBefore("@"),
                                             onSignOut = { viewModel.signOut() },
                                             currentTab = currentTab,

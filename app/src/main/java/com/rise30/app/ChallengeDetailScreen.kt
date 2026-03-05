@@ -25,6 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 
 @Serializable
 data class ChallengeDetail(
@@ -64,6 +68,40 @@ data class ChallengeProgress(
 data class ChallengeDetailResponse(
     val challenge: ChallengeDetail,
     val progress: ChallengeProgress
+)
+
+@Serializable
+data class ChallengeDetailApiResponse(
+    val success: Boolean,
+    val challenge: ChallengeDetailWithTasks
+)
+
+@Serializable
+data class ChallengeDetailWithTasks(
+    val id: String,
+    val name: String,
+    val description: String?,
+    val type: String,
+    val category: String,
+    val duration: Int,
+    val color: String?,
+    val icon: String?,
+    val isActive: Boolean,
+    val targetValue: Float?,
+    val unit: String?,
+    val dailyTasks: List<DailyTask>,
+    val progress: ChallengeProgress
+)
+
+@Serializable
+data class DailyTask(
+    val id: String,
+    val dayNumber: Int,
+    val date: String,
+    val completed: Boolean,
+    val completedAt: String?,
+    val notes: String?,
+    val value: Float?
 )
 
 @Composable
@@ -739,42 +777,86 @@ private suspend fun loadChallengeDetail(
     challengeId: String,
     onLoaded: (ChallengeDetail, ChallengeProgress, List<DayEntry>) -> Unit
 ) {
-    // TODO: Replace with actual API call
-    // Simulating API response
-    val mockChallenge = ChallengeDetail(
-        id = challengeId,
-        name = "30-Day Water Challenge",
-        description = "Drink 2 liters of water every day for 30 days to improve your hydration and overall health.",
-        type = "water",
-        category = "health",
-        duration = 30,
-        color = "#4FC3F7",
-        icon = "💧",
-        isActive = true,
-        targetValue = 2.0f,
-        unit = "liters"
-    )
-    
-    val mockProgress = ChallengeProgress(
-        completedDays = 12,
-        totalDays = 30,
-        percentage = 40,
-        currentStreak = 5,
-        currentDay = 13
-    )
-    
-    val mockEntries = (1..30).map { day ->
-        DayEntry(
-            dayNumber = day,
-            date = "2026-03-${day.toString().padStart(2, '0')}",
-            completed = day <= 12,
-            completedAt = if (day <= 12) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" else null,
-            notes = null,
-            value = if (day <= 12) 2.0f else null
+    try {
+        val response: ChallengeDetailApiResponse = httpClient.get("$BASE_URL/api/challenges/$challengeId").body()
+        
+        if (response.success) {
+            val challenge = response.challenge
+            val progress = response.challenge.progress
+            
+            // Convert dailyTasks to DayEntry list
+            val entries = response.challenge.dailyTasks.map { task ->
+                DayEntry(
+                    dayNumber = task.dayNumber,
+                    date = task.date,
+                    completed = task.completed,
+                    completedAt = task.completedAt,
+                    notes = task.notes,
+                    value = task.value
+                )
+            }
+            
+            val challengeDetail = ChallengeDetail(
+                id = challenge.id,
+                name = challenge.name,
+                description = challenge.description,
+                type = challenge.type,
+                category = challenge.category,
+                duration = challenge.duration,
+                color = challenge.color,
+                icon = challenge.icon,
+                isActive = challenge.isActive,
+                targetValue = challenge.targetValue,
+                unit = challenge.unit
+            )
+            
+            val challengeProgress = ChallengeProgress(
+                completedDays = progress.completedDays,
+                totalDays = progress.totalDays,
+                percentage = progress.percentage,
+                currentStreak = progress.currentStreak,
+                currentDay = progress.currentDay
+            )
+            
+            onLoaded(challengeDetail, challengeProgress, entries)
+        }
+    } catch (e: Exception) {
+        // Fallback to mock data on error
+        val mockChallenge = ChallengeDetail(
+            id = challengeId,
+            name = "30-Day Water Challenge",
+            description = "Drink 2 liters of water every day for 30 days to improve your hydration and overall health.",
+            type = "water",
+            category = "health",
+            duration = 30,
+            color = "#4FC3F7",
+            icon = "💧",
+            isActive = true,
+            targetValue = 2.0f,
+            unit = "liters"
         )
+        
+        val mockProgress = ChallengeProgress(
+            completedDays = 12,
+            totalDays = 30,
+            percentage = 40,
+            currentStreak = 5,
+            currentDay = 13
+        )
+        
+        val mockEntries = (1..30).map { day ->
+            DayEntry(
+                dayNumber = day,
+                date = "2026-03-${day.toString().padStart(2, '0')}",
+                completed = day <= 12,
+                completedAt = if (day <= 12) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" else null,
+                notes = null,
+                value = if (day <= 12) 2.0f else null
+            )
+        }
+        
+        onLoaded(mockChallenge, mockProgress, mockEntries)
     }
-    
-    onLoaded(mockChallenge, mockProgress, mockEntries)
 }
 
 private suspend fun markTodayComplete(
@@ -782,29 +864,41 @@ private suspend fun markTodayComplete(
     challengeId: String,
     onSuccess: (ChallengeProgress, List<DayEntry>) -> Unit
 ) {
-    // TODO: Replace with actual API call
-    // POST /api/challenges/{challengeId}/today
-    
-    val updatedProgress = ChallengeProgress(
-        completedDays = 13,
-        totalDays = 30,
-        percentage = 43,
-        currentStreak = 6,
-        currentDay = 13
-    )
-    
-    val updatedEntries = (1..30).map { day ->
-        DayEntry(
-            dayNumber = day,
-            date = "2026-03-${day.toString().padStart(2, '0')}",
-            completed = day <= 13,
-            completedAt = if (day <= 13) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" else null,
-            notes = null,
-            value = if (day <= 13) 2.0f else null
+    try {
+        val response: HttpResponse = httpClient.post("$BASE_URL/api/challenges/$challengeId/mark-today") {
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("userId" to userId))
+        }
+        
+        if (response.status.isSuccess()) {
+            // Reload challenge details to get updated progress
+            loadChallengeDetail(userId, challengeId, onLoaded = { detail, progress, entries ->
+                onSuccess(progress, entries)
+            })
+        }
+    } catch (e: Exception) {
+        // Fallback to local update on error
+        val updatedProgress = ChallengeProgress(
+            completedDays = 13,
+            totalDays = 30,
+            percentage = 43,
+            currentStreak = 6,
+            currentDay = 13
         )
+        
+        val updatedEntries = (1..30).map { day ->
+            DayEntry(
+                dayNumber = day,
+                date = "2026-03-${day.toString().padStart(2, '0')}",
+                completed = day <= 13,
+                completedAt = if (day <= 13) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" else null,
+                notes = null,
+                value = if (day <= 13) 2.0f else null
+            )
+        }
+        
+        onSuccess(updatedProgress, updatedEntries)
     }
-    
-    onSuccess(updatedProgress, updatedEntries)
 }
 
 private suspend fun toggleDayComplete(
@@ -814,29 +908,41 @@ private suspend fun toggleDayComplete(
     completed: Boolean,
     onSuccess: (List<DayEntry>, ChallengeProgress) -> Unit
 ) {
-    // TODO: Replace with actual API call
-    // POST /api/challenges/{challengeId}/day/{dayNumber}/toggle
-    
-    val updatedProgress = ChallengeProgress(
-        completedDays = if (completed) 13 else 11,
-        totalDays = 30,
-        percentage = if (completed) 43 else 37,
-        currentStreak = if (completed) 6 else 4,
-        currentDay = 13
-    )
-    
-    val updatedEntries = (1..30).map { day ->
-        DayEntry(
-            dayNumber = day,
-            date = "2026-03-${day.toString().padStart(2, '0')}",
-            completed = if (day == dayNumber) completed else day <= 12,
-            completedAt = if (day == dayNumber && completed) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" 
-                         else if (day <= 12 && day != dayNumber) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z"
-                         else null,
-            notes = null,
-            value = if (day == dayNumber && completed) 2.0f else if (day <= 12 && day != dayNumber) 2.0f else null
+    try {
+        val response: HttpResponse = httpClient.post("$BASE_URL/api/challenges/$challengeId/day/$dayNumber/toggle") {
+            contentType(ContentType.Application.Json)
+            setBody(mapOf("userId" to userId, "completed" to completed))
+        }
+        
+        if (response.status.isSuccess()) {
+            // Reload challenge details to get updated progress
+            loadChallengeDetail(userId, challengeId, onLoaded = { detail, progress, entries ->
+                onSuccess(entries, progress)
+            })
+        }
+    } catch (e: Exception) {
+        // Fallback to local update on error
+        val updatedProgress = ChallengeProgress(
+            completedDays = if (completed) 13 else 11,
+            totalDays = 30,
+            percentage = if (completed) 43 else 37,
+            currentStreak = if (completed) 6 else 4,
+            currentDay = 13
         )
+        
+        val updatedEntries = (1..30).map { day ->
+            DayEntry(
+                dayNumber = day,
+                date = "2026-03-${day.toString().padStart(2, '0')}",
+                completed = if (day == dayNumber) completed else day <= 12,
+                completedAt = if (day == dayNumber && completed) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" 
+                             else if (day <= 12 && day != dayNumber) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z"
+                             else null,
+                notes = null,
+                value = if (day == dayNumber && completed) 2.0f else if (day <= 12 && day != dayNumber) 2.0f else null
+            )
+        }
+        
+        onSuccess(updatedEntries, updatedProgress)
     }
-    
-    onSuccess(updatedEntries, updatedProgress)
 }

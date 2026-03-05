@@ -1,6 +1,5 @@
 package com.rise30.app
 
-import android.content.Context
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
@@ -21,7 +20,6 @@ import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.graphics.drawscope.Stroke
-import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -38,8 +36,6 @@ import io.ktor.http.contentType
 import io.ktor.serialization.kotlinx.json.json
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.Json
-import java.text.SimpleDateFormat
-import java.util.*
 
 // Water theme colors
 val WaterBlue = Color(0xFF4FC3F7)
@@ -55,7 +51,6 @@ fun WaterChallengeScreen(
 ) {
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
-    val context = LocalContext.current
     
     // State for water tracking
     var currentAmount by remember { mutableStateOf(0f) }
@@ -70,7 +65,7 @@ fun WaterChallengeScreen(
     
     // Load initial data
     LaunchedEffect(userId) {
-        loadWaterChallengeData(context, userId) { data ->
+        loadWaterChallengeData(userId) { data ->
             currentAmount = data.todayAmount
             targetAmount = data.todayTarget
             currentDay = data.currentDay
@@ -164,7 +159,6 @@ fun WaterChallengeScreen(
                                 
                                 if (actualAmount > 0) {
                                     addWater(
-                                        context = context,
                                         userId = userId, 
                                         challengeId = challengeId, 
                                         amount = actualAmount,
@@ -773,7 +767,7 @@ val httpClient = HttpClient(Android) {
 }
 
 // Base URL for backend API - update with your production URL
-const val BASE_URL = "https://your-backend-url.com" // Replace with your backend URL
+const val BASE_URL = "https://rise30-app.onrender.com"
 
 // Data classes for API
 @Serializable
@@ -833,7 +827,7 @@ data class WaterEntryData(
 )
 
 @Serializable
-data class AnalyticsResponse(
+data class WaterAnalyticsResponse(
     val summary: SummaryData,
     val weeklyData: List<WeeklyData>,
     val last7Days: List<DailyData>
@@ -876,105 +870,51 @@ private data class WaterChallengeData(
     val challengeId: String? = null
 )
 
-// Persistent storage keys
-private const val PREFS_NAME = "WaterChallengePrefs"
-private const val KEY_WATER_AMOUNT = "water_amount_"
-private const val KEY_COMPLETED_DAYS = "completed_days_"
-private const val KEY_LAST_DATE = "last_date_"
 
-// Helper functions for SharedPreferences
-private fun getPrefs(context: Context) = context.getSharedPreferences(PREFS_NAME, Context.MODE_PRIVATE)
-
-private fun saveWaterData(context: Context, userId: String, amount: Float, completedDays: Int) {
-    val prefs = getPrefs(context)
-    val editor = prefs.edit()
-    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-    
-    editor.putFloat(KEY_WATER_AMOUNT + userId, amount)
-    editor.putInt(KEY_COMPLETED_DAYS + userId, completedDays)
-    editor.putString(KEY_LAST_DATE + userId, today)
-    editor.apply()
-}
-
-private fun loadWaterData(context: Context, userId: String): Triple<Float, Int, String?> {
-    val prefs = getPrefs(context)
-    val amount = prefs.getFloat(KEY_WATER_AMOUNT + userId, 0f)
-    val completedDays = prefs.getInt(KEY_COMPLETED_DAYS + userId, 0)
-    val lastDate = prefs.getString(KEY_LAST_DATE + userId, null)
-    return Triple(amount, completedDays, lastDate)
-}
-
-private fun isNewDay(context: Context, userId: String): Boolean {
-    val prefs = getPrefs(context)
-    val lastDate = prefs.getString(KEY_LAST_DATE + userId, null)
-    val today = SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date())
-    return lastDate != today
-}
-
-private fun resetDailyProgress(context: Context, userId: String) {
-    val prefs = getPrefs(context)
-    val editor = prefs.edit()
-    editor.putFloat(KEY_WATER_AMOUNT + userId, 0f)
-    editor.putString(KEY_LAST_DATE + userId, SimpleDateFormat("yyyy-MM-dd", Locale.getDefault()).format(Date()))
-    editor.apply()
-}
 
 private suspend fun loadWaterChallengeData(
-    context: Context,
     userId: String,
     onDataLoaded: (WaterChallengeData) -> Unit
 ) {
-    // Check if it's a new day - if so, reset daily progress
-    if (isNewDay(context, userId)) {
-        resetDailyProgress(context, userId)
-    }
-    
-    // Load from persistent storage
-    val (localAmount, localCompleted, _) = loadWaterData(context, userId)
-    
     try {
-        val response: WaterChallengeResponse = httpClient.get("$BASE_URL/water-challenge/active/$userId").body()
+        val response: WaterChallengeResponse = httpClient.get("$BASE_URL/api/water-challenge/active/$userId").body()
         
         if (response.active && response.progress != null) {
-            // Use server data, but prefer local if local is higher (unsynced data)
-            val serverTodayAmount = response.progress.todayAmount
-            val finalTodayAmount = maxOf(serverTodayAmount, localAmount)
-            
             onDataLoaded(
                 WaterChallengeData(
-                    todayAmount = finalTodayAmount,
+                    todayAmount = response.progress.todayAmount,
                     todayTarget = response.progress.todayTarget,
                     currentDay = response.progress.currentDay,
                     totalDays = response.progress.totalDays,
-                    completedDays = maxOf(response.progress.completedDays, localCompleted),
+                    completedDays = response.progress.completedDays,
                     currentStreak = response.progress.currentStreak,
                     challengeId = response.challenge?.id
                 )
             )
         } else {
-            // No active challenge on server - use local data
+            // No active challenge on server
             onDataLoaded(
                 WaterChallengeData(
-                    todayAmount = localAmount,
+                    todayAmount = 0f,
                     todayTarget = 2.0f,
                     currentDay = 1,
                     totalDays = 30,
-                    completedDays = localCompleted,
-                    currentStreak = if (localAmount >= 2.0f) 1 else 0,
+                    completedDays = 0,
+                    currentStreak = 0,
                     challengeId = null
                 )
             )
         }
     } catch (e: Exception) {
-        // API failed - use persistent local storage
+        // API failed - return empty data
         onDataLoaded(
             WaterChallengeData(
-                todayAmount = localAmount,
+                todayAmount = 0f,
                 todayTarget = 2.0f,
                 currentDay = 1,
                 totalDays = 30,
-                completedDays = localCompleted,
-                currentStreak = if (localAmount >= 2.0f) 1 else 0,
+                completedDays = 0,
+                currentStreak = 0,
                 challengeId = null
             )
         )
@@ -986,7 +926,7 @@ private suspend fun createWaterChallenge(
     onSuccess: (WaterChallengeData) -> Unit
 ) {
     try {
-        val response: WaterChallengeResponse = httpClient.post("$BASE_URL/water-challenge/create") {
+        val response: WaterChallengeResponse = httpClient.post("$BASE_URL/api/water-challenge/create") {
             contentType(ContentType.Application.Json)
             setBody(mapOf("userId" to userId))
         }.body()
@@ -1034,7 +974,6 @@ private suspend fun createWaterChallenge(
 }
 
 private suspend fun addWater(
-    context: Context,
     userId: String,
     challengeId: String?,
     amount: Float,
@@ -1043,39 +982,26 @@ private suspend fun addWater(
     completedDays: Int,
     onSuccess: (Float, Float) -> Unit
 ) {
-    // Calculate new total
-    val newTotal = currentAmount + amount
-    
-    // Calculate new completed days
-    val newCompletedDays = if (newTotal >= targetAmount && currentAmount < targetAmount) {
-        completedDays + 1
-    } else {
-        completedDays
-    }
-    
-    // Save to persistent storage immediately
-    saveWaterData(context, userId, newTotal, newCompletedDays)
-    
     if (challengeId == null) {
+        val newTotal = currentAmount + amount
         onSuccess(newTotal, newTotal / targetAmount)
         return
     }
     
     try {
-        val response: LogWaterResponse = httpClient.post("$BASE_URL/water-challenge/log") {
+        val response: LogWaterResponse = httpClient.post("$BASE_URL/api/water-challenge/log") {
             contentType(ContentType.Application.Json)
             setBody(LogWaterRequest(userId, challengeId, amount))
         }.body()
         
         if (response.success && response.waterEntry != null) {
-            // Update local storage with server-confirmed data
-            saveWaterData(context, userId, response.waterEntry.amount, newCompletedDays)
             onSuccess(response.waterEntry.amount, (response.progress ?: 0f) / 100f)
         } else {
+            val newTotal = currentAmount + amount
             onSuccess(newTotal, newTotal / targetAmount)
         }
     } catch (e: Exception) {
-        // API failed but local storage is already updated
+        val newTotal = currentAmount + amount
         onSuccess(newTotal, newTotal / targetAmount)
     }
 }
@@ -1083,17 +1009,17 @@ private suspend fun addWater(
 private suspend fun loadAnalytics(
     userId: String,
     challengeId: String?,
-    onDataLoaded: (AnalyticsResponse) -> Unit
+    onDataLoaded: (WaterAnalyticsResponse) -> Unit
 ) {
     if (challengeId == null) return
     
     try {
-        val response: AnalyticsResponse = httpClient.get("$BASE_URL/water-challenge/analytics/$userId/$challengeId").body()
+        val response: WaterAnalyticsResponse = httpClient.get("$BASE_URL/api/water-challenge/analytics/$userId/$challengeId").body()
         onDataLoaded(response)
     } catch (e: Exception) {
         // Fallback with mock data
         onDataLoaded(
-            AnalyticsResponse(
+            WaterAnalyticsResponse(
                 summary = SummaryData(
                     totalDays = 5,
                     completedDays = 4,

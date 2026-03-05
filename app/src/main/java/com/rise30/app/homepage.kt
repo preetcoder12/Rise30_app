@@ -1,4 +1,3 @@
-// (YOUR IMPORTS REMAIN SAME – no change needed)
 package com.rise30.app
 
 import androidx.compose.animation.*
@@ -18,6 +17,10 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
 
 // 🌑 Premium Colors
@@ -25,6 +28,37 @@ val BackgroundDark = Color(0xFF0D0D0F)
 val CardDark = Color(0xFF1A1A1F)
 val Accent = Color(0xFFFFD54F)
 val AccentSoft = Color(0x33FFD54F)
+
+// Data classes for API
+@Serializable
+data class AnalyticsResponse(
+    val success: Boolean,
+    val analytics: AnalyticsData
+)
+
+@Serializable
+data class AnalyticsData(
+    val weeklyProgress: List<WeeklyProgressItem>,
+    val completionRate: Int,
+    val categoryBreakdown: Map<String, CategoryStat>,
+    val totalChallenges: Int,
+    val activeChallenges: Int,
+    val completedChallenges: Int,
+    val longestStreak: Int
+)
+
+@Serializable
+data class WeeklyProgressItem(
+    val date: String,
+    val completed: Int,
+    val total: Int
+)
+
+@Serializable
+data class CategoryStat(
+    val count: Int,
+    val completed: Int
+)
 
 @Composable
 private fun TopSection(
@@ -168,7 +202,25 @@ private fun MainChallengeCard(
 }
 
 @Composable
-private fun WeeklyOverview() {
+private fun WeeklyOverview(userId: String) {
+    val scope = rememberCoroutineScope()
+    var weeklyData by remember { mutableStateOf<List<WeeklyProgressItem>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    
+    LaunchedEffect(userId) {
+        scope.launch {
+            try {
+                val response: AnalyticsResponse = httpClient.get("$BASE_URL/api/users/$userId/analytics").body()
+                if (response.success) {
+                    weeklyData = response.analytics.weeklyProgress
+                }
+            } catch (e: Exception) {
+                // Use empty data on error
+            }
+            isLoading = false
+        }
+    }
+    
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -190,40 +242,51 @@ private fun WeeklyOverview() {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        val fakeData = listOf(0.2f, 0.8f, 0.6f, 1f, 0.4f, 0.9f, 0.7f)
         val dayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            fakeData.forEachIndexed { index, value ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(16.dp)
-                            .height(70.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(Color(0xFF2A2A30))
+        
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(70.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Accent)
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                weeklyData.forEachIndexed { index, item ->
+                    val value = if (item.total > 0) item.completed.toFloat() / item.total else 0f
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(value)
-                                .align(Alignment.BottomCenter)
+                                .width(16.dp)
+                                .height(70.dp)
                                 .clip(RoundedCornerShape(50))
-                                .background(Accent)
+                                .background(Color(0xFF2A2A30))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight(value)
+                                    .align(Alignment.BottomCenter)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(Accent)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = dayLabels.getOrNull(index) ?: "",
+                            color = Color.Gray,
+                            fontSize = 11.sp
                         )
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = dayLabels[index],
-                        color = Color.Gray,
-                        fontSize = 11.sp
-                    )
                 }
             }
         }
@@ -431,6 +494,7 @@ private fun BottomBarItem(
 
 @Composable
 fun HomePage(
+    userId: String,
     userName: String,
     onMarkComplete: () -> Unit,
     onSignOut: () -> Unit,
@@ -464,7 +528,7 @@ fun HomePage(
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                WeeklyOverview()
+                WeeklyOverview(userId)
 
                 Spacer(modifier = Modifier.height(30.dp))
 

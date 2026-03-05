@@ -25,6 +25,10 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.client.statement.*
+import io.ktor.http.*
 
 @Serializable
 data class CreateChallengeRequest(
@@ -549,9 +553,6 @@ private suspend fun createChallenge(
     onError: (String) -> Unit
 ) {
     try {
-        // TODO: Replace with actual API call
-        // POST /api/challenges/create
-        
         val request = CreateChallengeRequest(
             userId = userId,
             name = name,
@@ -565,11 +566,16 @@ private suspend fun createChallenge(
             unit = unit
         )
         
-        // Simulate API call
-        kotlinx.coroutines.delay(1000)
+        val response: HttpResponse = httpClient.post("$BASE_URL/api/challenges") {
+            contentType(ContentType.Application.Json)
+            setBody(request)
+        }
         
-        // Success
-        onSuccess()
+        if (response.status.isSuccess()) {
+            onSuccess()
+        } else {
+            onError("Failed to create challenge: ${response.status}")
+        }
     } catch (e: Exception) {
         onError(e.message ?: "Failed to create challenge")
     }

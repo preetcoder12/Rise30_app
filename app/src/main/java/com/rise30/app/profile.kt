@@ -33,15 +33,63 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class UserProfileResponse(
+    val success: Boolean,
+    val profile: UserProfile
+)
+
+@Serializable
+data class UserProfile(
+    val id: String,
+    val email: String,
+    val createdAt: String,
+    val stats: UserStats
+)
+
+@Serializable
+data class UserStats(
+    val totalChallenges: Int,
+    val activeChallenges: Int,
+    val completedChallenges: Int,
+    val totalCompletedDays: Int,
+    val longestStreak: Int
+)
 
 @Composable
 fun ProfilePage(
+    userId: String,
     userName: String,
     onSignOut: () -> Unit,
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    
+    // State for user profile data
+    var userStats by remember { mutableStateOf<UserStats?>(null) }
+    var isLoading by remember { mutableStateOf(true) }
+    
+    // Fetch user profile data
+    LaunchedEffect(userId) {
+        scope.launch {
+            try {
+                val response: UserProfileResponse = httpClient.get("$BASE_URL/api/users/$userId/profile").body()
+                if (response.success) {
+                    userStats = response.profile.stats
+                }
+            } catch (e: Exception) {
+                // Use null on error
+            }
+            isLoading = false
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -139,16 +187,16 @@ fun ProfilePage(
                     StatCard(
                         modifier = Modifier.weight(1f),
                         icon = Icons.Rounded.Whatshot,
-                        title = "Total Streak",
-                        value = "120 Days Total",
-                        subtitle = "Longest Streak: 45 Days"
+                        title = "Longest Streak",
+                        value = if (isLoading) "..." else "${userStats?.longestStreak ?: 0} Days",
+                        subtitle = "Best Streak"
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
                         icon = Icons.Rounded.EmojiEvents,
-                        title = "Total Challenges Completed",
-                        value = "14",
-                        subtitle = ""
+                        title = "Challenges Completed",
+                        value = if (isLoading) "..." else "${userStats?.completedChallenges ?: 0}",
+                        subtitle = "Total: ${userStats?.totalChallenges ?: 0}"
                     )
                 }
 
@@ -158,20 +206,19 @@ fun ProfilePage(
                     modifier = Modifier.fillMaxWidth(),
                     horizontalArrangement = Arrangement.spacedBy(16.dp)
                 ) {
-                    GoalCard(
+                    StatCard(
                         modifier = Modifier.weight(1f),
-                        title = "Current Goal",
-                        goalName = "30-Day Deep Focus",
-                        progressText = "Day 12 of 30",
-                        progressValue = 12f / 30f,
-                        subtext = "12/30"
+                        icon = Icons.Rounded.LocalFireDepartment,
+                        title = "Active Challenges",
+                        value = if (isLoading) "..." else "${userStats?.activeChallenges ?: 0}",
+                        subtitle = "In Progress"
                     )
                     StatCard(
                         modifier = Modifier.weight(1f),
                         icon = Icons.Rounded.Star,
-                        title = "Total Achievements",
-                        value = "9 Unlocked",
-                        subtitle = ""
+                        title = "Days Completed",
+                        value = if (isLoading) "..." else "${userStats?.totalCompletedDays ?: 0}",
+                        subtitle = "Total Days"
                     )
                 }
 
