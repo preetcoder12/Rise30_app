@@ -15,30 +15,64 @@ model User {
   challenges   Challenge[]
   streaks      Streak[]
   dailyEntries DailyEntry[]
+  waterEntries WaterEntry[]
 }
 
 model Challenge {
   id          String       @id @default(uuid())
   userId      String
   name        String
-  type        String
-  duration    Int
+  description String?
+  type        String       // "water", "fitness", "productivity", "custom", etc.
+  category    String       // "health", "fitness", "productivity", "skills", etc.
+  duration    Int          // Number of days (e.g., 30)
   startDate   DateTime
   endDate     DateTime
+  targetValue Float?       // Target value (e.g., 2.0 liters for water)
+  unit        String?      // Unit of measurement (e.g., "liters", "minutes")
+  color       String?      // Theme color for UI (hex code)
+  icon        String?      // Icon/emoji for the challenge
+  isActive    Boolean      @default(true)
+  createdAt   DateTime     @default(now())
+  updatedAt   DateTime     @updatedAt
   user        User         @relation(fields: [userId], references: [id])
   dailyTasks  DailyEntry[]
   streaks     Streak[]
+  waterEntries WaterEntry[]
+}
+
+model WaterEntry {
+  id          String   @id @default(uuid())
+  userId      String
+  challengeId String
+  date        DateTime @default(now())
+  amount      Float    // Amount consumed in liters
+  targetAmount Float   // Target for that day (usually 2.0)
+  completed   Boolean  @default(false)
+  createdAt   DateTime @default(now())
+  updatedAt   DateTime @updatedAt
+  
+  user        User      @relation(fields: [userId], references: [id])
+  challenge   Challenge @relation(fields: [challengeId], references: [id])
+  
+  @@unique([userId, challengeId, date])
 }
 
 model DailyEntry {
   id          String    @id @default(uuid())
   userId      String
   challengeId String
-  dayNumber   Int
+  dayNumber   Int       // Day 1, Day 2, etc.
+  date        DateTime  // Actual calendar date
   completed   Boolean   @default(false)
   completedAt DateTime?
+  notes       String?   // User notes for that day
+  value       Float?    // For measurable challenges (e.g., 1.5 liters)
   user        User      @relation(fields: [userId], references: [id])
   challenge   Challenge @relation(fields: [challengeId], references: [id])
+  
+  @@unique([userId, challengeId, dayNumber])
+  @@unique([userId, challengeId, date])
 }
 
 model Streak {

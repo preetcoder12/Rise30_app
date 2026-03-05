@@ -269,42 +269,76 @@ fun HomeFloatingBottomBar(
             .fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        Surface(
+        // Glassmorphism background effect
+        Box(
             modifier = Modifier
                 .navigationBarsPadding()
                 .padding(bottom = 16.dp)
+                .padding(horizontal = 16.dp)
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .clip(RoundedCornerShape(30.dp)),
-            color = CardDark,
-            tonalElevation = 8.dp,
-            shadowElevation = 16.dp
+                .height(72.dp)
+                .clip(RoundedCornerShape(28.dp))
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF2A2A35).copy(alpha = 0.95f),
+                            Color(0xFF1A1A25).copy(alpha = 0.98f)
+                        )
+                    )
+                )
+                .border(
+                    width = 1.dp,
+                    color = Color.White.copy(alpha = 0.08f),
+                    shape = RoundedCornerShape(28.dp)
+                )
         ) {
+            // Subtle top highlight line
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Accent.copy(alpha = 0.3f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+                    .align(Alignment.TopCenter)
+            )
+            
             Row(
                 modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 BottomBarItem(
+                    icon = "🏠",
                     label = "Home",
                     tab = MainTab.Home,
                     currentTab = currentTab,
                     onTabSelected = onTabSelected
                 )
                 BottomBarItem(
+                    icon = "🎯",
                     label = "Challenges",
                     tab = MainTab.Challenges,
                     currentTab = currentTab,
                     onTabSelected = onTabSelected
                 )
                 BottomBarItem(
-                    label = "Notifications",
+                    icon = "🔔",
+                    label = "Alerts",
                     tab = MainTab.Notifications,
                     currentTab = currentTab,
                     onTabSelected = onTabSelected
                 )
                 BottomBarItem(
+                    icon = "👤",
                     label = "Profile",
                     tab = MainTab.Profile,
                     currentTab = currentTab,
@@ -317,30 +351,81 @@ fun HomeFloatingBottomBar(
 
 @Composable
 private fun BottomBarItem(
+    icon: String,
     label: String,
     tab: MainTab,
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
     val selected = currentTab == tab
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1.1f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "scale"
+    )
+    
+    Box(
         modifier = Modifier
+            .scale(scale)
+            .clip(RoundedCornerShape(16.dp))
             .clickable { onTabSelected(tab) }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(6.dp)
-                .clip(CircleShape)
-                .background(if (selected) Accent else Color.Transparent)
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = label,
-            color = if (selected) Accent else Color.Gray,
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Icon container with background when selected
+            Box(
+                modifier = Modifier
+                    .size(if (selected) 36.dp else 32.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .then(
+                        if (selected) {
+                            Modifier.background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        Accent.copy(alpha = 0.25f),
+                                        Accent.copy(alpha = 0.1f)
+                                    )
+                                )
+                            )
+                        } else Modifier
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = icon,
+                    fontSize = if (selected) 20.sp else 18.sp
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(2.dp))
+            
+            Text(
+                text = label,
+                color = if (selected) Accent else Color.Gray.copy(alpha = 0.7f),
+                fontSize = 11.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                letterSpacing = 0.3.sp
+            )
+            
+            // Active indicator dot
+            AnimatedVisibility(
+                visible = selected,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 3.dp)
+                        .size(4.dp)
+                        .clip(CircleShape)
+                        .background(Accent)
+                )
+            }
+        }
     }
 }
 
