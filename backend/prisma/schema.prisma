@@ -68,16 +68,12 @@ model DailyEntry {
   completedAt DateTime?
   notes       String?   // User notes for that day
   value       Float?    // For measurable challenges (e.g., 1.5 liters)
+  
   user        User      @relation(fields: [userId], references: [id])
   challenge   Challenge @relation(fields: [challengeId], references: [id])
-<<<<<<< HEAD
-
-  @@unique([userId, challengeId, dayNumber])
-=======
   
   @@unique([userId, challengeId, dayNumber])
   @@unique([userId, challengeId, date])
->>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
 }
 
 model Streak {
@@ -97,4 +93,3 @@ model Streak {
 
   @@unique([userId, challengeId])
 }
-
