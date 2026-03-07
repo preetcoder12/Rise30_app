@@ -9,9 +9,6 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
-import androidx.compose.material.icons.Icons
-import androidx.compose.material.icons.filled.AcUnit
-import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -20,10 +17,10 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
-import com.rise30.app.streak.StreakForgivenessState
-import com.rise30.app.streak.StreakRecoveryCard
-import com.rise30.app.streak.StreakBrokenCard
-import com.rise30.app.streak.StreakShieldBadge
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
 
 // 🌑 Premium Colors
@@ -32,6 +29,39 @@ val CardDark = Color(0xFF1A1A1F)
 val Accent = Color(0xFFFFD54F)
 val AccentSoft = Color(0x33FFD54F)
 
+// Data classes for API
+@Serializable
+data class AnalyticsResponse(
+    val success: Boolean,
+    val analytics: AnalyticsData
+)
+
+@Serializable
+data class AnalyticsData(
+    val weeklyProgress: List<WeeklyProgressItem>,
+    val completionRate: Int,
+    val categoryBreakdown: Map<String, CategoryStat>,
+    val totalChallenges: Int,
+    val activeChallenges: Int,
+    val completedChallenges: Int,
+    val longestStreak: Int
+)
+
+@Serializable
+data class WeeklyProgressItem(
+    val date: String,
+    val completed: Int,
+    val total: Int
+)
+
+@Serializable
+data class CategoryStat(
+    val count: Int,
+    val completed: Int
+)
+
+// Using ChallengeSummary and ChallengesResponse from challenges.kt
+
 @Composable
 private fun TopSection(
     userName: String,
@@ -39,7 +69,8 @@ private fun TopSection(
 ) {
     Row(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(top = 15.dp, bottom = 15.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -49,13 +80,13 @@ private fun TopSection(
             Text(
                 text = "Welcome back,",
                 color = Color.Gray,
-                fontSize = 14.sp
+                fontSize = 16.sp
             )
             Spacer(modifier = Modifier.height(4.dp))
             Text(
                 text = userName,
                 color = Color.White,
-                fontSize = 22.sp,
+                fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
             )
         }
@@ -75,14 +106,21 @@ private fun TopSection(
 
 @Composable
 private fun MainChallengeCard(
-    currentDay: Int,
-    totalDays: Int,
-    streakLength: Int,
-    freezesRemaining: Int,
+    challenge: ChallengeApiData?,
     onMarkComplete: () -> Unit
 ) {
+    val currentDay = challenge?.progress?.completedDays ?: 0
+    val totalDays = challenge?.progress?.totalDays ?: challenge?.duration ?: 30
     val progress = remember(currentDay, totalDays) {
         (currentDay.coerceAtLeast(0).coerceAtMost(totalDays).toFloat() / totalDays.coerceAtLeast(1))
+    }
+    
+    val challengeColor = remember(challenge?.color) {
+        try {
+            Color(android.graphics.Color.parseColor(challenge?.color ?: "#FFD54F"))
+        } catch (e: Exception) {
+            Accent
+        }
     }
 
     Card(
@@ -109,13 +147,13 @@ private fun MainChallengeCard(
 
                     // Background circle
                     drawCircle(
-                        color = AccentSoft,
+                        color = challengeColor.copy(alpha = 0.2f),
                         style = Stroke(width = strokeWidth)
                     )
 
                     // Progress arc
                     drawArc(
-                        color = Accent,
+                        color = challengeColor,
                         startAngle = -90f,
                         sweepAngle = 360f * progress,
                         useCenter = false,
@@ -143,57 +181,39 @@ private fun MainChallengeCard(
                 modifier = Modifier.weight(1f)
             ) {
                 Text(
-                    text = "Rise30 Focus Challenge",
+                    text = challenge?.name ?: "No Active Challenge",
                     color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.SemiBold,
+                    maxLines = 1
                 )
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
-                    text = "Lock in one deep-work block every day for 30 days.",
+                    text = challenge?.description ?: "Create a challenge to start your journey!",
                     color = Color.Gray,
-                    fontSize = 13.sp
+                    fontSize = 13.sp,
+                    maxLines = 2
                 )
-                
-                // Streak info row
-                if (streakLength > 0) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocalFireDepartment,
-                            contentDescription = null,
-                            tint = Accent,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
-                        Text(
-                            text = "$streakLength day streak",
-                            color = Accent,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
-                        )
-                        
-                        if (freezesRemaining > 0) {
-                            Spacer(modifier = Modifier.width(12.dp))
-                            StreakShieldBadge(freezesRemaining = freezesRemaining)
-                        }
-                    }
-                }
-                
                 Spacer(modifier = Modifier.height(12.dp))
+                
+                val isTodayCompleted = challenge?.progress?.isTodayCompleted ?: false
+                
                 Button(
                     onClick = onMarkComplete,
                     shape = RoundedCornerShape(20.dp),
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = Accent,
+                        containerColor = if (isTodayCompleted) Color(0xFF4CAF50) else challengeColor,
                         contentColor = Color.Black
                     ),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp)
+                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
+                    enabled = challenge != null && !isTodayCompleted
                 ) {
                     Text(
-                        text = "Mark today complete",
+                        text = when {
+                            challenge == null -> "Create Challenge"
+                            isTodayCompleted -> "Daily Task Completed ✓"
+                            else -> "Mark Complete Today"
+                        },
                         fontSize = 13.sp,
                         fontWeight = FontWeight.SemiBold
                     )
@@ -204,7 +224,25 @@ private fun MainChallengeCard(
 }
 
 @Composable
-private fun WeeklyOverview() {
+private fun WeeklyOverview(userId: String) {
+    val scope = rememberCoroutineScope()
+    var weeklyData by remember { mutableStateOf<List<WeeklyProgressItem>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    
+    LaunchedEffect(userId) {
+        scope.launch {
+            try {
+                val response: AnalyticsResponse = httpClient.get("$BASE_URL/api/users/$userId/analytics").body()
+                if (response.success) {
+                    weeklyData = response.analytics.weeklyProgress
+                }
+            } catch (e: Exception) {
+                // Use empty data on error
+            }
+            isLoading = false
+        }
+    }
+    
     Column(
         modifier = Modifier
             .fillMaxWidth()
@@ -226,40 +264,51 @@ private fun WeeklyOverview() {
         )
         Spacer(modifier = Modifier.height(16.dp))
 
-        val fakeData = listOf(0.2f, 0.8f, 0.6f, 1f, 0.4f, 0.9f, 0.7f)
         val dayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
-
-        Row(
-            modifier = Modifier.fillMaxWidth(),
-            horizontalArrangement = Arrangement.SpaceBetween,
-            verticalAlignment = Alignment.Bottom
-        ) {
-            fakeData.forEachIndexed { index, value ->
-                Column(
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .width(16.dp)
-                            .height(70.dp)
-                            .clip(RoundedCornerShape(50))
-                            .background(Color(0xFF2A2A30))
+        
+        if (isLoading) {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(70.dp),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = Accent)
+            }
+        } else {
+            Row(
+                modifier = Modifier.fillMaxWidth(),
+                horizontalArrangement = Arrangement.SpaceBetween,
+                verticalAlignment = Alignment.Bottom
+            ) {
+                weeklyData.forEachIndexed { index, item ->
+                    val value = if (item.total > 0) item.completed.toFloat() / item.total else 0f
+                    Column(
+                        horizontalAlignment = Alignment.CenterHorizontally
                     ) {
                         Box(
                             modifier = Modifier
-                                .fillMaxWidth()
-                                .fillMaxHeight(value)
-                                .align(Alignment.BottomCenter)
+                                .width(16.dp)
+                                .height(70.dp)
                                 .clip(RoundedCornerShape(50))
-                                .background(Accent)
+                                .background(Color(0xFF2A2A30))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth()
+                                    .fillMaxHeight(value)
+                                    .align(Alignment.BottomCenter)
+                                    .clip(RoundedCornerShape(50))
+                                    .background(Accent)
+                            )
+                        }
+                        Spacer(modifier = Modifier.height(6.dp))
+                        Text(
+                            text = dayLabels.getOrNull(index) ?: "",
+                            color = Color.Gray,
+                            fontSize = 11.sp
                         )
                     }
-                    Spacer(modifier = Modifier.height(6.dp))
-                    Text(
-                        text = dayLabels[index],
-                        color = Color.Gray,
-                        fontSize = 11.sp
-                    )
                 }
             }
         }
@@ -305,42 +354,76 @@ fun HomeFloatingBottomBar(
             .fillMaxSize(),
         contentAlignment = Alignment.BottomCenter
     ) {
-        Surface(
+        // Glassmorphism background effect
+        Box(
             modifier = Modifier
                 .navigationBarsPadding()
-                .padding(bottom = 16.dp)
+                .padding(bottom = 26.dp)
+                .padding(horizontal = 16.dp)
                 .fillMaxWidth()
-                .padding(horizontal = 24.dp)
-                .clip(RoundedCornerShape(30.dp)),
-            color = CardDark,
-            tonalElevation = 8.dp,
-            shadowElevation = 16.dp
+                .height(72.dp)
+                .clip(RoundedCornerShape(28.dp))
+                .background(
+                    brush = Brush.verticalGradient(
+                        colors = listOf(
+                            Color(0xFF2A2A35).copy(alpha = 0.95f),
+                            Color(0xFF1A1A25).copy(alpha = 0.98f)
+                        )
+                    )
+                )
+                .border(
+                    width = 1.dp,
+                    color = Color.White.copy(alpha = 0.08f),
+                    shape = RoundedCornerShape(28.dp)
+                )
         ) {
+            // Subtle top highlight line
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(1.dp)
+                    .background(
+                        brush = Brush.horizontalGradient(
+                            colors = listOf(
+                                Color.Transparent,
+                                Accent.copy(alpha = 0.3f),
+                                Color.Transparent
+                            )
+                        )
+                    )
+                    .align(Alignment.TopCenter)
+            )
+            
             Row(
                 modifier = Modifier
-                    .padding(vertical = 10.dp, horizontal = 20.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
+                    .fillMaxSize()
+                    .padding(horizontal = 8.dp),
+                horizontalArrangement = Arrangement.SpaceEvenly,
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 BottomBarItem(
+                    icon = "🏠",
                     label = "Home",
                     tab = MainTab.Home,
                     currentTab = currentTab,
                     onTabSelected = onTabSelected
                 )
                 BottomBarItem(
+                    icon = "🎯",
                     label = "Challenges",
                     tab = MainTab.Challenges,
                     currentTab = currentTab,
                     onTabSelected = onTabSelected
                 )
                 BottomBarItem(
-                    label = "Notifications",
+                    icon = "🔔",
+                    label = "Alerts",
                     tab = MainTab.Notifications,
                     currentTab = currentTab,
                     onTabSelected = onTabSelected
                 )
                 BottomBarItem(
+                    icon = "👤",
                     label = "Profile",
                     tab = MainTab.Profile,
                     currentTab = currentTab,
@@ -353,49 +436,117 @@ fun HomeFloatingBottomBar(
 
 @Composable
 private fun BottomBarItem(
+    icon: String,
     label: String,
     tab: MainTab,
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
     val selected = currentTab == tab
-    Column(
-        horizontalAlignment = Alignment.CenterHorizontally,
+    val scale by animateFloatAsState(
+        targetValue = if (selected) 1.1f else 1f,
+        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        label = "scale"
+    )
+    
+    Box(
         modifier = Modifier
+            .scale(scale)
+            .clip(RoundedCornerShape(16.dp))
             .clickable { onTabSelected(tab) }
+            .padding(horizontal = 12.dp, vertical = 8.dp),
+        contentAlignment = Alignment.Center
     ) {
-        Box(
-            modifier = Modifier
-                .size(6.dp)
-                .clip(CircleShape)
-                .background(if (selected) Accent else Color.Transparent)
-        )
-        Spacer(modifier = Modifier.height(6.dp))
-        Text(
-            text = label,
-            color = if (selected) Accent else Color.Gray,
-            fontSize = 12.sp,
-            fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
-        )
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // Icon container with background when selected
+            Box(
+                modifier = Modifier
+                    .size(if (selected) 36.dp else 32.dp)
+                    .clip(RoundedCornerShape(12.dp))
+                    .then(
+                        if (selected) {
+                            Modifier.background(
+                                Brush.linearGradient(
+                                    colors = listOf(
+                                        Accent.copy(alpha = 0.25f),
+                                        Accent.copy(alpha = 0.1f)
+                                    )
+                                )
+                            )
+                        } else Modifier
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                Text(
+                    text = icon,
+                    fontSize = if (selected) 20.sp else 18.sp
+                )
+            }
+            
+            Spacer(modifier = Modifier.height(2.dp))
+            
+            Text(
+                text = label,
+                color = if (selected) Accent else Color.Gray.copy(alpha = 0.7f),
+                fontSize = 11.sp,
+                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
+                letterSpacing = 0.3.sp
+            )
+            
+            // Active indicator dot
+            AnimatedVisibility(
+                visible = selected,
+                enter = fadeIn() + expandVertically(),
+                exit = fadeOut() + shrinkVertically()
+            ) {
+                Box(
+                    modifier = Modifier
+                        .padding(top = 3.dp)
+                        .size(4.dp)
+                        .clip(CircleShape)
+                        .background(Accent)
+                )
+            }
+        }
     }
 }
 
 @Composable
 fun HomePage(
+    userId: String,
     userName: String,
     onMarkComplete: () -> Unit,
     onSignOut: () -> Unit,
     currentTab: MainTab,
-    onTabSelected: (MainTab) -> Unit,
-    streakState: StreakForgivenessState = StreakForgivenessState(),
-    showRecoveryCard: Boolean = false,
-    showStreakBrokenCard: Boolean = false,
-    previousStreakLength: Int = 0,
-    onRecoverStreak: () -> Unit = {},
-    onDismissRecovery: () -> Unit = {},
-    onDismissStreakBroken: () -> Unit = {}
+    onTabSelected: (MainTab) -> Unit
 ) {
     val scrollState = rememberScrollState()
+    val scope = rememberCoroutineScope()
+    
+    // State for user's most recent challenge
+    var recentChallenge by remember { mutableStateOf<ChallengeApiData?>(null) }
+    var isLoadingChallenge by remember { mutableStateOf(true) }
+    
+    // Load user's challenges
+    LaunchedEffect(userId) {
+        scope.launch {
+            try {
+                val response: ChallengesResponse = httpClient.get("$BASE_URL/api/challenges/user/$userId").body()
+                if (response.success && response.challenges.isNotEmpty()) {
+                    // Get the first active challenge, or the first challenge if none are active
+                    recentChallenge = response.challenges
+                        .firstOrNull { it.isActive } 
+                        ?: response.challenges.firstOrNull()
+                }
+            } catch (e: Exception) {
+                // Keep null on error
+            }
+            isLoadingChallenge = false
+        }
+    }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -414,36 +565,14 @@ fun HomePage(
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                // Show streak recovery card if needed
-                if (showRecoveryCard) {
-                    StreakRecoveryCard(
-                        state = streakState,
-                        onRecover = onRecoverStreak,
-                        onDismiss = onDismissRecovery
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-
-                // Show streak broken card if needed
-                if (showStreakBrokenCard) {
-                    StreakBrokenCard(
-                        previousStreak = previousStreakLength,
-                        onContinue = onDismissStreakBroken
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
-
                 MainChallengeCard(
-                    currentDay = 12,
-                    totalDays = 30,
-                    streakLength = streakState.streakLength,
-                    freezesRemaining = streakState.freezesRemaining,
+                    challenge = recentChallenge,
                     onMarkComplete = onMarkComplete
                 )
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                WeeklyOverview()
+                WeeklyOverview(userId)
 
                 Spacer(modifier = Modifier.height(30.dp))
 

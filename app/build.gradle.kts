@@ -2,6 +2,7 @@ plugins {
     id("com.android.application")
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
+    kotlin("plugin.serialization") version "2.0.0"
 }
 
 android {
@@ -64,6 +65,7 @@ kotlin {
 dependencies {
     val composeBom = platform("androidx.compose:compose-bom:2024.06.00")
     val supabaseVersion = "3.3.0"
+    val ktorVersion = "3.4.0"
 
     implementation(composeBom)
     implementation("androidx.compose.ui:ui")
@@ -80,7 +82,14 @@ dependencies {
     implementation("io.github.jan-tennert.supabase:postgrest-kt")
 
     implementation("com.google.android.material:material:1.12.0")
-    implementation("io.ktor:ktor-client-android:3.4.0")
+    
+    // Ktor client for HTTP requests
+    implementation("io.ktor:ktor-client-android:$ktorVersion")
+    implementation("io.ktor:ktor-client-content-negotiation:$ktorVersion")
+    implementation("io.ktor:ktor-serialization-kotlinx-json:$ktorVersion")
+    
+    // Kotlinx Serialization
+    implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
 
     // Android 12+ splash screen compatibility
     implementation("androidx.core:core-splashscreen:1.0.1")

@@ -8,36 +8,17 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
-import androidx.lifecycle.lifecycleScope
+import androidx.compose.animation.*
+import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.padding
+import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
-import androidx.compose.material3.Button
-import androidx.compose.material3.ButtonDefaults
-import androidx.compose.material3.MaterialTheme
-import androidx.compose.material3.OutlinedTextField
-import androidx.compose.material3.Surface
-import androidx.compose.material3.Text
-import androidx.compose.material3.TextButton
-import androidx.compose.runtime.Composable
-import androidx.compose.runtime.LaunchedEffect
-import androidx.compose.runtime.getValue
-import androidx.compose.runtime.mutableStateOf
-import androidx.compose.runtime.remember
-import androidx.compose.runtime.setValue
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.graphics.Color
-import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
-import androidx.compose.ui.text.input.KeyboardType
-import androidx.compose.ui.text.input.PasswordVisualTransformation
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
@@ -48,7 +29,6 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
-import com.rise30.app.streak.StreakViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
@@ -76,10 +56,16 @@ enum class MainTab {
     Profile
 }
 
+enum class ChallengeScreen {
+    None,
+    WaterChallenge,
+    ChallengeDetail,
+    CreateChallenge
+}
+
 class MainActivity : ComponentActivity() {
 
     private val viewModel: AuthViewModel by viewModels()
-    private val streakViewModel: StreakViewModel by viewModels()
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
 
@@ -124,112 +110,186 @@ class MainActivity : ComponentActivity() {
             Rise30Theme {
                 var page by remember { mutableStateOf(AuthPage.SignIn) }
                 var currentTab by remember { mutableStateOf(MainTab.Home) }
+                var currentChallengeScreen by remember { mutableStateOf(ChallengeScreen.None) }
+                var selectedChallengeId by remember { mutableStateOf<String?>(null) }
+                var previousTab by remember { mutableStateOf(MainTab.Home) }
                 val state = viewModel.state
 
                 // Reset to Home tab whenever user successfully logs in or signs up
                 LaunchedEffect(state.currentUser) {
                     if (state.currentUser != null) {
                         currentTab = MainTab.Home
-                        // Load streak status when user logs in
-                        // TODO: Replace with actual userId and challengeId
-                        val userId = state.currentUser.user?.id ?: ""
-                        if (userId.isNotEmpty()) {
-                            streakViewModel.loadStreakStatus(userId, "challenge-id")
-                        }
+                        currentChallengeScreen = ChallengeScreen.None
                     }
                 }
 
+                // Track tab changes for animation direction
+                LaunchedEffect(currentTab) {
+                    previousTab = currentTab
+                }
+
                 if (state.currentUser != null) {
-                    val displayName = state.currentUser.user?.email ?: "Alex"
+                    val displayName = state.currentUser.user?.email ?: "User"
                     val userId = state.currentUser.user?.id ?: ""
-                    when (currentTab) {
-                        MainTab.Home -> HomePage(
-                            userName = displayName.substringBefore("@"),
-                            onMarkComplete = { 
-                                // Complete current day
-                                streakViewModel.completeDay(userId, "challenge-id", 12)
-                            },
-                            onSignOut = { 
-                                streakViewModel.reset()
-                                viewModel.signOut() 
-                            },
-                            currentTab = currentTab,
-                            onTabSelected = { selected -> currentTab = selected },
-                            streakState = streakViewModel.streakState,
-                            showRecoveryCard = streakViewModel.showRecoveryCard,
-                            showStreakBrokenCard = streakViewModel.showStreakBrokenCard,
-                            previousStreakLength = streakViewModel.previousStreakLength,
-                            onRecoverStreak = { 
-                                streakViewModel.recoverStreak(userId, "challenge-id")
-                            },
-                            onDismissRecovery = { streakViewModel.dismissRecovery() },
-                            onDismissStreakBroken = { streakViewModel.dismissStreakBroken() }
-                        )
-                        MainTab.Challenges -> ChallengesPage(
-                            userName = displayName.substringBefore("@"),
-                            onStartChallenge = { /* TODO: start challenge flow */ },
-                            currentTab = currentTab,
-                            onTabSelected = { selected -> currentTab = selected }
-                        )
-                        MainTab.Profile -> ProfilePage(
-                            userName = displayName.substringBefore("@"),
-                            onSignOut = { viewModel.signOut() },
-                            currentTab = currentTab,
-                            onTabSelected = { selected -> currentTab = selected }
-                        )
-                        else -> HomePage(
-                            userName = displayName.substringBefore("@"),
-                            onMarkComplete = { 
-                                streakViewModel.completeDay(userId, "challenge-id", 12)
-                            },
-                            onSignOut = { 
-                                streakViewModel.reset()
-                                viewModel.signOut() 
-                            },
-                            currentTab = currentTab,
-                            onTabSelected = { selected -> currentTab = selected },
-                            streakState = streakViewModel.streakState,
-                            showRecoveryCard = streakViewModel.showRecoveryCard,
-                            showStreakBrokenCard = streakViewModel.showStreakBrokenCard,
-                            previousStreakLength = streakViewModel.previousStreakLength,
-                            onRecoverStreak = { 
-                                streakViewModel.recoverStreak(userId, "challenge-id")
-                            },
-                            onDismissRecovery = { streakViewModel.dismissRecovery() },
-                            onDismissStreakBroken = { streakViewModel.dismissStreakBroken() }
-                        )
+                    
+                    // Animated content with slide transitions
+                    AnimatedContent(
+                        targetState = currentChallengeScreen,
+                        transitionSpec = {
+                            val direction = if (targetState == ChallengeScreen.None) {
+                                AnimatedContentTransitionScope.SlideDirection.Right
+                            } else {
+                                AnimatedContentTransitionScope.SlideDirection.Left
+                            }
+                            slideIntoContainer(direction) + fadeIn() togetherWith
+                            slideOutOfContainer(direction) + fadeOut()
+                        },
+                        label = "challenge_screen"
+                    ) { screen ->
+                        when (screen) {
+                            ChallengeScreen.WaterChallenge -> {
+                                WaterChallengeScreen(
+                                    userId = userId,
+                                    onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                    currentTab = currentTab,
+                                    onTabSelected = { selected -> 
+                                        currentTab = selected
+                                        currentChallengeScreen = ChallengeScreen.None
+                                    }
+                                )
+                            }
+                            ChallengeScreen.ChallengeDetail -> {
+                                ChallengeDetailScreen(
+                                    userId = userId,
+                                    challengeId = selectedChallengeId ?: "",
+                                    onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                    currentTab = currentTab,
+                                    onTabSelected = { selected -> 
+                                        currentTab = selected
+                                        currentChallengeScreen = ChallengeScreen.None
+                                    }
+                                )
+                            }
+                            ChallengeScreen.CreateChallenge -> {
+                                CreateChallengeScreen(
+                                    userId = userId,
+                                    onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                    onChallengeCreated = { 
+                                        currentChallengeScreen = ChallengeScreen.None
+                                    },
+                                    currentTab = currentTab,
+                                    onTabSelected = { selected -> 
+                                        currentTab = selected
+                                        currentChallengeScreen = ChallengeScreen.None
+                                    }
+                                )
+                            }
+                            ChallengeScreen.None -> {
+                                // Animated tab content with horizontal sliding
+                                AnimatedContent(
+                                    targetState = currentTab,
+                                    transitionSpec = {
+                                        val direction = if (
+                                            targetState.ordinal > initialState.ordinal
+                                        ) {
+                                            AnimatedContentTransitionScope.SlideDirection.Left
+                                        } else {
+                                            AnimatedContentTransitionScope.SlideDirection.Right
+                                        }
+                                        slideIntoContainer(direction) + fadeIn() togetherWith
+                                        slideOutOfContainer(direction) + fadeOut()
+                                    },
+                                    label = "main_tab"
+                                ) { tab ->
+                                    when (tab) {
+                                        MainTab.Home -> HomePage(
+                                            userId = userId,
+                                            userName = displayName.substringBefore("@"),
+                                            onMarkComplete = { },
+                                            onSignOut = { viewModel.signOut() },
+                                            currentTab = currentTab,
+                                            onTabSelected = { selected -> currentTab = selected }
+                                        )
+                                        MainTab.Challenges -> ChallengesPage(
+                                            userName = displayName.substringBefore("@"),
+                                            userId = userId,
+                                            onStartChallenge = { },
+                                            onStartWaterChallenge = { 
+                                                currentChallengeScreen = ChallengeScreen.WaterChallenge 
+                                            },
+                                            onChallengeClick = { challengeId ->
+                                                selectedChallengeId = challengeId
+                                                currentChallengeScreen = ChallengeScreen.ChallengeDetail
+                                            },
+                                            onCreateChallenge = {
+                                                currentChallengeScreen = ChallengeScreen.CreateChallenge
+                                            },
+                                            currentTab = currentTab,
+                                            onTabSelected = { selected -> currentTab = selected }
+                                        )
+                                        MainTab.Notifications -> NotificationsPage(
+                                            userName = displayName.substringBefore("@"),
+                                            currentTab = currentTab,
+                                            onTabSelected = { selected -> currentTab = selected }
+                                        )
+                                        MainTab.Profile -> ProfilePage(
+                                            userId = userId,
+                                            userName = displayName.substringBefore("@"),
+                                            onSignOut = { viewModel.signOut() },
+                                            currentTab = currentTab,
+                                            onTabSelected = { selected -> currentTab = selected }
+                                        )
+                                    }
+                                }
+                            }
+                        }
                     }
                 } else {
-                    when (page) {
-                        AuthPage.SignIn -> SignInScreen(
-                            state = state,
-                            onEmailPasswordLogin = { email, password ->
-                                viewModel.loginWithEmailPassword(email, password)
-                            },
-                            onSendOtp = { email ->
-                                viewModel.sendOtp(email)
-                            },
-                            onGoogleLogin = {
-                                viewModel.onAuthLoading()
-                                googleSignInLauncher.launch(googleSignInClient.signInIntent)
-                            },
-                            onGoToSignUp = { page = AuthPage.SignUp },
-                            onGoToForgotPassword = { page = AuthPage.ForgotPassword }
-                        )
-                        AuthPage.SignUp -> SignUpScreen(
-                            state = state,
-                            onEmailPasswordSignup = { email, password ->
-                                viewModel.signUpWithEmailPassword(email, password)
-                            },
-                            onGoToSignIn = { page = AuthPage.SignIn }
-                        )
-                        AuthPage.ForgotPassword -> ForgotPasswordScreen(
-                            state = state,
-                            onSendReset = { email ->
-                                viewModel.sendPasswordResetEmail(email)
-                            },
-                            onBackToSignIn = { page = AuthPage.SignIn }
-                        )
+                    // Auth screens with slide animation
+                    AnimatedContent(
+                        targetState = page,
+                        transitionSpec = {
+                            val direction = when (targetState) {
+                                AuthPage.SignIn -> AnimatedContentTransitionScope.SlideDirection.Right
+                                AuthPage.SignUp -> AnimatedContentTransitionScope.SlideDirection.Left
+                                AuthPage.ForgotPassword -> AnimatedContentTransitionScope.SlideDirection.Up
+                            }
+                            slideIntoContainer(direction) + fadeIn() togetherWith
+                            slideOutOfContainer(direction) + fadeOut()
+                        },
+                        label = "auth_page"
+                    ) { authPage ->
+                        when (authPage) {
+                            AuthPage.SignIn -> SignInScreen(
+                                state = state,
+                                onEmailPasswordLogin = { email, password ->
+                                    viewModel.loginWithEmailPassword(email, password)
+                                },
+                                onSendOtp = { email ->
+                                    viewModel.sendOtp(email)
+                                },
+                                onGoogleLogin = {
+                                    viewModel.onAuthLoading()
+                                    googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                                },
+                                onGoToSignUp = { page = AuthPage.SignUp },
+                                onGoToForgotPassword = { page = AuthPage.ForgotPassword }
+                            )
+                            AuthPage.SignUp -> SignUpScreen(
+                                state = state,
+                                onEmailPasswordSignup = { email, password ->
+                                    viewModel.signUpWithEmailPassword(email, password)
+                                },
+                                onGoToSignIn = { page = AuthPage.SignIn }
+                            )
+                            AuthPage.ForgotPassword -> ForgotPasswordScreen(
+                                state = state,
+                                onSendReset = { email ->
+                                    viewModel.sendPasswordResetEmail(email)
+                                },
+                                onBackToSignIn = { page = AuthPage.SignIn }
+                            )
+                        }
                     }
                 }
             }
@@ -239,14 +299,6 @@ class MainActivity : ComponentActivity() {
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
         SupabaseClient.client.handleDeeplinks(intent)
-    }
-
-    override fun onResume() {
-        super.onResume()
-        // Refresh session when app comes back to foreground
-        lifecycleScope.launch {
-            SupabaseClient.refreshSessionIfNeeded()
-        }
     }
 }
 
@@ -266,27 +318,7 @@ class AuthViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
-            // Load session from storage on init
             state = state.copy(currentUser = auth.currentSessionOrNull())
-
-            // Listen for auth state changes to keep session alive
-            auth.sessionStatus.collect { status ->
-                when (status) {
-                    is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> {
-                        state = state.copy(currentUser = status.session)
-                    }
-                    is io.github.jan.supabase.auth.status.SessionStatus.NotAuthenticated -> {
-                        state = state.copy(currentUser = null)
-                    }
-                    is io.github.jan.supabase.auth.status.SessionStatus.RefreshFailure -> {
-                        // Token refresh failed, user needs to re-login
-                        state = state.copy(currentUser = null, error = "Session expired. Please sign in again.")
-                    }
-                    io.github.jan.supabase.auth.status.SessionStatus.Initializing -> {
-                        // Auth is initializing, keep current state
-                    }
-                }
-            }
         }
     }
 
