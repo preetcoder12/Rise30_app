@@ -25,3 +25,8 @@ local.properties
 *.log
 *.jar
 !gradle/wrapper/*.jar
+
+# Keystores (security - don't commit private keys)
+# Note: Debug keystore is committed intentionally for consistent SHA-1
+*.jks
+release.keystore

@@ -26,16 +26,26 @@ import androidx.compose.material3.CardDefaults
 import androidx.compose.material3.Surface
 import androidx.compose.material3.Text
 import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import com.rise30.app.calendar.CalendarHelper
+import com.rise30.app.calendar.CalendarIntegrationDialog
+import com.rise30.app.calendar.CalendarPermissionHandler
+import com.rise30.app.calendar.CalendarSuccessNotification
+import java.util.Calendar
 
 @Composable
 fun ChallengesPage(
@@ -44,7 +54,15 @@ fun ChallengesPage(
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
+    val calendarHelper = remember { CalendarHelper(context) }
+    
+    // Calendar integration state
+    var showCalendarDialog by remember { mutableStateOf(false) }
+    var showSuccessNotification by remember { mutableStateOf(false) }
+    var eventsCreated by remember { mutableStateOf(0) }
+    var pendingReminderTime by remember { mutableStateOf<Calendar?>(null) }
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -109,7 +127,10 @@ fun ChallengesPage(
                             )
                             Spacer(modifier = Modifier.height(10.dp))
                             Button(
-                                onClick = onStartChallenge,
+                                onClick = { 
+                                    // Show calendar dialog when starting challenge
+                                    showCalendarDialog = true
+                                },
                                 shape = RoundedCornerShape(20.dp),
                                 colors = ButtonDefaults.buttonColors(
                                     containerColor = Accent,
@@ -225,6 +246,73 @@ fun ChallengesPage(
             HomeFloatingBottomBar(
                 currentTab = currentTab,
                 onTabSelected = onTabSelected
+            )
+            
+            // Calendar Integration Dialog
+            if (showCalendarDialog) {
+                CalendarIntegrationDialog(
+                    challengeName = "21-Day Cognitive Clarity",
+                    durationDays = 21,
+                    onDismiss = { showCalendarDialog = false },
+                    onAddToCalendar = { reminderTime ->
+                        pendingReminderTime = reminderTime
+                        showCalendarDialog = false
+                        
+                        // Check permissions and create events
+                        if (calendarHelper.hasCalendarPermissions()) {
+                            // Create all 21 events
+                            val startDate = Calendar.getInstance()
+                            val eventIds = calendarHelper.createChallengeEvents(
+                                challengeName = "Cognitive Clarity",
+                                durationDays = 21,
+                                startDate = startDate,
+                                dailyReminderTime = reminderTime
+                            )
+                            eventsCreated = eventIds.size
+                            showSuccessNotification = true
+                            onStartChallenge()
+                        }
+                    },
+                    onSkip = {
+                        showCalendarDialog = false
+                        onStartChallenge()
+                    }
+                )
+            }
+            
+            // Calendar Permission Handler (for when permissions not granted)
+            if (pendingReminderTime != null && !calendarHelper.hasCalendarPermissions()) {
+                CalendarPermissionHandler(
+                    onPermissionsGranted = {
+                        // Create events now that we have permission
+                        val startDate = Calendar.getInstance()
+                        val eventIds = calendarHelper.createChallengeEvents(
+                            challengeName = "Cognitive Clarity",
+                            durationDays = 21,
+                            startDate = startDate,
+                            dailyReminderTime = pendingReminderTime!!
+                        )
+                        eventsCreated = eventIds.size
+                        showSuccessNotification = true
+                        pendingReminderTime = null
+                        onStartChallenge()
+                    },
+                    onPermissionsDenied = {
+                        // User denied permissions, continue without calendar
+                        pendingReminderTime = null
+                        onStartChallenge()
+                    }
+                ) { requestPermissions ->
+                    // Show permission request
+                    requestPermissions()
+                }
+            }
+            
+            // Success Notification
+            CalendarSuccessNotification(
+                eventsCount = eventsCreated,
+                visible = showSuccessNotification,
+                onDismiss = { showSuccessNotification = false }
             )
         }
     }

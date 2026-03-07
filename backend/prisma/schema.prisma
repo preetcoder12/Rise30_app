@@ -39,16 +39,25 @@ model DailyEntry {
   completedAt DateTime?
   user        User      @relation(fields: [userId], references: [id])
   challenge   Challenge @relation(fields: [challengeId], references: [id])
+
+  @@unique([userId, challengeId, dayNumber])
 }
 
 model Streak {
-  id          String   @id @default(uuid())
-  userId      String
-  challengeId String
-  length      Int
-  lastUpdated DateTime @default(now())
+  id            String   @id @default(uuid())
+  userId        String
+  challengeId   String
+  length        Int      @default(0)
+  missedDays    Int      @default(0)
+  freezesUsed   Int      @default(0)
+  lastUpdated   DateTime @default(now())
+  isActive      Boolean  @default(true)
+  // Track the last day the user completed (for recovery logic)
+  lastCompletedDay Int   @default(0)
 
   user      User      @relation(fields: [userId], references: [id])
   challenge Challenge @relation(fields: [challengeId], references: [id])
+
+  @@unique([userId, challengeId])
 }
 

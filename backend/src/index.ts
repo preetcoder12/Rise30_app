@@ -5,6 +5,7 @@ import morgan from "morgan";
 import dotenv from "dotenv";
 import { PrismaClient } from "@prisma/client";
 import { storageRouter } from "./storageRoutes";
+import { streakRouter } from "./streakRoutes";
 
 dotenv.config();
 
@@ -21,6 +22,7 @@ app.get("/health", (_req, res) => {
 });
 
 app.use("/storage", storageRouter);
+app.use("/api/streaks", streakRouter);
 
 const PORT = process.env.PORT || 4000;
 

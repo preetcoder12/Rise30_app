@@ -8,6 +8,7 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+import androidx.lifecycle.lifecycleScope
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -47,6 +48,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.rise30.app.streak.StreakViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
@@ -77,6 +79,7 @@ enum class MainTab {
 class MainActivity : ComponentActivity() {
 
     private val viewModel: AuthViewModel by viewModels()
+    private val streakViewModel: StreakViewModel by viewModels()
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
 
@@ -127,18 +130,40 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(state.currentUser) {
                     if (state.currentUser != null) {
                         currentTab = MainTab.Home
+                        // Load streak status when user logs in
+                        // TODO: Replace with actual userId and challengeId
+                        val userId = state.currentUser.user?.id ?: ""
+                        if (userId.isNotEmpty()) {
+                            streakViewModel.loadStreakStatus(userId, "challenge-id")
+                        }
                     }
                 }
 
                 if (state.currentUser != null) {
                     val displayName = state.currentUser.user?.email ?: "Alex"
+                    val userId = state.currentUser.user?.id ?: ""
                     when (currentTab) {
                         MainTab.Home -> HomePage(
                             userName = displayName.substringBefore("@"),
-                            onMarkComplete = { /* TODO: hook into completion flow */ },
-                            onSignOut = { viewModel.signOut() },
+                            onMarkComplete = { 
+                                // Complete current day
+                                streakViewModel.completeDay(userId, "challenge-id", 12)
+                            },
+                            onSignOut = { 
+                                streakViewModel.reset()
+                                viewModel.signOut() 
+                            },
                             currentTab = currentTab,
-                            onTabSelected = { selected -> currentTab = selected }
+                            onTabSelected = { selected -> currentTab = selected },
+                            streakState = streakViewModel.streakState,
+                            showRecoveryCard = streakViewModel.showRecoveryCard,
+                            showStreakBrokenCard = streakViewModel.showStreakBrokenCard,
+                            previousStreakLength = streakViewModel.previousStreakLength,
+                            onRecoverStreak = { 
+                                streakViewModel.recoverStreak(userId, "challenge-id")
+                            },
+                            onDismissRecovery = { streakViewModel.dismissRecovery() },
+                            onDismissStreakBroken = { streakViewModel.dismissStreakBroken() }
                         )
                         MainTab.Challenges -> ChallengesPage(
                             userName = displayName.substringBefore("@"),
@@ -154,10 +179,24 @@ class MainActivity : ComponentActivity() {
                         )
                         else -> HomePage(
                             userName = displayName.substringBefore("@"),
-                            onMarkComplete = { /* TODO: hook into completion flow */ },
-                            onSignOut = { viewModel.signOut() },
+                            onMarkComplete = { 
+                                streakViewModel.completeDay(userId, "challenge-id", 12)
+                            },
+                            onSignOut = { 
+                                streakViewModel.reset()
+                                viewModel.signOut() 
+                            },
                             currentTab = currentTab,
-                            onTabSelected = { selected -> currentTab = selected }
+                            onTabSelected = { selected -> currentTab = selected },
+                            streakState = streakViewModel.streakState,
+                            showRecoveryCard = streakViewModel.showRecoveryCard,
+                            showStreakBrokenCard = streakViewModel.showStreakBrokenCard,
+                            previousStreakLength = streakViewModel.previousStreakLength,
+                            onRecoverStreak = { 
+                                streakViewModel.recoverStreak(userId, "challenge-id")
+                            },
+                            onDismissRecovery = { streakViewModel.dismissRecovery() },
+                            onDismissStreakBroken = { streakViewModel.dismissStreakBroken() }
                         )
                     }
                 } else {
@@ -201,6 +240,14 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         SupabaseClient.client.handleDeeplinks(intent)
     }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh session when app comes back to foreground
+        lifecycleScope.launch {
+            SupabaseClient.refreshSessionIfNeeded()
+        }
+    }
 }
 
 data class AuthUiState(
@@ -219,7 +266,27 @@ class AuthViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
+            // Load session from storage on init
             state = state.copy(currentUser = auth.currentSessionOrNull())
+
+            // Listen for auth state changes to keep session alive
+            auth.sessionStatus.collect { status ->
+                when (status) {
+                    is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> {
+                        state = state.copy(currentUser = status.session)
+                    }
+                    is io.github.jan.supabase.auth.status.SessionStatus.NotAuthenticated -> {
+                        state = state.copy(currentUser = null)
+                    }
+                    is io.github.jan.supabase.auth.status.SessionStatus.RefreshFailure -> {
+                        // Token refresh failed, user needs to re-login
+                        state = state.copy(currentUser = null, error = "Session expired. Please sign in again.")
+                    }
+                    io.github.jan.supabase.auth.status.SessionStatus.Initializing -> {
+                        // Auth is initializing, keep current state
+                    }
+                }
+            }
         }
     }
 

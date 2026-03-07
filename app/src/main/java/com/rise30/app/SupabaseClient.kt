@@ -2,6 +2,7 @@ package com.rise30.app
 
 import io.github.jan.supabase.createSupabaseClient
 import io.github.jan.supabase.auth.Auth
+import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.postgrest.Postgrest
 
 object SupabaseClient {
@@ -19,10 +20,28 @@ object SupabaseClient {
         install(Auth) {
             scheme = "rise30"
             host = "auth"
+            // Automatically load session from storage on startup
             autoLoadFromStorage = true
+            // Automatically refresh tokens before they expire
             alwaysAutoRefresh = true
         }
         install(Postgrest)
+    }
+
+    /**
+     * Call this from MainActivity.onResume() to ensure session is refreshed
+     * when the app comes back to foreground.
+     */
+    suspend fun refreshSessionIfNeeded() {
+        try {
+            val currentSession = client.auth.currentSessionOrNull()
+            if (currentSession != null) {
+                // This will trigger token refresh if needed
+                client.auth.refreshCurrentSession()
+            }
+        } catch (e: Exception) {
+            // Session refresh failed, will be handled by sessionStatus collector
+        }
     }
 }
 

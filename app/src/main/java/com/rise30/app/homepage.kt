@@ -1,4 +1,3 @@
-// (YOUR IMPORTS REMAIN SAME – no change needed)
 package com.rise30.app
 
 import androidx.compose.animation.*
@@ -10,6 +9,9 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -18,6 +20,10 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
+import com.rise30.app.streak.StreakForgivenessState
+import com.rise30.app.streak.StreakRecoveryCard
+import com.rise30.app.streak.StreakBrokenCard
+import com.rise30.app.streak.StreakShieldBadge
 import kotlin.math.roundToInt
 
 // 🌑 Premium Colors
@@ -71,6 +77,8 @@ private fun TopSection(
 private fun MainChallengeCard(
     currentDay: Int,
     totalDays: Int,
+    streakLength: Int,
+    freezesRemaining: Int,
     onMarkComplete: () -> Unit
 ) {
     val progress = remember(currentDay, totalDays) {
@@ -146,6 +154,34 @@ private fun MainChallengeCard(
                     color = Color.Gray,
                     fontSize = 13.sp
                 )
+                
+                // Streak info row
+                if (streakLength > 0) {
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Row(
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Icon(
+                            imageVector = Icons.Default.LocalFireDepartment,
+                            contentDescription = null,
+                            tint = Accent,
+                            modifier = Modifier.size(16.dp)
+                        )
+                        Spacer(modifier = Modifier.width(4.dp))
+                        Text(
+                            text = "$streakLength day streak",
+                            color = Accent,
+                            fontSize = 12.sp,
+                            fontWeight = FontWeight.Medium
+                        )
+                        
+                        if (freezesRemaining > 0) {
+                            Spacer(modifier = Modifier.width(12.dp))
+                            StreakShieldBadge(freezesRemaining = freezesRemaining)
+                        }
+                    }
+                }
+                
                 Spacer(modifier = Modifier.height(12.dp))
                 Button(
                     onClick = onMarkComplete,
@@ -350,7 +386,14 @@ fun HomePage(
     onMarkComplete: () -> Unit,
     onSignOut: () -> Unit,
     currentTab: MainTab,
-    onTabSelected: (MainTab) -> Unit
+    onTabSelected: (MainTab) -> Unit,
+    streakState: StreakForgivenessState = StreakForgivenessState(),
+    showRecoveryCard: Boolean = false,
+    showStreakBrokenCard: Boolean = false,
+    previousStreakLength: Int = 0,
+    onRecoverStreak: () -> Unit = {},
+    onDismissRecovery: () -> Unit = {},
+    onDismissStreakBroken: () -> Unit = {}
 ) {
     val scrollState = rememberScrollState()
 
@@ -371,9 +414,30 @@ fun HomePage(
 
                 Spacer(modifier = Modifier.height(30.dp))
 
+                // Show streak recovery card if needed
+                if (showRecoveryCard) {
+                    StreakRecoveryCard(
+                        state = streakState,
+                        onRecover = onRecoverStreak,
+                        onDismiss = onDismissRecovery
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
+                // Show streak broken card if needed
+                if (showStreakBrokenCard) {
+                    StreakBrokenCard(
+                        previousStreak = previousStreakLength,
+                        onContinue = onDismissStreakBroken
+                    )
+                    Spacer(modifier = Modifier.height(20.dp))
+                }
+
                 MainChallengeCard(
                     currentDay = 12,
                     totalDays = 30,
+                    streakLength = streakState.streakLength,
+                    freezesRemaining = streakState.freezesRemaining,
                     onMarkComplete = onMarkComplete
                 )
 
