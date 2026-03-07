@@ -1,4 +1,4 @@
-import { PrismaClient, Streak, Challenge } from "@prisma/client";
+import { PrismaClient, Streak, Challenge } from "./generated/prisma";
 import crypto from "crypto";
 
 const prisma = new PrismaClient();

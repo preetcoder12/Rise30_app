@@ -1,5 +1,5 @@
 import { createClient } from '@supabase/supabase-js'
-import { PrismaClient } from '@prisma/client'
+import { PrismaClient } from './generated/prisma'
 
 const supabaseUrl = process.env.SUPABASE_URL || ''
 const supabaseKey = process.env.SUPABASE_SERVICE_ROLE_KEY || ''
