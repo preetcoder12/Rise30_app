@@ -9,6 +9,19 @@ import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+<<<<<<< HEAD
+import androidx.compose.material3.Button
+import androidx.compose.material3.ButtonDefaults
+import androidx.compose.material3.Card
+import androidx.compose.material3.CardDefaults
+import androidx.compose.material3.Surface
+import androidx.compose.material3.Text
+import androidx.compose.runtime.Composable
+import androidx.compose.runtime.getValue
+import androidx.compose.runtime.mutableStateOf
+import androidx.compose.runtime.remember
+import androidx.compose.runtime.setValue
+=======
 import androidx.compose.foundation.horizontalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Add
@@ -16,17 +29,26 @@ import androidx.compose.material.icons.filled.EmojiEvents
 import androidx.compose.material.icons.filled.WaterDrop
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+>>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+<<<<<<< HEAD
+import com.rise30.app.calendar.CalendarHelper
+import com.rise30.app.calendar.CalendarIntegrationDialog
+import com.rise30.app.calendar.CalendarPermissionHandler
+import com.rise30.app.calendar.CalendarSuccessNotification
+import java.util.Calendar
+=======
 import io.ktor.client.call.body
 import io.ktor.client.request.get
 import kotlinx.serialization.Serializable
@@ -46,6 +68,7 @@ data class ChallengeSummary(
     val currentStreak: Int,
     val isActive: Boolean
 )
+>>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
 
 @Composable
 fun ChallengesPage(
@@ -58,7 +81,17 @@ fun ChallengesPage(
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
+<<<<<<< HEAD
+    val calendarHelper = remember { CalendarHelper(context) }
+    
+    // Calendar integration state
+    var showCalendarDialog by remember { mutableStateOf(false) }
+    var showSuccessNotification by remember { mutableStateOf(false) }
+    var eventsCreated by remember { mutableStateOf(0) }
+    var pendingReminderTime by remember { mutableStateOf<Calendar?>(null) }
+=======
     var selectedCategory by remember { mutableStateOf("All") }
     var challenges by remember { mutableStateOf<List<ChallengeSummary>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
@@ -89,6 +122,7 @@ fun ChallengesPage(
     }
     
     val categories = listOf("All", "Health", "Fitness", "Productivity", "Skills")
+>>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
 
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -102,7 +136,95 @@ fun ChallengesPage(
                     .verticalScroll(scrollState)
                     .padding(horizontal = 20.dp)
             ) {
+<<<<<<< HEAD
+                Text(
+                    text = "Challenges",
+                    color = Color.White,
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                Spacer(modifier = Modifier.height(18.dp))
+
+                // Hero recommended challenge card
+                Card(
+                    modifier = Modifier.fillMaxWidth(),
+                    colors = CardDefaults.cardColors(containerColor = CardDark),
+                    shape = RoundedCornerShape(22.dp)
+                ) {
+                    Row(
+                        modifier = Modifier.padding(18.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Column(
+                            modifier = Modifier.weight(1f)
+                        ) {
+                            Text(
+                                text = "Recommended for You",
+                                color = Color.LightGray,
+                                fontSize = 12.sp
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "21-Day Cognitive Clarity Intensive",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Spacer(modifier = Modifier.height(4.dp))
+                            Text(
+                                text = "MASTER YOUR MIND",
+                                color = Accent,
+                                fontSize = 13.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                            Spacer(modifier = Modifier.height(6.dp))
+                            Text(
+                                text = "Duration: 21 Days   Target: Focus & Clarity",
+                                color = Color.LightGray,
+                                fontSize = 12.sp,
+                                maxLines = 2,
+                                overflow = TextOverflow.Ellipsis
+                            )
+                            Spacer(modifier = Modifier.height(10.dp))
+                            Button(
+                                onClick = { 
+                                    // Show calendar dialog when starting challenge
+                                    showCalendarDialog = true
+                                },
+                                shape = RoundedCornerShape(20.dp),
+                                colors = ButtonDefaults.buttonColors(
+                                    containerColor = Accent,
+                                    contentColor = Color.Black
+                                )
+                            ) {
+                                Text(
+                                    text = "Start this Challenge",
+                                    fontSize = 13.sp,
+                                    fontWeight = FontWeight.SemiBold
+                                )
+                            }
+                        }
+
+                        Spacer(modifier = Modifier.width(12.dp))
+
+                        Image(
+                            painter = painterResource(id = R.drawable.tree),
+                            contentDescription = "Mind tree",
+                            modifier = Modifier
+                                .size(90.dp)
+                                .clip(RoundedCornerShape(20.dp)),
+                            contentScale = ContentScale.Crop
+                        )
+                    }
+                }
+
+                Spacer(modifier = Modifier.height(20.dp))
+
+                // Simple category tabs row
+=======
                 // Header
+>>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
@@ -200,6 +322,73 @@ fun ChallengesPage(
             HomeFloatingBottomBar(
                 currentTab = currentTab,
                 onTabSelected = onTabSelected
+            )
+            
+            // Calendar Integration Dialog
+            if (showCalendarDialog) {
+                CalendarIntegrationDialog(
+                    challengeName = "21-Day Cognitive Clarity",
+                    durationDays = 21,
+                    onDismiss = { showCalendarDialog = false },
+                    onAddToCalendar = { reminderTime ->
+                        pendingReminderTime = reminderTime
+                        showCalendarDialog = false
+                        
+                        // Check permissions and create events
+                        if (calendarHelper.hasCalendarPermissions()) {
+                            // Create all 21 events
+                            val startDate = Calendar.getInstance()
+                            val eventIds = calendarHelper.createChallengeEvents(
+                                challengeName = "Cognitive Clarity",
+                                durationDays = 21,
+                                startDate = startDate,
+                                dailyReminderTime = reminderTime
+                            )
+                            eventsCreated = eventIds.size
+                            showSuccessNotification = true
+                            onStartChallenge()
+                        }
+                    },
+                    onSkip = {
+                        showCalendarDialog = false
+                        onStartChallenge()
+                    }
+                )
+            }
+            
+            // Calendar Permission Handler (for when permissions not granted)
+            if (pendingReminderTime != null && !calendarHelper.hasCalendarPermissions()) {
+                CalendarPermissionHandler(
+                    onPermissionsGranted = {
+                        // Create events now that we have permission
+                        val startDate = Calendar.getInstance()
+                        val eventIds = calendarHelper.createChallengeEvents(
+                            challengeName = "Cognitive Clarity",
+                            durationDays = 21,
+                            startDate = startDate,
+                            dailyReminderTime = pendingReminderTime!!
+                        )
+                        eventsCreated = eventIds.size
+                        showSuccessNotification = true
+                        pendingReminderTime = null
+                        onStartChallenge()
+                    },
+                    onPermissionsDenied = {
+                        // User denied permissions, continue without calendar
+                        pendingReminderTime = null
+                        onStartChallenge()
+                    }
+                ) { requestPermissions ->
+                    // Show permission request
+                    requestPermissions()
+                }
+            }
+            
+            // Success Notification
+            CalendarSuccessNotification(
+                eventsCount = eventsCreated,
+                visible = showSuccessNotification,
+                onDismiss = { showSuccessNotification = false }
             )
         }
     }

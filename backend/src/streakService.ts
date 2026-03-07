@@ -1,4 +1,5 @@
 import { PrismaClient, Streak, Challenge } from "@prisma/client";
+import crypto from "crypto";
 
 const prisma = new PrismaClient();
 
@@ -227,24 +228,22 @@ export async function completeDay(
     where: { userId, challengeId, dayNumber },
   });
 
+  const now = new Date();
+
   if (existingEntry) {
     await prisma.dailyEntry.update({
       where: { id: existingEntry.id },
       data: {
         completed: true,
-        completedAt: new Date(),
+        completedAt: now,
       },
     });
   } else {
-    await prisma.dailyEntry.create({
-      data: {
-        userId,
-        challengeId,
-        dayNumber,
-        completed: true,
-        completedAt: new Date(),
-      },
-    });
+    // Use raw query to avoid schema mismatch issues
+    await prisma.$executeRaw`
+      INSERT INTO "DailyEntry" (id, "userId", "challengeId", "dayNumber", completed, "completedAt")
+      VALUES (${crypto.randomUUID()}, ${userId}, ${challengeId}, ${dayNumber}, true, ${now.toISOString()})
+    `;
   }
 
   // Update streak with forgiveness fields using raw query

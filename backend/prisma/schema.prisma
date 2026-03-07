@@ -70,19 +70,31 @@ model DailyEntry {
   value       Float?    // For measurable challenges (e.g., 1.5 liters)
   user        User      @relation(fields: [userId], references: [id])
   challenge   Challenge @relation(fields: [challengeId], references: [id])
+<<<<<<< HEAD
+
+  @@unique([userId, challengeId, dayNumber])
+=======
   
   @@unique([userId, challengeId, dayNumber])
   @@unique([userId, challengeId, date])
+>>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
 }
 
 model Streak {
-  id          String   @id @default(uuid())
-  userId      String
-  challengeId String
-  length      Int
-  lastUpdated DateTime @default(now())
+  id            String   @id @default(uuid())
+  userId        String
+  challengeId   String
+  length        Int      @default(0)
+  missedDays    Int      @default(0)
+  freezesUsed   Int      @default(0)
+  lastUpdated   DateTime @default(now())
+  isActive      Boolean  @default(true)
+  // Track the last day the user completed (for recovery logic)
+  lastCompletedDay Int   @default(0)
 
   user      User      @relation(fields: [userId], references: [id])
   challenge Challenge @relation(fields: [challengeId], references: [id])
+
+  @@unique([userId, challengeId])
 }
 

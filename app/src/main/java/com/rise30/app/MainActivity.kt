@@ -8,8 +8,12 @@ import androidx.activity.enableEdgeToEdge
 import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
+<<<<<<< HEAD
+import androidx.lifecycle.lifecycleScope
+=======
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+>>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -29,6 +33,7 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.rise30.app.streak.StreakViewModel
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
@@ -66,6 +71,7 @@ enum class ChallengeScreen {
 class MainActivity : ComponentActivity() {
 
     private val viewModel: AuthViewModel by viewModels()
+    private val streakViewModel: StreakViewModel by viewModels()
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
 
@@ -119,7 +125,16 @@ class MainActivity : ComponentActivity() {
                 LaunchedEffect(state.currentUser) {
                     if (state.currentUser != null) {
                         currentTab = MainTab.Home
+<<<<<<< HEAD
+                        // Load streak status when user logs in
+                        // TODO: Replace with actual userId and challengeId
+                        val userId = state.currentUser.user?.id ?: ""
+                        if (userId.isNotEmpty()) {
+                            streakViewModel.loadStreakStatus(userId, "challenge-id")
+                        }
+=======
                         currentChallengeScreen = ChallengeScreen.None
+>>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
                     }
                 }
 
@@ -129,6 +144,66 @@ class MainActivity : ComponentActivity() {
                 }
 
                 if (state.currentUser != null) {
+<<<<<<< HEAD
+                    val displayName = state.currentUser.user?.email ?: "Alex"
+                    val userId = state.currentUser.user?.id ?: ""
+                    when (currentTab) {
+                        MainTab.Home -> HomePage(
+                            userName = displayName.substringBefore("@"),
+                            onMarkComplete = { 
+                                // Complete current day
+                                streakViewModel.completeDay(userId, "challenge-id", 12)
+                            },
+                            onSignOut = { 
+                                streakViewModel.reset()
+                                viewModel.signOut() 
+                            },
+                            currentTab = currentTab,
+                            onTabSelected = { selected -> currentTab = selected },
+                            streakState = streakViewModel.streakState,
+                            showRecoveryCard = streakViewModel.showRecoveryCard,
+                            showStreakBrokenCard = streakViewModel.showStreakBrokenCard,
+                            previousStreakLength = streakViewModel.previousStreakLength,
+                            onRecoverStreak = { 
+                                streakViewModel.recoverStreak(userId, "challenge-id")
+                            },
+                            onDismissRecovery = { streakViewModel.dismissRecovery() },
+                            onDismissStreakBroken = { streakViewModel.dismissStreakBroken() }
+                        )
+                        MainTab.Challenges -> ChallengesPage(
+                            userName = displayName.substringBefore("@"),
+                            onStartChallenge = { /* TODO: start challenge flow */ },
+                            currentTab = currentTab,
+                            onTabSelected = { selected -> currentTab = selected }
+                        )
+                        MainTab.Profile -> ProfilePage(
+                            userName = displayName.substringBefore("@"),
+                            onSignOut = { viewModel.signOut() },
+                            currentTab = currentTab,
+                            onTabSelected = { selected -> currentTab = selected }
+                        )
+                        else -> HomePage(
+                            userName = displayName.substringBefore("@"),
+                            onMarkComplete = { 
+                                streakViewModel.completeDay(userId, "challenge-id", 12)
+                            },
+                            onSignOut = { 
+                                streakViewModel.reset()
+                                viewModel.signOut() 
+                            },
+                            currentTab = currentTab,
+                            onTabSelected = { selected -> currentTab = selected },
+                            streakState = streakViewModel.streakState,
+                            showRecoveryCard = streakViewModel.showRecoveryCard,
+                            showStreakBrokenCard = streakViewModel.showStreakBrokenCard,
+                            previousStreakLength = streakViewModel.previousStreakLength,
+                            onRecoverStreak = { 
+                                streakViewModel.recoverStreak(userId, "challenge-id")
+                            },
+                            onDismissRecovery = { streakViewModel.dismissRecovery() },
+                            onDismissStreakBroken = { streakViewModel.dismissStreakBroken() }
+                        )
+=======
                     val displayName = state.currentUser.user?.email ?: "User"
                     val userId = state.currentUser.user?.id ?: ""
                     
@@ -243,6 +318,7 @@ class MainActivity : ComponentActivity() {
                                 }
                             }
                         }
+>>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
                     }
                 } else {
                     // Auth screens with slide animation
@@ -300,6 +376,14 @@ class MainActivity : ComponentActivity() {
         super.onNewIntent(intent)
         SupabaseClient.client.handleDeeplinks(intent)
     }
+
+    override fun onResume() {
+        super.onResume()
+        // Refresh session when app comes back to foreground
+        lifecycleScope.launch {
+            SupabaseClient.refreshSessionIfNeeded()
+        }
+    }
 }
 
 data class AuthUiState(
@@ -318,7 +402,27 @@ class AuthViewModel : ViewModel() {
 
     init {
         viewModelScope.launch {
+            // Load session from storage on init
             state = state.copy(currentUser = auth.currentSessionOrNull())
+
+            // Listen for auth state changes to keep session alive
+            auth.sessionStatus.collect { status ->
+                when (status) {
+                    is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> {
+                        state = state.copy(currentUser = status.session)
+                    }
+                    is io.github.jan.supabase.auth.status.SessionStatus.NotAuthenticated -> {
+                        state = state.copy(currentUser = null)
+                    }
+                    is io.github.jan.supabase.auth.status.SessionStatus.RefreshFailure -> {
+                        // Token refresh failed, user needs to re-login
+                        state = state.copy(currentUser = null, error = "Session expired. Please sign in again.")
+                    }
+                    io.github.jan.supabase.auth.status.SessionStatus.Initializing -> {
+                        // Auth is initializing, keep current state
+                    }
+                }
+            }
         }
     }
 

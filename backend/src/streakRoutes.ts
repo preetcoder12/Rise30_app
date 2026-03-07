@@ -15,7 +15,8 @@ const router = Router();
  */
 router.get("/:userId/:challengeId/status", async (req: Request, res: Response) => {
   try {
-    const { userId, challengeId } = req.params;
+    const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+    const challengeId = Array.isArray(req.params.challengeId) ? req.params.challengeId[0] : req.params.challengeId;
     const status = await getStreakStatus(userId, challengeId);
 
     if (!status) {
@@ -53,7 +54,8 @@ router.get("/:userId/:challengeId/status", async (req: Request, res: Response) =
  */
 router.post("/:userId/:challengeId/complete", async (req: Request, res: Response) => {
   try {
-    const { userId, challengeId } = req.params;
+    const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+    const challengeId = Array.isArray(req.params.challengeId) ? req.params.challengeId[0] : req.params.challengeId;
     const { dayNumber } = req.body;
 
     if (!dayNumber || typeof dayNumber !== "number") {
@@ -75,7 +77,8 @@ router.post("/:userId/:challengeId/complete", async (req: Request, res: Response
  */
 router.post("/:userId/:challengeId/recover", async (req: Request, res: Response) => {
   try {
-    const { userId, challengeId } = req.params;
+    const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+    const challengeId = Array.isArray(req.params.challengeId) ? req.params.challengeId[0] : req.params.challengeId;
     const result = await recoverMissedDay(userId, challengeId);
 
     res.json(result);
@@ -91,7 +94,8 @@ router.post("/:userId/:challengeId/recover", async (req: Request, res: Response)
  */
 router.get("/:userId/:challengeId/progress", async (req: Request, res: Response) => {
   try {
-    const { userId, challengeId } = req.params;
+    const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+    const challengeId = Array.isArray(req.params.challengeId) ? req.params.challengeId[0] : req.params.challengeId;
     const duration = parseInt(req.query.duration as string) || 30;
 
     const progress = await getDailyProgress(userId, challengeId, duration);
@@ -109,7 +113,8 @@ router.get("/:userId/:challengeId/progress", async (req: Request, res: Response)
  */
 router.post("/:userId/:challengeId/check", async (req: Request, res: Response) => {
   try {
-    const { userId, challengeId } = req.params;
+    const userId = Array.isArray(req.params.userId) ? req.params.userId[0] : req.params.userId;
+    const challengeId = Array.isArray(req.params.challengeId) ? req.params.challengeId[0] : req.params.challengeId;
     const result = await checkAndUpdateStreak(userId, challengeId);
 
     res.json(result);
