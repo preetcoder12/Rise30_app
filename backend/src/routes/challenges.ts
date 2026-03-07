@@ -147,9 +147,11 @@ router.post('/', async (req, res) => {
     })
 
     res.json({ success: true, challenge })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error creating challenge:', error)
-    res.status(500).json({ success: false, error: 'Failed to create challenge' })
+    console.error('Error message:', error.message)
+    console.error('Error code:', error.code)
+    res.status(500).json({ success: false, error: 'Failed to create challenge', details: error.message })
   }
 })
 
