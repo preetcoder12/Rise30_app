@@ -502,24 +502,13 @@ class AuthViewModel : ViewModel() {
 
     fun initSession(context: Context) {
         viewModelScope.launch {
-            // 1. Check Custom Backend Session
+            // 1. Check Custom Backend Session (Email/Pass)
             val savedAccount = SessionManager.getSession(context)
             if (savedAccount != null) {
                 state = state.copy(currentAccount = savedAccount, isInitializing = false)
             }
 
-            // 2. Check Supabase Session (Google)
-            val session = auth.currentSessionOrNull()
-            if (session != null) {
-                state = state.copy(supabaseSession = session, isInitializing = false)
-            } else {
-                // If neither, we're not logged in
-                if (savedAccount == null) {
-                    state = state.copy(isInitializing = false)
-                }
-            }
-
-            // 3. Listen for Supabase Status
+            // 2. Listen for Supabase Status (Google/OAuth)
             auth.sessionStatus.collect { status ->
                 when (status) {
                     is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> {
@@ -527,9 +516,13 @@ class AuthViewModel : ViewModel() {
                     }
                     is io.github.jan.supabase.auth.status.SessionStatus.NotAuthenticated -> {
                         state = state.copy(supabaseSession = null)
-                        if (state.currentAccount == null) state = state.copy(isInitializing = false)
+                        if (state.currentAccount == null) {
+                            state = state.copy(isInitializing = false)
+                        }
                     }
-                    else -> {}
+                    else -> {
+                        // E.g., Initializing. Keep isInitializing = true if no savedAccount exists yet.
+                    }
                 }
             }
         }

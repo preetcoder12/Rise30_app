@@ -93,4 +93,24 @@ object CacheManager {
             return null
         }
     }
+
+    // --- Achievements ---
+    fun saveAchievements(context: Context, userId: String, achievements: List<Achievement>) {
+        try {
+            val json = Json.encodeToString(achievements)
+            getPrefs(context).edit().putString("achievements_" + userId, json).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun getAchievements(context: Context, userId: String): List<Achievement>? {
+        try {
+            val json = getPrefs(context).getString("achievements_" + userId, null) ?: return null
+            return Json.decodeFromString<List<Achievement>>(json)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
 }

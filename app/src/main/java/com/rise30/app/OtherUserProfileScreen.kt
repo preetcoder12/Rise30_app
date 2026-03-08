@@ -45,6 +45,8 @@ fun OtherUserProfileScreen(
     var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
 
+    val context = androidx.compose.ui.platform.LocalContext.current
+
     LaunchedEffect(otherUserId) {
         isLoading = true
         try {
@@ -61,10 +63,17 @@ fun OtherUserProfileScreen(
             }
 
             // Fetch achievements
-            val achResp: AchievementsResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/users/$otherUserId/achievements").body()
-            if (achResp.success) {
-                achievements = achResp.achievements
-            }
+            try {
+                val cachedAchievements = CacheManager.getAchievements(context, otherUserId)
+                if (cachedAchievements != null) {
+                    achievements = cachedAchievements
+                }
+                val achResp: AchievementsResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/users/$otherUserId/achievements").body()
+                if (achResp.success) {
+                    achievements = achResp.achievements
+                    CacheManager.saveAchievements(context, otherUserId, achResp.achievements)
+                }
+            } catch (e: Exception) {}
 
             // Fetch challenge history
             val chalResp: ChallengesResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/challenges/user/$otherUserId").body()
@@ -342,7 +351,7 @@ fun OtherUserProfileScreen(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(32.dp))
+                    Spacer(modifier = Modifier.height(120.dp))
                 }
             } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("User not found", color = Color.Gray)

@@ -11,6 +11,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
+import androidx.compose.material.icons.filled.Check
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material.icons.filled.Search
@@ -29,11 +30,15 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.HttpResponse
 import io.ktor.http.*
 import kotlinx.coroutines.launch
+import kotlinx.coroutines.delay
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.Canvas
 import io.ktor.client.request.post
 import io.ktor.client.request.setBody
+import kotlin.random.Random
 
 // 🌑 Premium Colors
 val BackgroundDark = Color(0xFF080810)
@@ -175,7 +180,11 @@ private fun MainChallengeCard(
     
     val challengeColor = Color(0xFFFFF44F)
     val isTodayCompleted = challenge?.progress?.isTodayCompleted ?: false
-    Box(
+    var sparkleTrigger by remember { mutableStateOf(0) }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        // card content
+        Box(
         modifier = Modifier
             .fillMaxWidth()
             .padding(bottom = 12.dp)
@@ -308,6 +317,7 @@ private fun MainChallengeCard(
                         if (challenge == null) {
                             onCreateChallenge()
                         } else {
+                            sparkleTrigger++
                             onMarkComplete()
                         }
                     },
@@ -335,6 +345,65 @@ private fun MainChallengeCard(
                         fontSize = 13.sp
                     )
                 }
+                }
+            }
+        } // close inner card Box
+        // Celebration sparkle overlay
+        CelebrationSparkle(
+            trigger = sparkleTrigger,
+            modifier = Modifier
+                .matchParentSize()
+                .padding(bottom = 12.dp)
+        )
+    } // close outer Box
+}
+
+/**
+ * Reusable bottom-to-top sparkle burst. Caller controls [trigger]: bump it to replay.
+ */
+@Composable
+fun CelebrationSparkle(trigger: Int, modifier: Modifier = Modifier) {
+    val sparkleProgress = remember { Animatable(0f) }
+    val sparkleVisible = remember { mutableStateOf(false) }
+
+    LaunchedEffect(trigger) {
+        if (trigger > 0) {
+            sparkleVisible.value = true
+            sparkleProgress.snapTo(0f)
+            sparkleProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 1100, easing = FastOutSlowInEasing)
+            )
+            sparkleVisible.value = false
+        }
+    }
+
+    val particles = remember {
+        List(18) {
+            Triple(
+                Random.nextFloat(),                          // normalised X (0-1)
+                Random.nextFloat() * 0.5f + 0.4f,           // rise speed
+                listOf(
+                    Accent, Color(0xFFFFEB3B), Color(0xFFFFF176),
+                    Color(0xFFFFCA28), Color(0xFFFFFFFF), Color(0xFFFFC107)
+                )[it % 6]
+            )
+        }
+    }
+
+    if (sparkleVisible.value) {
+        val p = sparkleProgress.value
+        Canvas(modifier = modifier) {
+            particles.forEach { (xRatio, speedFactor, color) ->
+                val x = xRatio * size.width
+                val y = size.height - (p * speedFactor * size.height * 1.3f)
+                val alpha = when {
+                    p < 0.15f -> p / 0.15f
+                    p > 0.6f  -> (1f - (p - 0.6f) / 0.4f).coerceAtLeast(0f)
+                    else      -> 1f
+                }
+                val radius = (6f + (1f - p) * 5f) * (0.6f + xRatio * 0.8f)
+                drawCircle(color = color.copy(alpha = alpha), radius = radius, center = Offset(x, y))
             }
         }
     }
@@ -987,18 +1056,34 @@ private fun PowerMorningSection(userId: String) {
     )
     
     val scope = rememberCoroutineScope()
-    var habitsState by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
-    var isLoading by remember { mutableStateOf(true) }
+    // SnapshotStateMap: individual key writes trigger recomposition immediately
+    val doneState = remember { androidx.compose.runtime.snapshots.SnapshotStateMap<String, Boolean>() }
+    val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
 
     LaunchedEffect(userId) {
         try {
             val response: HabitResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/habits/$userId").body()
             if (response.success) {
-                val stateMap = response.habits.associate { it.name to it.completed }
-                habitsState = stateMap
+                response.habits.forEach { habit -> doneState[habit.name] = habit.completed }
             }
-        } catch (e: Exception) { /* handle error */ }
-        finally { isLoading = false }
+        } catch (e: Exception) { /* use default false */ }
+    }
+
+    // Auto-reset at midnight every day
+    LaunchedEffect(Unit) {
+        while (true) {
+            val now = java.util.Calendar.getInstance()
+            val midnight = java.util.Calendar.getInstance().apply {
+                add(java.util.Calendar.DAY_OF_MONTH, 1)
+                set(java.util.Calendar.HOUR_OF_DAY, 0)
+                set(java.util.Calendar.MINUTE, 0)
+                set(java.util.Calendar.SECOND, 0)
+                set(java.util.Calendar.MILLISECOND, 0)
+            }
+            val msUntilMidnight = midnight.timeInMillis - now.timeInMillis
+            delay(msUntilMidnight.coerceAtLeast(1000L))
+            doneState.clear()  // New day — reset all rituals
+        }
     }
 
     Column {
@@ -1020,70 +1105,143 @@ private fun PowerMorningSection(userId: String) {
         Spacer(modifier = Modifier.height(16.dp))
 
         ritualHabitNames.forEach { habitName ->
-            val isCompleted = habitsState[habitName] ?: false
-
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .padding(vertical = 6.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(
-                        Brush.linearGradient(
-                            colors = listOf(Color(0xFF1A1A28), Color(0xFF0E0E18))
-                        )
-                    )
-                    .border(
-                        1.dp,
-                        if (isCompleted) Accent.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.05f),
-                        RoundedCornerShape(20.dp)
-                    )
-                    .clickable {
-                        val newCompleted = !isCompleted
-                        habitsState = habitsState + (habitName to newCompleted)
+            val isDone = doneState[habitName] ?: false
+            RitualItem(
+                name = habitName,
+                done = isDone,
+                onMarkDone = {
+                    if (!isDone) {
+                        haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        doneState[habitName] = true
                         scope.launch {
                             try {
                                 ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/habits/toggle") {
                                     contentType(ContentType.Application.Json)
-                                    setBody(mapOf(
-                                        "userId" to userId,
-                                        "name" to habitName,
-                                        "completed" to newCompleted
-                                    ))
+                                    setBody(mapOf("userId" to userId, "name" to habitName, "completed" to true))
                                 }
-                            } catch (e: Exception) {
-                                // rollback on error
-                                habitsState = habitsState + (habitName to isCompleted)
-                            }
+                            } catch (e: Exception) { /* silent */ }
                         }
                     }
-                    .padding(16.dp),
-                verticalAlignment = Alignment.CenterVertically
-            ) {
-                Box(
-                    modifier = Modifier
-                        .size(24.dp)
-                        .clip(CircleShape)
-                        .background(if (isCompleted) Accent else Color.White.copy(alpha = 0.1f))
-                        .padding(4.dp),
-                    contentAlignment = Alignment.Center
-                ) {
-                    if (isCompleted) {
-                        Icon(
-                            imageVector = Icons.Filled.AcUnit,
-                            contentDescription = null,
-                            tint = Color.Black,
-                            modifier = Modifier.size(16.dp)
-                        )
-                    }
                 }
+            )
+        }
+    }
+}
 
-                Spacer(modifier = Modifier.width(16.dp))
+@Composable
+private fun RitualItem(name: String, done: Boolean, onMarkDone: () -> Unit) {
+    // Sparkle animation state
+    var sparkleVisible by remember { mutableStateOf(false) }
+    val sparkleProgress = remember { Animatable(0f) }
 
-                Text(
-                    text = habitName,
-                    color = if (isCompleted) Color.White else Color.Gray,
-                    fontSize = 16.sp
+    LaunchedEffect(done) {
+        if (done) {
+            sparkleVisible = true
+            sparkleProgress.snapTo(0f)
+            sparkleProgress.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(durationMillis = 1100, easing = FastOutSlowInEasing)
+            )
+            sparkleVisible = false
+        }
+    }
+
+    // Particle data seeded once per item
+    val particles = remember {
+        List(14) {
+            Triple(
+                Random.nextFloat(),                           // normalised X (0-1)
+                Random.nextFloat() * 0.5f + 0.4f,            // rise speed factor
+                listOf(
+                    Accent, Color(0xFFFFEB3B), Color(0xFFFFF176),
+                    Color(0xFFFFCA28), Color(0xFFFFFFFF)
+                )[it % 5]
+            )
+        }
+    }
+
+    Box(modifier = Modifier.fillMaxWidth()) {
+        // Main row
+        Row(
+            modifier = Modifier
+                .fillMaxWidth()
+                .padding(vertical = 6.dp)
+                .clip(RoundedCornerShape(20.dp))
+                .background(
+                    Brush.linearGradient(
+                        colors = if (done)
+                            listOf(Accent.copy(alpha = 0.07f), Color(0xFF0E0E18))
+                        else
+                            listOf(Color(0xFF1A1A28), Color(0xFF0E0E18))
+                    )
                 )
+                .border(
+                    1.dp,
+                    if (done) Accent.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f),
+                    RoundedCornerShape(20.dp)
+                )
+                .clickable(enabled = !done, onClick = onMarkDone)
+                .padding(16.dp),
+            verticalAlignment = Alignment.CenterVertically
+        ) {
+            Box(
+                modifier = Modifier
+                    .size(26.dp)
+                    .clip(CircleShape)
+                    .background(if (done) Accent else Color.Transparent)
+                    .border(
+                        width = 2.dp,
+                        color = if (done) Color.Transparent else Color.White.copy(alpha = 0.25f),
+                        shape = CircleShape
+                    ),
+                contentAlignment = Alignment.Center
+            ) {
+                if (done) {
+                    Icon(
+                        imageVector = Icons.Filled.Check,
+                        contentDescription = null,
+                        tint = Color.Black,
+                        modifier = Modifier.size(17.dp)
+                    )
+                }
+            }
+
+            Spacer(modifier = Modifier.width(16.dp))
+
+            Text(
+                text = name,
+                color = if (done) Accent.copy(alpha = 0.4f) else Color.White,
+                fontSize = 16.sp,
+                fontWeight = if (done) FontWeight.Normal else FontWeight.Medium,
+                textDecoration = if (done) androidx.compose.ui.text.style.TextDecoration.LineThrough else null
+            )
+        }
+
+        // Sparkle overlay — bottom-to-top particle burst
+        if (sparkleVisible) {
+            val p = sparkleProgress.value
+            Canvas(
+                modifier = Modifier
+                    .matchParentSize()
+                    .padding(vertical = 6.dp)
+            ) {
+                particles.forEach { (xRatio, speedFactor, color) ->
+                    val x = xRatio * size.width
+                    // start at bottom, rise upward
+                    val y = size.height - (p * speedFactor * size.height * 1.2f)
+                    // alpha: fade in quickly then fade out
+                    val alpha = when {
+                        p < 0.2f -> p / 0.2f
+                        p > 0.65f -> (1f - (p - 0.65f) / 0.35f).coerceAtLeast(0f)
+                        else -> 1f
+                    }
+                    val radius = (5f + (1f - p) * 4f) * (0.7f + xRatio * 0.6f)
+                    drawCircle(
+                        color = color.copy(alpha = alpha),
+                        radius = radius,
+                        center = Offset(x, y)
+                    )
+                }
             }
         }
     }

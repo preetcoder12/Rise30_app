@@ -18,9 +18,10 @@ import androidx.compose.material.icons.filled.FitnessCenter
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
+import androidx.compose.ui.geometry.Offset
+import androidx.compose.foundation.Canvas
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.*
-import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
@@ -447,6 +448,7 @@ private fun ChallengeProgressOverview(
     onMarkToday: () -> Unit
 ) {
     val percentage = progress?.percentage ?: 0
+    var sparkleTrigger by remember { mutableStateOf(0) }
     
     // Premium Liquid Glass UI
     LiquidGlassCard(
@@ -555,38 +557,47 @@ private fun ChallengeProgressOverview(
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            // Premium Mark Today Button with Glow
-            Box(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(52.dp)
-                    .shadow(
-                        elevation = 12.dp,
-                        shape = RoundedCornerShape(16.dp),
-                        ambientColor = challengeColor,
-                        spotColor = challengeColor
-                    )
-                    .clip(RoundedCornerShape(16.dp))
-                    .background(challengeColor)
-                    .clickable(onClick = onMarkToday),
-                contentAlignment = Alignment.Center
-            ) {
-                Row(verticalAlignment = Alignment.CenterVertically) {
-                    Text(
-                        text = "✓",
-                        color = Color.Black,
-                        fontSize = 18.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(end = 8.dp)
-                    )
-                    Text(
-                        text = "Mark Today Complete",
-                        color = Color.Black,
-                        fontSize = 16.sp,
-                        fontWeight = FontWeight.SemiBold
-                    )
+            // Mark Today Button wrapped with sparkle
+            Box(modifier = Modifier.fillMaxWidth()) {
+                Box(
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(52.dp)
+                        .shadow(
+                            elevation = 12.dp,
+                            shape = RoundedCornerShape(16.dp),
+                            ambientColor = challengeColor,
+                            spotColor = challengeColor
+                        )
+                        .clip(RoundedCornerShape(16.dp))
+                        .background(challengeColor)
+                        .clickable {
+                            sparkleTrigger++
+                            onMarkToday()
+                        },
+                    contentAlignment = Alignment.Center
+                ) {
+                    Row(verticalAlignment = Alignment.CenterVertically) {
+                        Text(
+                            text = "✓",
+                            color = Color.Black,
+                            fontSize = 18.sp,
+                            fontWeight = FontWeight.Bold,
+                            modifier = Modifier.padding(end = 8.dp)
+                        )
+                        Text(
+                            text = "Mark Today Complete",
+                            color = Color.Black,
+                            fontSize = 16.sp,
+                            fontWeight = FontWeight.SemiBold
+                        )
+                    }
                 }
-        }
+                CelebrationSparkle(
+                    trigger = sparkleTrigger,
+                    modifier = Modifier.matchParentSize()
+                )
+            }
     }
 }
 
