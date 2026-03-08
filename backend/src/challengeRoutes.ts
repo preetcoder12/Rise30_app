@@ -1,4 +1,5 @@
 import { Router } from "express";
+import { randomUUID } from "crypto";
 import { PrismaClient } from "../prisma/client";
 
 const prisma = new PrismaClient();
@@ -21,13 +22,14 @@ router.post("/create", async (req, res) => {
       icon,
     } = req.body;
 
-    if (!userId || !name || !duration) {
-      return res.status(400).json({ error: "userId, name, and duration are required" });
+    const durationInt = parseInt(duration.toString());
+    if (isNaN(durationInt)) {
+      return res.status(400).json({ error: "Invalid duration provided" });
     }
 
     const start = startDate ? new Date(startDate) : new Date();
     const end = new Date(start);
-    end.setDate(end.getDate() + duration);
+    end.setDate(end.getDate() + durationInt);
 
     const challenge = await prisma.challenge.create({
       data: {
@@ -36,7 +38,7 @@ router.post("/create", async (req, res) => {
         description: description || "",
         type: type || "custom",
         category: category || "general",
-        duration,
+        duration: durationInt,
         startDate: start,
         endDate: end,
         targetValue: targetValue || null,
@@ -49,10 +51,11 @@ router.post("/create", async (req, res) => {
 
     // Create daily entries for the challenge
     const dailyEntries = [];
-    for (let i = 1; i <= duration; i++) {
+    for (let i = 1; i <= durationInt; i++) {
       const entryDate = new Date(start);
       entryDate.setDate(entryDate.getDate() + i - 1);
       dailyEntries.push({
+        id: randomUUID(),
         userId,
         challengeId: challenge.id,
         dayNumber: i,
@@ -68,6 +71,7 @@ router.post("/create", async (req, res) => {
     // Create initial streak
     await prisma.streak.create({
       data: {
+        id: randomUUID(),
         userId,
         challengeId: challenge.id,
         length: 0,

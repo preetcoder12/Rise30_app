@@ -1,4 +1,5 @@
 import { Router, Request, Response } from 'express'
+import { randomUUID } from 'crypto'
 import { prisma } from '../supabaseClient'
 
 const router = Router()
@@ -41,6 +42,7 @@ router.post('/create', async (req: Request, res: Response) => {
       date.setDate(date.getDate() + (i - 1))
       date.setHours(0, 0, 0, 0)
       dailyEntries.push({
+        id: randomUUID(),
         userId,
         challengeId: challenge.id,
         dayNumber: i,
@@ -53,7 +55,12 @@ router.post('/create', async (req: Request, res: Response) => {
 
     // Create streak
     await prisma.streak.create({
-      data: { userId, challengeId: challenge.id, length: 0 }
+      data: { 
+        id: randomUUID(),
+        userId, 
+        challengeId: challenge.id, 
+        length: 0 
+      }
     })
 
     res.json({ success: true, challenge })
