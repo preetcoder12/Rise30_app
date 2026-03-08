@@ -62,7 +62,8 @@ enum class ChallengeScreen {
     None,
     WaterChallenge,
     ChallengeDetail,
-    CreateChallenge
+    CreateChallenge,
+    EditChallenge
 }
 
 class MainActivity : ComponentActivity() {
@@ -187,6 +188,21 @@ class MainActivity : ComponentActivity() {
                                     }
                                 )
                             }
+                            ChallengeScreen.EditChallenge -> {
+                                EditChallengeScreen(
+                                    userId = userId,
+                                    challengeId = selectedChallengeId ?: "",
+                                    onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                    onChallengeUpdated = { 
+                                        currentChallengeScreen = ChallengeScreen.None
+                                    },
+                                    currentTab = currentTab,
+                                    onTabSelected = { selected -> 
+                                        currentTab = selected
+                                        currentChallengeScreen = ChallengeScreen.None
+                                    }
+                                )
+                            }
                             ChallengeScreen.None -> {
                                 // Animated tab content with horizontal sliding
                                 AnimatedContent(
@@ -226,6 +242,10 @@ class MainActivity : ComponentActivity() {
                                             },
                                             onCreateChallenge = {
                                                 currentChallengeScreen = ChallengeScreen.CreateChallenge
+                                            },
+                                            onEditChallenge = { challengeId ->
+                                                selectedChallengeId = challengeId
+                                                currentChallengeScreen = ChallengeScreen.EditChallenge
                                             },
                                             currentTab = currentTab,
                                             onTabSelected = { selected -> currentTab = selected }

@@ -30,7 +30,15 @@ import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import io.ktor.client.call.body
 import io.ktor.client.request.get
+import io.ktor.client.request.delete
+import io.ktor.client.statement.HttpResponse
+import androidx.compose.foundation.gestures.detectTapGestures
+import androidx.compose.ui.input.pointer.pointerInput
+import androidx.compose.material.icons.filled.Delete
+import androidx.compose.material.icons.filled.Edit
+import androidx.compose.material.icons.filled.MoreVert
 import kotlinx.serialization.Serializable
+import kotlinx.coroutines.launch
 
 @Serializable
 data class ChallengeSummary(
@@ -56,6 +64,7 @@ fun ChallengesPage(
     onStartWaterChallenge: () -> Unit,
     onChallengeClick: (String) -> Unit,
     onCreateChallenge: () -> Unit,
+    onEditChallenge: (String) -> Unit,
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
@@ -66,6 +75,8 @@ fun ChallengesPage(
     var isLoading by remember { mutableStateOf(true) }
     var errorMessage by remember { mutableStateOf<String?>(null) }
     var refreshTrigger by remember { mutableStateOf(0) }
+    
+    val scope = rememberCoroutineScope()
     
     // Load challenges from real database
     LaunchedEffect(userId, refreshTrigger, currentTab) {
@@ -173,7 +184,26 @@ fun ChallengesPage(
                     filteredChallenges.forEach { challenge ->
                         ChallengeListCard(
                             challenge = challenge,
-                            onClick = { onChallengeClick(challenge.id) }
+                            onClick = { onChallengeClick(challenge.id) },
+                            onEdit = { onEditChallenge(challenge.id) },
+                            onDelete = {
+                                scope.launch {
+                                    try {
+                                        val response: HttpResponse = httpClient.delete("$BASE_URL/api/challenges/${challenge.id}") {
+                                            url {
+                                                parameters.append("userId", userId)
+                                            }
+                                        }
+                                        if (response.status == io.ktor.http.HttpStatusCode.OK) {
+                                            refreshTrigger++
+                                        } else {
+                                            errorMessage = "Failed to delete challenge."
+                                        }
+                                    } catch (e: Exception) {
+                                        errorMessage = "Error deleting: ${e.message}"
+                                    }
+                                }
+                            }
                         )
                         Spacer(modifier = Modifier.height(12.dp))
                     }
@@ -212,14 +242,22 @@ fun ChallengesPage(
 @Composable
 private fun ChallengeListCard(
     challenge: ChallengeSummary,
-    onClick: () -> Unit
+    onClick: () -> Unit,
+    onEdit: () -> Unit,
+    onDelete: () -> Unit
 ) {
     val challengeColor = challenge.color?.let { Color(android.graphics.Color.parseColor(it)) } ?: Accent
+    var showMenu by remember { mutableStateOf(false) }
     
     Card(
         modifier = Modifier
             .fillMaxWidth()
-            .clickable(onClick = onClick),
+            .pointerInput(Unit) {
+                detectTapGestures(
+                    onTap = { onClick() },
+                    onLongPress = { showMenu = true }
+                )
+            },
         colors = CardDefaults.cardColors(containerColor = CardDark),
         shape = RoundedCornerShape(20.dp)
     ) {
@@ -285,6 +323,31 @@ private fun ChallengeListCard(
                 fontSize = 16.sp,
                 fontWeight = FontWeight.Bold
             )
+            // Menu Anchor for Popup
+            Box {
+                DropdownMenu(
+                    expanded = showMenu,
+                    onDismissRequest = { showMenu = false },
+                    modifier = Modifier.background(CardDark)
+                ) {
+                    DropdownMenuItem(
+                        text = { Text("Edit", color = Color.White) },
+                        onClick = { 
+                            showMenu = false
+                            onEdit()
+                        },
+                        leadingIcon = { Icon(Icons.Default.Edit, contentDescription = null, tint = Color.Gray) }
+                    )
+                    DropdownMenuItem(
+                        text = { Text("Delete", color = Color.Red) },
+                        onClick = { 
+                            showMenu = false
+                            onDelete()
+                        },
+                        leadingIcon = { Icon(Icons.Default.Delete, contentDescription = null, tint = Color.Red) }
+                    )
+                }
+            }
         }
     }
 }

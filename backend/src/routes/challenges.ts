@@ -310,14 +310,68 @@ router.post('/:challengeId/mark-today', async (req, res) => {
   }
 })
 
+// Update challenge
+router.put('/:challengeId', async (req, res) => {
+  try {
+    const { challengeId } = req.params
+    const { userId, name, description, duration, category, color } = req.body
+
+    const challenge = await prisma.challenge.findFirst({
+      where: { id: challengeId, userId }
+    })
+
+    if (!challenge) {
+      return res.status(404).json({ success: false, error: 'Challenge not found or access denied' })
+    }
+
+    const durationInt = parseInt(duration?.toString())
+    if (duration && isNaN(durationInt)) {
+      return res.status(400).json({ success: false, error: 'Invalid duration provided' })
+    }
+
+    const updatedChallenge = await prisma.challenge.update({
+      where: { id: challengeId },
+      data: {
+        name: name !== undefined ? name : challenge.name,
+        description: description !== undefined ? description : challenge.description,
+        duration: durationInt !== undefined ? durationInt : challenge.duration,
+        category: category !== undefined ? category : challenge.category,
+        color: color !== undefined ? color : challenge.color,
+      }
+    })
+
+    res.json({ success: true, challenge: updatedChallenge })
+  } catch (error) {
+    console.error('Error updating challenge:', error)
+    res.status(500).json({ success: false, error: 'Failed to update challenge' })
+  }
+})
+
 // Delete challenge
 router.delete('/:challengeId', async (req, res) => {
   try {
     const { challengeId } = req.params
-    const { userId } = req.body
+    const { userId } = req.query
 
-    await prisma.challenge.deleteMany({
-      where: { id: challengeId, userId }
+    if (!userId) {
+       return res.status(400).json({ success: false, error: 'userId parameter is required' })
+    }
+
+    const challenge = await prisma.challenge.findFirst({
+      where: { id: challengeId, userId: userId as string }
+    })
+
+    if (!challenge) {
+      return res.status(404).json({ success: false, error: 'Challenge not found or access denied' })
+    }
+
+    // Delete related records manually to simulate Cascade delete
+    await prisma.dailyEntry.deleteMany({ where: { challengeId } })
+    await prisma.waterEntry.deleteMany({ where: { challengeId } })
+    await prisma.streak.deleteMany({ where: { challengeId } })
+
+    await prisma.challenge.delete({
+      where: { id: challengeId }
     })
 
     res.json({ success: true })
