@@ -45,6 +45,7 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
         id: user.id,
         email: user.email,
         displayName: user.displayName,
+        avatarUrl: user.avatarUrl,
         createdAt: user.createdAt,
         stats: {
           totalChallenges,
@@ -148,12 +149,13 @@ router.get('/:userId/analytics', async (req: Request, res: Response) => {
 router.put('/:userId/profile', async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId as string
-    const { displayName } = req.body
+    const { displayName, avatarUrl } = req.body
 
     const user = await prisma.user.update({
       where: { id: userId },
       data: {
-        ...(displayName !== undefined && { displayName: displayName.trim() })
+        ...(displayName !== undefined && { displayName: displayName.trim() }),
+        ...(avatarUrl !== undefined && { avatarUrl: avatarUrl })
       }
     })
 
@@ -265,6 +267,7 @@ router.get('/search', async (req: Request, res: Response) => {
       select: {
           id: true,
           displayName: true,
+          avatarUrl: true,
           email: true,
           createdAt: true
       }

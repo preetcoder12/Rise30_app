@@ -15,6 +15,7 @@ model User {
   password     String?     // For email/password auth
   provider     String      @default("email") // "email" or "google"
   displayName  String?
+  avatarUrl    String?
   createdAt    DateTime    @default(now())
   challenges   Challenge[]
   streaks      Streak[]

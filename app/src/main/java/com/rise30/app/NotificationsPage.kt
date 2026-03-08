@@ -9,11 +9,12 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.foundation.clickable
 import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
-import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.Icons
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -42,7 +43,8 @@ data class PendingRequestsResponse(
 data class PendingRequestUser(
     val id: String,
     val email: String,
-    val displayName: String? = null
+    val displayName: String? = null,
+    val avatarUrl: String? = null
 )
 
 @Composable
@@ -143,12 +145,20 @@ fun NotificationsPage(
                                 .background(Accent.copy(alpha = 0.2f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = (user.displayName ?: user.email).take(1).uppercase(),
-                                color = Accent,
-                                fontSize = 20.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            val avatar = user.avatarUrl
+                            if (!avatar.isNullOrBlank()) {
+                                Text(
+                                    text = avatar,
+                                    fontSize = 20.sp
+                                )
+                            } else {
+                                Text(
+                                    text = (user.displayName ?: user.email).take(1).uppercase(),
+                                    color = Accent,
+                                    fontSize = 20.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                         
                         Spacer(modifier = Modifier.width(12.dp))

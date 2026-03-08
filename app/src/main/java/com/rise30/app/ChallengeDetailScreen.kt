@@ -44,6 +44,18 @@ import androidx.compose.foundation.interaction.MutableInteractionSource
 import androidx.compose.material.ripple.rememberRipple
 import androidx.compose.ui.graphics.graphicsLayer
 
+private val iconMap = mapOf(
+    "star" to R.drawable.star,
+    "run" to R.drawable.run,
+    "gym" to R.drawable.gym,
+    "books" to R.drawable.books,
+    "yoga" to R.drawable.yoga,
+    "leaf" to R.drawable.leaf,
+    "music" to R.drawable.music,
+    "tech" to R.drawable.tech,
+    "drop" to R.drawable.drop
+)
+
 @Serializable
 data class ChallengeDetail(
     val id: String,
@@ -378,15 +390,34 @@ private fun ChallengeDetailHeader(
             }
             
             // Title with optional icon
-            Text(
-                text = "$challengeIcon $challengeName",
-                color = Color.White,
-                fontSize = 24.sp, 
-                fontWeight = FontWeight.Bold,
-                letterSpacing = 0.5.sp,
-                maxLines = 1,
-                overflow = TextOverflow.Ellipsis
-            )
+            val resId = iconMap[challengeIcon]
+            if (resId != null) {
+                Image(
+                    painter = painterResource(id = resId),
+                    contentDescription = null,
+                    modifier = Modifier.size(24.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = challengeName,
+                    color = Color.White,
+                    fontSize = 24.sp, 
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            } else {
+                Text(
+                    text = "$challengeIcon $challengeName",
+                    color = Color.White,
+                    fontSize = 24.sp, 
+                    fontWeight = FontWeight.Bold,
+                    letterSpacing = 0.5.sp,
+                    maxLines = 1,
+                    overflow = TextOverflow.Ellipsis
+                )
+            }
         }
         
         // Stats Button stays on right
@@ -443,10 +474,19 @@ private fun ChallengeProgressOverview(
                         ),
                     contentAlignment = Alignment.Center
                 ) {
-                    Text(
-                        text = challengeIcon,
-                        fontSize = 32.sp
-                    )
+                    val resId = iconMap[challengeIcon]
+                    if (resId != null) {
+                        Image(
+                            painter = painterResource(id = resId),
+                            contentDescription = null,
+                            modifier = Modifier.size(32.dp)
+                        )
+                    } else {
+                        Text(
+                            text = challengeIcon,
+                            fontSize = 32.sp
+                        )
+                    }
                 }
                 
                 // Quick Stats

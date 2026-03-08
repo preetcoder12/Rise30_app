@@ -85,7 +85,8 @@ router.get('/list/:userId', async (req: Request, res: Response) => {
           select: {
             id: true,
             displayName: true,
-            email: true
+            email: true,
+            avatarUrl: true
           }
         }
       }
@@ -146,7 +147,8 @@ router.get('/pending/:userId', async (req: Request, res: Response) => {
           select: {
             id: true,
             displayName: true,
-            email: true
+            email: true,
+            avatarUrl: true
           }
         }
       }

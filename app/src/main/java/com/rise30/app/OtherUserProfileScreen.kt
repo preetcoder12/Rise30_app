@@ -39,6 +39,9 @@ fun OtherUserProfileScreen(
 ) {
     var profile by remember { mutableStateOf<UserProfile?>(null) }
     var friendshipStatus by remember { mutableStateOf("none") }
+    var achievements by remember { mutableStateOf<List<Achievement>>(emptyList()) }
+    var challengeHistory by remember { mutableStateOf<List<ChallengeSummary>>(emptyList()) }
+    var historyFilter by remember { mutableStateOf("All") }
     var isLoading by remember { mutableStateOf(true) }
     val scope = rememberCoroutineScope()
 
@@ -55,6 +58,36 @@ fun OtherUserProfileScreen(
             val statusResp: FriendshipStatusResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/friends/status/$currentUserId/$otherUserId").body()
             if (statusResp.success) {
                 friendshipStatus = statusResp.status
+            }
+
+            // Fetch achievements
+            val achResp: AchievementsResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/users/$otherUserId/achievements").body()
+            if (achResp.success) {
+                achievements = achResp.achievements
+            }
+
+            // Fetch challenge history
+            val chalResp: ChallengesResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/challenges/user/$otherUserId").body()
+            if (chalResp.success) {
+                val summaries = chalResp.challenges.map { c ->
+                    ChallengeSummary(
+                        id = c.id,
+                        name = c.name,
+                        description = c.description,
+                        type = c.type,
+                        category = c.category,
+                        duration = c.duration,
+                        color = c.color ?: "#4FC3F7",
+                        icon = c.icon ?: "🎯",
+                        progress = c.progress.percentage,
+                        completedDays = c.progress.completedDays,
+                        currentStreak = c.progress.currentStreak,
+                        isActive = c.isActive,
+                        isTodayCompleted = c.progress.isTodayCompleted,
+                        currentDayNumber = c.progress.currentDayNumber
+                    )
+                }
+                challengeHistory = summaries
             }
         } catch (e: Exception) {
             // handle error
@@ -112,12 +145,20 @@ fun OtherUserProfileScreen(
                                 .background(Accent.copy(alpha = 0.12f)),
                             contentAlignment = Alignment.Center
                         ) {
-                            Text(
-                                text = (user.displayName ?: user.email).take(1).uppercase(),
-                                color = Accent,
-                                fontSize = 42.sp,
-                                fontWeight = FontWeight.Bold
-                            )
+                            val currentAvatar = user.avatarUrl
+                            if (!currentAvatar.isNullOrBlank()) {
+                                Text(
+                                    text = currentAvatar,
+                                    fontSize = 42.sp
+                                )
+                            } else {
+                                Text(
+                                    text = (user.displayName ?: user.email).take(1).uppercase(),
+                                    color = Accent,
+                                    fontSize = 42.sp,
+                                    fontWeight = FontWeight.Bold
+                                )
+                            }
                         }
                         
                         Spacer(modifier = Modifier.height(16.dp))
@@ -218,6 +259,90 @@ fun OtherUserProfileScreen(
                             modifier = Modifier.weight(1f)
                         )
                     }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+
+                    Text(
+                        "Badges",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    Spacer(modifier = Modifier.height(16.dp))
+                    if (achievements.isEmpty()) {
+                        Text(
+                            text = "No badges earned yet.",
+                            color = Color.Gray,
+                            fontSize = 13.sp
+                        )
+                    } else {
+                        Row(
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .horizontalScroll(rememberScrollState()),
+                            horizontalArrangement = Arrangement.spacedBy(16.dp)
+                        ) {
+                            achievements.forEach { badge ->
+                                BadgeItem(
+                                    name = badge.name,
+                                    category = badge.description,
+                                    icon = null,
+                                    painter = null,
+                                    emojiIcon = badge.icon
+                                )
+                            }
+                        }
+                    }
+
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    Text(
+                        text = "Challenge History",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+
+                    Spacer(modifier = Modifier.height(10.dp))
+
+                    Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
+                        listOf("All", "Completed", "Active").forEach { label ->
+                            HistoryTabPill(
+                                label = label,
+                                selected = historyFilter == label,
+                                onClick = { historyFilter = label }
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+
+                    val filteredHistory = when (historyFilter) {
+                        "Completed" -> challengeHistory.filter { it.progress >= 100 }
+                        "Active" -> challengeHistory.filter { it.isActive && it.progress < 100 }
+                        else -> challengeHistory
+                    }
+
+                    if (filteredHistory.isEmpty()) {
+                        Text(
+                            text = "No challenges found.",
+                            color = Color.Gray,
+                            fontSize = 13.sp
+                        )
+                    } else {
+                        Column(verticalArrangement = Arrangement.spacedBy(12.dp)) {
+                            filteredHistory.forEach { challenge ->
+                                HistoryItem(
+                                    title = challenge.name,
+                                    progress = "${challenge.completedDays}/${challenge.duration} Days",
+                                    nextMilestone = if (challenge.progress >= 100) "Completed" else "Keep going!",
+                                    progressValue = challenge.progress / 100f
+                                )
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(32.dp))
                 }
             } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
                 Text("User not found", color = Color.Gray)

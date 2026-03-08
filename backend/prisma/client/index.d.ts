@@ -1508,6 +1508,7 @@ export namespace Prisma {
     password: string | null
     provider: string | null
     displayName: string | null
+    avatarUrl: string | null
     createdAt: Date | null
   }
 
@@ -1517,6 +1518,7 @@ export namespace Prisma {
     password: string | null
     provider: string | null
     displayName: string | null
+    avatarUrl: string | null
     createdAt: Date | null
   }
 
@@ -1526,6 +1528,7 @@ export namespace Prisma {
     password: number
     provider: number
     displayName: number
+    avatarUrl: number
     createdAt: number
     _all: number
   }
@@ -1537,6 +1540,7 @@ export namespace Prisma {
     password?: true
     provider?: true
     displayName?: true
+    avatarUrl?: true
     createdAt?: true
   }
 
@@ -1546,6 +1550,7 @@ export namespace Prisma {
     password?: true
     provider?: true
     displayName?: true
+    avatarUrl?: true
     createdAt?: true
   }
 
@@ -1555,6 +1560,7 @@ export namespace Prisma {
     password?: true
     provider?: true
     displayName?: true
+    avatarUrl?: true
     createdAt?: true
     _all?: true
   }
@@ -1637,6 +1643,7 @@ export namespace Prisma {
     password: string | null
     provider: string
     displayName: string | null
+    avatarUrl: string | null
     createdAt: Date
     _count: UserCountAggregateOutputType | null
     _min: UserMinAggregateOutputType | null
@@ -1663,6 +1670,7 @@ export namespace Prisma {
     password?: boolean
     provider?: boolean
     displayName?: boolean
+    avatarUrl?: boolean
     createdAt?: boolean
     challenges?: boolean | User$challengesArgs<ExtArgs>
     streaks?: boolean | User$streaksArgs<ExtArgs>
@@ -1680,6 +1688,7 @@ export namespace Prisma {
     password?: boolean
     provider?: boolean
     displayName?: boolean
+    avatarUrl?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["user"]>
 
@@ -1689,6 +1698,7 @@ export namespace Prisma {
     password?: boolean
     provider?: boolean
     displayName?: boolean
+    avatarUrl?: boolean
     createdAt?: boolean
   }
 
@@ -1721,6 +1731,7 @@ export namespace Prisma {
       password: string | null
       provider: string
       displayName: string | null
+      avatarUrl: string | null
       createdAt: Date
     }, ExtArgs["result"]["user"]>
     composites: {}
@@ -2127,6 +2138,7 @@ export namespace Prisma {
     readonly password: FieldRef<"User", 'String'>
     readonly provider: FieldRef<"User", 'String'>
     readonly displayName: FieldRef<"User", 'String'>
+    readonly avatarUrl: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
   }
     
@@ -8760,6 +8772,7 @@ export namespace Prisma {
     password: 'password',
     provider: 'provider',
     displayName: 'displayName',
+    avatarUrl: 'avatarUrl',
     createdAt: 'createdAt'
   };
 
@@ -8960,6 +8973,7 @@ export namespace Prisma {
     password?: StringNullableFilter<"User"> | string | null
     provider?: StringFilter<"User"> | string
     displayName?: StringNullableFilter<"User"> | string | null
+    avatarUrl?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     challenges?: ChallengeListRelationFilter
     streaks?: StreakListRelationFilter
@@ -8976,6 +8990,7 @@ export namespace Prisma {
     password?: SortOrderInput | SortOrder
     provider?: SortOrder
     displayName?: SortOrderInput | SortOrder
+    avatarUrl?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     challenges?: ChallengeOrderByRelationAggregateInput
     streaks?: StreakOrderByRelationAggregateInput
@@ -8995,6 +9010,7 @@ export namespace Prisma {
     password?: StringNullableFilter<"User"> | string | null
     provider?: StringFilter<"User"> | string
     displayName?: StringNullableFilter<"User"> | string | null
+    avatarUrl?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     challenges?: ChallengeListRelationFilter
     streaks?: StreakListRelationFilter
@@ -9011,6 +9027,7 @@ export namespace Prisma {
     password?: SortOrderInput | SortOrder
     provider?: SortOrder
     displayName?: SortOrderInput | SortOrder
+    avatarUrl?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: UserCountOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -9026,6 +9043,7 @@ export namespace Prisma {
     password?: StringNullableWithAggregatesFilter<"User"> | string | null
     provider?: StringWithAggregatesFilter<"User"> | string
     displayName?: StringNullableWithAggregatesFilter<"User"> | string | null
+    avatarUrl?: StringNullableWithAggregatesFilter<"User"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
   }
 
@@ -9520,6 +9538,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     streaks?: StreakCreateNestedManyWithoutUserInput
@@ -9536,6 +9555,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
@@ -9552,6 +9572,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     streaks?: StreakUpdateManyWithoutUserNestedInput
@@ -9568,6 +9589,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
@@ -9584,6 +9606,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
   }
 
@@ -9593,6 +9616,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -9602,6 +9626,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -10223,6 +10248,7 @@ export namespace Prisma {
     password?: SortOrder
     provider?: SortOrder
     displayName?: SortOrder
+    avatarUrl?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -10232,6 +10258,7 @@ export namespace Prisma {
     password?: SortOrder
     provider?: SortOrder
     displayName?: SortOrder
+    avatarUrl?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -10241,6 +10268,7 @@ export namespace Prisma {
     password?: SortOrder
     provider?: SortOrder
     displayName?: SortOrder
+    avatarUrl?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -11970,6 +11998,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     streaks?: StreakCreateNestedManyWithoutUserInput
@@ -11985,6 +12014,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
@@ -12005,6 +12035,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     streaks?: StreakCreateNestedManyWithoutUserInput
@@ -12020,6 +12051,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
@@ -12051,6 +12083,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     streaks?: StreakUpdateManyWithoutUserNestedInput
@@ -12066,6 +12099,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
@@ -12092,6 +12126,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     streaks?: StreakUpdateManyWithoutUserNestedInput
@@ -12107,6 +12142,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
@@ -12122,6 +12158,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     streaks?: StreakCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryCreateNestedManyWithoutUserInput
@@ -12137,6 +12174,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryUncheckedCreateNestedManyWithoutUserInput
@@ -12264,6 +12302,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     streaks?: StreakUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUpdateManyWithoutUserNestedInput
@@ -12279,6 +12318,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUncheckedUpdateManyWithoutUserNestedInput
@@ -12342,6 +12382,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     streaks?: StreakCreateNestedManyWithoutUserInput
@@ -12357,6 +12398,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
@@ -12435,6 +12477,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     streaks?: StreakUpdateManyWithoutUserNestedInput
@@ -12450,6 +12493,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
@@ -12518,6 +12562,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     streaks?: StreakCreateNestedManyWithoutUserInput
@@ -12533,6 +12578,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
@@ -12611,6 +12657,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     streaks?: StreakUpdateManyWithoutUserNestedInput
@@ -12626,6 +12673,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
@@ -12694,6 +12742,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryCreateNestedManyWithoutUserInput
@@ -12709,6 +12758,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryUncheckedCreateNestedManyWithoutUserInput
@@ -12787,6 +12837,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUpdateManyWithoutUserNestedInput
@@ -12802,6 +12853,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUncheckedUpdateManyWithoutUserNestedInput
@@ -12870,6 +12922,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     streaks?: StreakCreateNestedManyWithoutUserInput
@@ -12885,6 +12938,7 @@ export namespace Prisma {
     password?: string | null
     provider?: string
     displayName?: string | null
+    avatarUrl?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
@@ -12916,6 +12970,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     streaks?: StreakUpdateManyWithoutUserNestedInput
@@ -12931,6 +12986,7 @@ export namespace Prisma {
     password?: NullableStringFieldUpdateOperationsInput | string | null
     provider?: StringFieldUpdateOperationsInput | string
     displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput

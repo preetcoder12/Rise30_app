@@ -35,7 +35,8 @@ data class UserSearchResponse(
 data class SearchUser(
     val id: String,
     val displayName: String?,
-    val email: String
+    val email: String,
+    val avatarUrl: String? = null
 )
 
 @Composable
@@ -161,12 +162,20 @@ fun UserResultCard(user: SearchUser, onClick: () -> Unit) {
                     .background(Accent.copy(alpha = 0.1f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = (user.displayName ?: user.email).take(1).uppercase(),
-                    color = Accent,
-                    fontWeight = FontWeight.Bold,
-                    fontSize = 20.sp
-                )
+                val avatar = user.avatarUrl
+                if (!avatar.isNullOrBlank()) {
+                    Text(
+                        text = avatar,
+                        fontSize = 20.sp
+                    )
+                } else {
+                    Text(
+                        text = (user.displayName ?: user.email).take(1).uppercase(),
+                        color = Accent,
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 20.sp
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.width(16.dp))

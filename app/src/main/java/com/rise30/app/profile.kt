@@ -58,6 +58,7 @@ data class UserProfile(
     val id: String,
     val email: String,
     val displayName: String? = null,
+    val avatarUrl: String? = null,
     val createdAt: String,
     val stats: UserStats
 )
@@ -110,6 +111,7 @@ fun ProfilePage(
     userId: String,
     userName: String,
     onSignOut: () -> Unit,
+    onNavigateToFriends: () -> Unit,
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
@@ -136,6 +138,12 @@ fun ProfilePage(
     // Edit Profile dialog state
     var showEditDialog by remember { mutableStateOf(false) }
     var editDisplayName by remember { mutableStateOf(userName) }
+    var editAvatarUrl by remember { mutableStateOf(userProfile?.avatarUrl) }
+
+    LaunchedEffect(userProfile) {
+        editDisplayName = userProfile?.displayName ?: userName
+        editAvatarUrl = userProfile?.avatarUrl
+    }
 
     // Load profile, challenges, and achievements
     LaunchedEffect(userId) {
@@ -269,21 +277,31 @@ fun ProfilePage(
                             modifier = Modifier.fillMaxSize(),
                             color = CardDark
                         ) {
-                            Icon(
-                                imageVector = Icons.Rounded.Person,
-                                contentDescription = "Profile Picture",
-                                tint = Accent,
-                                modifier = Modifier
-                                    .fillMaxSize()
-                                    .padding(20.dp)
-                            )
+                            val currentAvatar = userProfile?.avatarUrl
+                            if (!currentAvatar.isNullOrBlank()) {
+                                Box(contentAlignment = Alignment.Center, modifier = Modifier.fillMaxSize()) {
+                                    Text(
+                                        text = currentAvatar,
+                                        fontSize = 54.sp
+                                    )
+                                }
+                            } else {
+                                Icon(
+                                    imageVector = Icons.Rounded.Person,
+                                    contentDescription = "Profile Picture",
+                                    tint = Accent,
+                                    modifier = Modifier
+                                        .fillMaxSize()
+                                        .padding(20.dp)
+                                )
+                            }
                         }
                     }
 
                     Spacer(modifier = Modifier.height(12.dp))
 
                     Text(
-                        text = userName,
+                        text = userProfile?.displayName ?: userName,
                         color = Color.White,
                         fontSize = 28.sp,
                         fontWeight = FontWeight.Bold
@@ -497,6 +515,24 @@ fun ProfilePage(
                 ) {
                     Text(text = "Edit Profile", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 }
+                
+                Spacer(modifier = Modifier.height(12.dp))
+                
+                Button(
+                    onClick = onNavigateToFriends,
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .height(48.dp),
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Accent.copy(alpha = 0.15f),
+                        contentColor = Accent
+                    ),
+                    shape = RoundedCornerShape(12.dp)
+                ) {
+                    Icon(imageVector = Icons.Default.People, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text(text = "Friends", fontWeight = FontWeight.Bold, fontSize = 15.sp)
+                }
 
                 Spacer(modifier = Modifier.height(12.dp))
 
@@ -587,6 +623,35 @@ fun ProfilePage(
                         modifier = Modifier.fillMaxWidth()
                     )
                     Spacer(modifier = Modifier.height(20.dp))
+                    
+                    Text("Select Avatar", color = Color.Gray, fontSize = 14.sp)
+                    Spacer(modifier = Modifier.height(10.dp))
+                    val avatars = listOf("🧑‍💻", "🥷", "🦸", "🧙", "🧛", "🕺", "🧑‍🚀", "🦁", "🦊", "🐯")
+                    Row(
+                        modifier = Modifier.fillMaxWidth().horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        avatars.forEach { avatarEmoji ->
+                            val isSelected = editAvatarUrl == avatarEmoji
+                            Box(
+                                modifier = Modifier
+                                    .size(50.dp)
+                                    .clip(CircleShape)
+                                    .background(if (isSelected) Accent.copy(alpha = 0.2f) else CardDark)
+                                    .border(
+                                        width = if (isSelected) 2.dp else 0.dp,
+                                        color = if (isSelected) Accent else Color.Transparent,
+                                        shape = CircleShape
+                                    )
+                                    .clickable { editAvatarUrl = avatarEmoji },
+                                contentAlignment = Alignment.Center
+                            ) {
+                                Text(text = avatarEmoji, fontSize = 24.sp)
+                            }
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(24.dp))
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.spacedBy(12.dp)
@@ -607,8 +672,17 @@ fun ProfilePage(
                                     try {
                                         ApiConfig.httpClient.put("${ApiConfig.BASE_URL}/api/users/$userId/profile") {
                                             contentType(ContentType.Application.Json)
-                                            setBody(mapOf("displayName" to editDisplayName))
+                                            val bodyMap = mutableMapOf<String, String>()
+                                            bodyMap["displayName"] = editDisplayName
+                                            if (editAvatarUrl != null) {
+                                                bodyMap["avatarUrl"] = editAvatarUrl!!
+                                            }
+                                            setBody(bodyMap)
                                         }
+                                        userProfile = userProfile?.copy(
+                                            displayName = editDisplayName,
+                                            avatarUrl = editAvatarUrl
+                                        )
                                     } catch (_: Exception) {}
                                 }
                             },
@@ -724,7 +798,7 @@ private fun StatCard(
 }
 
 @Composable
-private fun BadgeItem(
+fun BadgeItem(
     name: String,
     category: String,
     painter: Painter? = null,
@@ -784,7 +858,7 @@ private fun BadgeItem(
 }
 
 @Composable
-private fun HistoryTabPill(label: String, selected: Boolean, onClick: () -> Unit = {}) {
+fun HistoryTabPill(label: String, selected: Boolean, onClick: () -> Unit = {}) {
     Box(
         modifier = Modifier
             .clip(RoundedCornerShape(50))
@@ -802,7 +876,7 @@ private fun HistoryTabPill(label: String, selected: Boolean, onClick: () -> Unit
 }
 
 @Composable
-private fun HistoryItem(
+fun HistoryItem(
     title: String,
     progress: String,
     nextMilestone: String,

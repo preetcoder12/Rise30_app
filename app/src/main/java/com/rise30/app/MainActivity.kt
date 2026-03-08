@@ -127,7 +127,8 @@ enum class ChallengeScreen {
     EditChallenge,
     Notifications,
     UserSearch,
-    OtherProfile
+    OtherProfile,
+    FriendsList
 }
 
 class MainActivity : ComponentActivity() {
@@ -261,6 +262,16 @@ class MainActivity : ComponentActivity() {
                                         }
                                     )
                                 }
+                                ChallengeScreen.FriendsList -> {
+                                    FriendsListScreen(
+                                        currentUserId = userId,
+                                        onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                        onUserClick = { friendId ->
+                                            selectedOtherUserId = friendId
+                                            currentChallengeScreen = ChallengeScreen.OtherProfile
+                                        }
+                                    )
+                                }
                                 ChallengeScreen.WaterChallenge -> {
                                     WaterChallengeScreen(
                                         userId = userId,
@@ -385,6 +396,7 @@ class MainActivity : ComponentActivity() {
                                                     userId = userId,
                                                     userName = displayName,
                                                     onSignOut = { viewModel.signOut(context) },
+                                                    onNavigateToFriends = { currentChallengeScreen = ChallengeScreen.FriendsList },
                                                     currentTab = currentTab,
                                                     onTabSelected = { selected -> currentTab = selected }
                                                 )
