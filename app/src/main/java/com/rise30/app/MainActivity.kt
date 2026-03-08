@@ -38,6 +38,10 @@ import io.github.jan.supabase.auth.providers.Google
 import io.github.jan.supabase.auth.handleDeeplinks
 import io.github.jan.supabase.auth.providers.builtin.Email
 import io.github.jan.supabase.auth.providers.builtin.IDToken
+import io.ktor.client.call.body
+import io.ktor.client.request.*
+import io.ktor.http.ContentType
+import io.ktor.http.contentType
 import io.github.jan.supabase.auth.providers.builtin.OTP
 import io.github.jan.supabase.auth.user.UserSession
 import io.github.jan.supabase.postgrest.from
@@ -125,13 +129,38 @@ class MainActivity : ComponentActivity() {
                 var selectedChallengeId by remember { mutableStateOf<String?>(null) }
                 // Only reset to Home tab when the user FIRST logs in
                 var wasLoggedIn by remember { mutableStateOf(state.currentUser != null) }
+                var realDisplayName by remember { mutableStateOf<String?>(null) }
+                
                 LaunchedEffect(state.currentUser) {
-                    if (state.currentUser != null && !wasLoggedIn) {
-                        currentTab = MainTab.Home
-                        currentChallengeScreen = ChallengeScreen.None
-                        wasLoggedIn = true
-                    } else if (state.currentUser == null) {
+                    val session = state.currentUser
+                    val userId = session?.user?.id
+                    val email = session?.user?.email
+                    
+                    if (userId != null && email != null) {
+                        // Sync user with backend
+                        try {
+                            ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/auth/sync") {
+                                contentType(ContentType.Application.Json)
+                                setBody(mapOf("userId" to userId, "email" to email))
+                            }
+                        } catch(e: Exception) { /* ignore */ }
+
+                        // Fetch real profile from DB
+                        try {
+                            val response: UserProfileResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/users/$userId/profile").body()
+                            if (response.success && response.profile.displayName != null) {
+                                realDisplayName = response.profile.displayName
+                            }
+                        } catch(e: Exception) { /* ignore */ }
+
+                        if (!wasLoggedIn) {
+                            currentTab = MainTab.Home
+                            currentChallengeScreen = ChallengeScreen.None
+                            wasLoggedIn = true
+                        }
+                    } else if (session == null) {
                         wasLoggedIn = false
+                        realDisplayName = null
                     }
                 }
 
@@ -139,7 +168,10 @@ class MainActivity : ComponentActivity() {
                     // Keep screen blank/background colored while native splash screen is showing
                     Box(modifier = Modifier.fillMaxSize().background(Charcoal))
                 } else if (state.currentUser != null) {
-                    val displayName = state.currentUser?.user?.userMetadata?.get("full_name")?.toString()?.replace("\"", "") ?: state.currentUser?.user?.email ?: "User"
+                    val fallbackName = state.currentUser?.user?.userMetadata?.get("full_name")?.toString()?.replace("\"", "") 
+                        ?: state.currentUser?.user?.email?.substringBefore("@") 
+                        ?: "User"
+                    val displayName = realDisplayName ?: fallbackName
                     val userId = state.currentUser?.user?.id ?: ""
                     
                     Box(modifier = Modifier.fillMaxSize()) {
@@ -236,7 +268,7 @@ class MainActivity : ComponentActivity() {
                                         when (tab) {
                                             MainTab.Home -> HomePage(
                                                 userId = userId,
-                                                userName = displayName.substringBefore("@"),
+                                                userName = displayName,
                                                 onMarkComplete = { },
                                                 onNotificationClick = {
                                                     currentChallengeScreen = ChallengeScreen.Notifications
@@ -245,7 +277,7 @@ class MainActivity : ComponentActivity() {
                                                 onTabSelected = { selected -> currentTab = selected }
                                             )
                                             MainTab.Challenges -> ChallengesPage(
-                                                userName = displayName.substringBefore("@"),
+                                                userName = displayName,
                                                 userId = userId,
                                                 onStartChallenge = { },
                                                 onStartWaterChallenge = { 
@@ -268,7 +300,7 @@ class MainActivity : ComponentActivity() {
 
                                             MainTab.Profile -> ProfilePage(
                                                 userId = userId,
-                                                userName = displayName.substringBefore("@"),
+                                                userName = displayName,
                                                 onSignOut = { viewModel.signOut() },
                                                 currentTab = currentTab,
                                                 onTabSelected = { selected -> currentTab = selected }

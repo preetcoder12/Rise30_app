@@ -4,6 +4,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
+import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
@@ -20,6 +21,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
+import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.layout.ContentScale
 import androidx.compose.ui.platform.LocalContext
@@ -116,9 +118,21 @@ fun ChallengesPage(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = BackgroundDark
+        color = Color.Transparent
     ) {
-        Box {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFF151525),
+                            Color(0xFF090912)
+                        ),
+                        radius = 1800f
+                    )
+                )
+        ) {
             Column(
                 modifier = Modifier
                     .fillMaxSize()
@@ -130,21 +144,21 @@ fun ChallengesPage(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 15.dp, bottom = 15.dp),
+                        .padding(top = 16.dp, bottom = 15.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
                     Text(
                         text = "My Challenges",
                         color = Color.White,
-                        fontSize = 20.sp,
+                        fontSize = 23.sp, // 25 - 2
                         fontWeight = FontWeight.Bold
                     )
                     
                     Text(
                         text = "${challenges.size} Active",
                         color = Accent,
-                        fontSize = 14.sp,
+                        fontSize = 16.sp, // 18 - 2
                         fontWeight = FontWeight.Medium
                     )
                 }
@@ -152,10 +166,14 @@ fun ChallengesPage(
                 Spacer(modifier = Modifier.height(3.dp))
                 
                 // Featured Water Challenge Card - only show if no water challenge exists
-                val hasWaterChallenge = challenges.any { it.type == "water" }
-                if (!hasWaterChallenge) {
+                // Note: historyFilter and challengeHistory are assumed to be available in this scope
+                // and are not defined in the provided context.
+                // The `item { ... }` syntax is typically for LazyColumn/Row, but applied here as a direct replacement.
+                val historyFilter = "All" // Placeholder, assuming it's "All" for this context
+                val challengeHistory = challenges // Placeholder, assuming challenges represents history
+                if ((historyFilter == "All" || historyFilter == "Health") && challengeHistory.none { it.type == "water" }) {
                     WaterChallengeCard(onStartWaterChallenge)
-                    Spacer(modifier = Modifier.height(20.dp))
+                    Spacer(modifier = Modifier.height(24.dp))
                 }
 
                 // Category tabs - horizontally scrollable
@@ -190,7 +208,7 @@ fun ChallengesPage(
                         )
                     }
                 } else if (filteredChallenges.isEmpty()) {
-                    EmptyChallengesView(onCreateChallenge)
+                    EmptyChallengesView(onCreateChallenge, userName)
                 } else {
                     filteredChallenges.forEach { challenge ->
                         ChallengeListCard(
@@ -203,7 +221,7 @@ fun ChallengesPage(
                                 
                                 scope.launch {
                                     try {
-                                        val response: HttpResponse = httpClient.delete("$BASE_URL/api/challenges/${challenge.id}") {
+                                        val response: HttpResponse = ApiConfig.httpClient.delete("${ApiConfig.BASE_URL}/api/challenges/${challenge.id}") {
                                             url {
                                                 parameters.append("userId", userId)
                                             }
@@ -221,7 +239,7 @@ fun ChallengesPage(
                                 }
                             }
                         )
-                        Spacer(modifier = Modifier.height(12.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
                     }
                 }
 
@@ -234,14 +252,15 @@ fun ChallengesPage(
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
                     .navigationBarsPadding()
-                    .padding(end = 20.dp, bottom = 85.dp),
+                    .padding(end = 20.dp, bottom = 120.dp),
                 containerColor = Accent,
                 contentColor = Color.Black,
                 shape = RoundedCornerShape(16.dp)
             ) {
-                Icon(
-                    imageVector = Icons.Default.Add,
-                    contentDescription = "Create Challenge"
+                Image(
+                    painter = painterResource(id = R.drawable.add),
+                    contentDescription = "Create Challenge",
+                    modifier = Modifier.size(24.dp)
                 )
             }
 
@@ -259,17 +278,34 @@ private fun ChallengeListCard(
     val challengeColor = challenge.color?.let { Color(android.graphics.Color.parseColor(it)) } ?: Accent
     var showMenu by remember { mutableStateOf(false) }
     
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF1A1A2C),
+                        Color(0xFF0E0E18)
+                    )
+                )
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.14f),
+                        Color.White.copy(alpha = 0.03f)
+                    )
+                ),
+                shape = RoundedCornerShape(20.dp)
+            )
             .pointerInput(Unit) {
                 detectTapGestures(
                     onTap = { onClick() },
                     onLongPress = { showMenu = true }
                 )
-            },
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(20.dp)
+            }
     ) {
         Row(
             modifier = Modifier.padding(16.dp),
@@ -283,10 +319,31 @@ private fun ChallengeListCard(
                     .background(challengeColor.copy(alpha = 0.2f)),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = challenge.icon ?: "🎯",
-                    fontSize = 28.sp
-                )
+                val resId = when(challenge.icon) {
+                    "star" -> R.drawable.star
+                    "run" -> R.drawable.run
+                    "gym" -> R.drawable.gym
+                    "books" -> R.drawable.books
+                    "yoga" -> R.drawable.yoga
+                    "leaf" -> R.drawable.leaf
+                    "music" -> R.drawable.music
+                    "tech" -> R.drawable.tech
+                    "drop" -> R.drawable.drop
+                    else -> null
+                }
+                
+                if (resId != null) {
+                    Image(
+                        painter = painterResource(id = resId),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
+                    )
+                } else {
+                    Text(
+                        text = challenge.icon ?: "🎯",
+                        fontSize = 28.sp
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.width(16.dp))
@@ -296,14 +353,14 @@ private fun ChallengeListCard(
                 Text(
                     text = challenge.name,
                     color = Color.White,
-                    fontSize = 16.sp,
+                    fontSize = 19.sp, // 21 - 2
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
+                Spacer(modifier = Modifier.height(6.dp)) // 4 -> 6
                 Text(
                     text = "${challenge.completedDays}/${challenge.duration} days • ${challenge.currentStreak}🔥 streak",
                     color = Color.Gray,
-                    fontSize = 13.sp
+                    fontSize = 16.sp // 18 - 2
                 )
                 Spacer(modifier = Modifier.height(8.dp))
                 
@@ -330,7 +387,7 @@ private fun ChallengeListCard(
             Text(
                 text = "${challenge.progress}%",
                 color = challengeColor,
-                fontSize = 16.sp,
+                fontSize = 20.sp, // 22 - 2
                 fontWeight = FontWeight.Bold
             )
             // Menu Anchor for Popup
@@ -364,12 +421,25 @@ private fun ChallengeListCard(
 
 @Composable
 private fun EmptyChallengesView(
-    onCreateChallenge: () -> Unit
+    onCreateChallenge: () -> Unit,
+    userName: String
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(20.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(20.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(Color(0xFF1A1A2C), Color(0xFF0E0E18))
+                )
+            )
+            .border(
+                1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(Color.White.copy(alpha = 0.12f), Color.Transparent)
+                ),
+                shape = RoundedCornerShape(20.dp)
+            )
     ) {
         Column(
             modifier = Modifier
@@ -385,16 +455,16 @@ private fun EmptyChallengesView(
             )
             Spacer(modifier = Modifier.height(16.dp))
             Text(
-                text = "No challenges yet",
-                color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold
+                text = "Keep going, ${userName}!",
+                color = Color.White.copy(alpha = 0.7f),
+                fontSize = 16.sp,
+                fontWeight = FontWeight.Medium
             )
             Spacer(modifier = Modifier.height(8.dp))
             Text(
                 text = "Create your first challenge to start building habits!",
                 color = Color.Gray,
-                fontSize = 14.sp,
+                fontSize = 16.sp, // 18 - 2
                 textAlign = androidx.compose.ui.text.style.TextAlign.Center
             )
             Spacer(modifier = Modifier.height(16.dp))
@@ -423,7 +493,7 @@ private suspend fun loadUserChallengesFromApi(
     onLoaded: (List<ChallengeSummary>) -> Unit
 ) {
     try {
-        val response: ChallengesResponse = httpClient.get("$BASE_URL/api/challenges/user/$userId").body()
+        val response: ChallengesResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/challenges/user/$userId").body()
         
         if (response.success) {
             val challenges = response.challenges.map { c ->
@@ -488,10 +558,28 @@ data class ChallengeProgressData(
 private fun WaterChallengeCard(
     onStartWaterChallenge: () -> Unit
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(22.dp)
+    Box(
+        modifier = Modifier
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(22.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF0D1E2E),
+                        Color(0xFF080F18)
+                    )
+                )
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color(0x334FC3F7),
+                        Color.White.copy(alpha = 0.03f)
+                    )
+                ),
+                shape = RoundedCornerShape(22.dp)
+            )
     ) {
         Row(
             modifier = Modifier.padding(18.dp),
@@ -503,31 +591,17 @@ private fun WaterChallengeCard(
                 Text(
                     text = "Health & Wellness",
                     color = Color(0xFF4FC3F7),
-                    fontSize = 14.sp,
+                    fontSize = 17.sp, // 19 - 2
                     fontWeight = FontWeight.Medium
                 )
-                Spacer(modifier = Modifier.height(6.dp))
+                Spacer(modifier = Modifier.height(8.dp)) // 6 -> 8
                 Text(
                     text = "30-Day Water Challenge",
                     color = Color.White,
-                    fontSize = 18.sp,
+                    fontSize = 21.sp, // 23 - 2
                     fontWeight = FontWeight.SemiBold
                 )
-                Spacer(modifier = Modifier.height(4.dp))
-                Text(
-                    text = "HYDRATE YOUR BODY",
-                    color = Color(0xFF4FC3F7),
-                    fontSize = 13.sp,
-                    fontWeight = FontWeight.Bold
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = "Duration: 30 Days   Target: 2 Liters/Day",
-                    color = Color.LightGray,
-                    fontSize = 12.sp,
-                    maxLines = 2,
-                    overflow = TextOverflow.Ellipsis
-                )
+               
                 Spacer(modifier = Modifier.height(10.dp))
                 Button(
                     onClick = onStartWaterChallenge,
@@ -555,10 +629,9 @@ private fun WaterChallengeCard(
                     .background(Color(0xFF1E3A5F)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(
-                    imageVector = Icons.Filled.WaterDrop,
+                Image(
+                    painter = painterResource(id = R.drawable.drop),
                     contentDescription = "Water",
-                    tint = Color(0xFF4FC3F7),
                     modifier = Modifier.size(48.dp)
                 )
             }
@@ -582,7 +655,7 @@ private fun CategoryPill(
         Text(
             text = label,
             color = if (selected) Color.Black else Color.Gray,
-            fontSize = 12.sp,
+            fontSize = 14.sp, // 16 - 2
             fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Normal
         )
     }

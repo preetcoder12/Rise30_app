@@ -12,11 +12,13 @@ datasource db {
 model User {
   id           String      @id @default(uuid())
   email        String      @unique
+  displayName  String?
   createdAt    DateTime    @default(now())
   challenges   Challenge[]
   streaks      Streak[]
-  dailyEntries DailyEntry[]
+  dailyEntries  DailyEntry[]
   waterEntries WaterEntry[]
+  dailyHabits  DailyHabit[]
 }
 
 model Challenge {
@@ -93,4 +95,14 @@ model Streak {
   challenge Challenge @relation(fields: [challengeId], references: [id])
 
   @@unique([userId, challengeId])
+}
+model DailyHabit {
+  id        String   @id @default(uuid())
+  userId    String
+  name      String   // e.g., "Cold Shower"
+  completed Boolean  @default(false)
+  date      DateTime @default(now())
+  user      User     @relation(fields: [userId], references: [id])
+
+  @@unique([userId, name, date])
 }

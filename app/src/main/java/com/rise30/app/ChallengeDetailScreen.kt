@@ -19,16 +19,17 @@ import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
-import androidx.compose.ui.draw.clip
-import androidx.compose.ui.draw.scale
+import androidx.compose.ui.draw.*
 import androidx.compose.ui.geometry.Offset
 import androidx.compose.ui.graphics.Brush
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.StrokeCap
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
+import androidx.compose.ui.text.style.TextOverflow
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.compose.ui.res.painterResource
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import io.ktor.client.call.*
@@ -36,6 +37,12 @@ import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
 import androidx.compose.ui.platform.LocalContext
+import androidx.compose.ui.graphics.drawscope.Stroke
+import androidx.compose.ui.hapticfeedback.HapticFeedbackType
+import androidx.compose.ui.platform.LocalHapticFeedback
+import androidx.compose.foundation.interaction.MutableInteractionSource
+import androidx.compose.material.ripple.rememberRipple
+import androidx.compose.ui.graphics.graphicsLayer
 
 @Serializable
 data class ChallengeDetail(
@@ -131,6 +138,24 @@ fun ChallengeDetailScreen(
     var isLoading by remember { mutableStateOf(true) }
     var showAnalytics by remember { mutableStateOf(false) }
     
+    val haptic = LocalHapticFeedback.current
+    val scroll = rememberScrollState()
+    val parallaxOffset by animateFloatAsState(
+        targetValue = scroll.value * 0.1f,
+        label = "parallax"
+    )
+
+    val infinite = rememberInfiniteTransition(label = "background")
+    val gradientShift by infinite.animateFloat(
+        initialValue = 0f,
+        targetValue = 1000f,
+        animationSpec = infiniteRepeatable(
+            animation = tween(20000, easing = LinearEasing),
+            repeatMode = RepeatMode.Reverse
+        ),
+        label = "gradientShift"
+    )
+    
     // Load challenge data
     LaunchedEffect(challengeId) {
         // Try Cache First
@@ -187,9 +212,23 @@ fun ChallengeDetailScreen(
     val challengeIcon = challenge?.icon ?: "🎯"
     
     Surface(
-        modifier = Modifier.fillMaxSize(),
-        color = BackgroundDark
+        modifier = Modifier.fillMaxSize()
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(
+                            Color(0xFF0F0F11),
+                            Color(0xFF18181C),
+                            challengeColor.copy(alpha = 0.05f)
+                        ),
+                        start = Offset(0f, gradientShift),
+                        end = Offset(gradientShift, 0f)
+                    )
+                )
+        ) {
         if (isLoading) {
             Box(
                 modifier = Modifier.fillMaxSize(),
@@ -202,8 +241,9 @@ fun ChallengeDetailScreen(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 20.dp),
+                    .verticalScroll(scroll)
+                    .padding(horizontal = 20.dp)
+                    .padding(top = 16.dp), // Added extra top padding to fix cutting
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
                     // Header
@@ -212,7 +252,8 @@ fun ChallengeDetailScreen(
                         challengeIcon = challengeIcon,
                         challengeColor = challengeColor,
                         onBack = onBack,
-                        onToggleAnalytics = { showAnalytics = !showAnalytics }
+                        onToggleAnalytics = { showAnalytics = !showAnalytics },
+                        parallaxOffset = parallaxOffset
                     )
                     
                     Spacer(modifier = Modifier.height(20.dp))
@@ -229,6 +270,7 @@ fun ChallengeDetailScreen(
                             challengeColor = challengeColor,
                             challengeIcon = challengeIcon,
                             onMarkToday = {
+                                haptic.performHapticFeedback(HapticFeedbackType.LongPress)
                                 scope.launch {
                                     markTodayComplete(context, userId, challengeId) { updatedProgress, updatedEntries ->
                                         progress = updatedProgress
@@ -238,7 +280,7 @@ fun ChallengeDetailScreen(
                             }
                         )
                         
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
                         
                         // Challenge Day Grid
                         ChallengeDayGrid(
@@ -252,7 +294,7 @@ fun ChallengeDetailScreen(
                             }
                         )
                         
-                        Spacer(modifier = Modifier.height(24.dp))
+                        Spacer(modifier = Modifier.height(16.dp))
                         
                         // Streak Card
                         ChallengeStreakCard(
@@ -261,7 +303,7 @@ fun ChallengeDetailScreen(
                         )
                         
                         if (!challenge?.description.isNullOrBlank()) {
-                            Spacer(modifier = Modifier.height(24.dp))
+                            Spacer(modifier = Modifier.height(16.dp))
                             
                             // Description Card
                             ChallengeDescriptionCard(
@@ -269,11 +311,14 @@ fun ChallengeDetailScreen(
                                 challengeColor = challengeColor
                             )
                         }
+                        
+                        // Bottom clearance to match Sign Out button padding (120dp)
+                        Spacer(modifier = Modifier.height(120.dp))
                     }
-                    
                 }
             }
         }
+    }
     
     // Day Detail Dialog
     if (showDayDialog && selectedDay != null) {
@@ -306,55 +351,45 @@ private fun ChallengeDetailHeader(
     challengeIcon: String,
     challengeColor: Color,
     onBack: () -> Unit,
-    onToggleAnalytics: () -> Unit
+    onToggleAnalytics: () -> Unit,
+    parallaxOffset: Float
 ) {
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 23.dp, bottom = 23.dp),
+            .graphicsLayer {
+                translationY = -parallaxOffset
+            }
+            .padding(top = 16.dp, bottom = 23.dp),
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        // Back Button with glassmorphism effect
-        Box(
-            modifier = Modifier
-                .size(44.dp)
-                .clip(CircleShape)
-                .background(Color.White.copy(alpha = 0.08f))
-                .clickable(onClick = onBack),
-            contentAlignment = Alignment.Center
-        ) {
-            Icon(
-                imageVector = Icons.AutoMirrored.Filled.ArrowBack,
-                contentDescription = "Back",
-                tint = Color.White,
-                modifier = Modifier.size(24.dp)
-            )
-        }
-        
-        // Title with icon
-        Row(
-            verticalAlignment = Alignment.CenterVertically,
-            modifier = Modifier
-                .clip(RoundedCornerShape(16.dp))
-                .background(Color.White.copy(alpha = 0.05f))
-                .padding(horizontal = 16.dp, vertical = 8.dp)
-        ) {
+        // Back Button + Title Row
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            IconButton(
+                onClick = onBack,
+                modifier = Modifier.offset(x = (-16).dp)
+            ) {
+                Image(
+                    painter = painterResource(id = R.drawable.back),
+                    contentDescription = "Back",
+                    modifier = Modifier.size(24.dp)
+                )
+            }
+            
+            // Title with optional icon
             Text(
-                text = challengeIcon,
-                fontSize = 20.sp,
-                modifier = Modifier.padding(end = 8.dp)
-            )
-            Text(
-                text = challengeName,
+                text = "$challengeIcon $challengeName",
                 color = Color.White,
-                fontSize = 18.sp,
-                fontWeight = FontWeight.SemiBold,
-                maxLines = 1
+                fontSize = 24.sp, 
+                fontWeight = FontWeight.Bold,
+                letterSpacing = 0.5.sp,
+                maxLines = 1,
+                overflow = TextOverflow.Ellipsis
             )
         }
         
-        // Stats Button
+        // Stats Button stays on right
         Box(
             modifier = Modifier
                 .size(44.dp)
@@ -381,37 +416,12 @@ private fun ChallengeProgressOverview(
     onMarkToday: () -> Unit
 ) {
     val percentage = progress?.percentage ?: 0
-    val animatedProgress by animateFloatAsState(
-        targetValue = percentage / 100f,
-        animationSpec = tween(1500, easing = FastOutSlowInEasing),
-        label = "progress"
-    )
     
-    // Premium gradient card
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .padding(horizontal = 4.dp)
-            .clip(RoundedCornerShape(28.dp))
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        CardDark,
-                        CardDark.copy(alpha = 0.95f),
-                        challengeColor.copy(alpha = 0.08f)
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset(Float.POSITIVE_INFINITY, Float.POSITIVE_INFINITY)
-                )
-            )
-            .padding(1.dp)
+    // Premium Liquid Glass UI
+    LiquidGlassCard(
+        modifier = Modifier.fillMaxWidth(),
+        horizontalAlignment = Alignment.CenterHorizontally
     ) {
-        Column(
-            modifier = Modifier
-                .fillMaxWidth()
-                .padding(24.dp),
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
             // Top Row: Icon and Quick Stats
             Row(
                 modifier = Modifier.fillMaxWidth(),
@@ -456,53 +466,32 @@ private fun ChallengeProgressOverview(
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            // Premium Progress Circle with Glow
-            Box(
-                modifier = Modifier.size(160.dp),
-                contentAlignment = Alignment.Center
+            // 3D Progress Ring
+            ThreeDProgressRing(
+                progress = percentage / 100f,
+                color = challengeColor,
+                size = 160.dp
+            )
+            
+            // Center text overlay (if you want text inside the ring)
+            Column(
+                modifier = Modifier
+                    .offset(y = (-110).dp), // Adjust position relative to ThreeDProgressRing
+                horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // Outer glow
-                Box(
-                    modifier = Modifier
-                        .size(156.dp)
-                        .clip(CircleShape)
-                        .background(challengeColor.copy(alpha = 0.1f))
+                Text(
+                    text = "$percentage%",
+                    color = Color.White,
+                    fontSize = 36.sp,
+                    fontWeight = FontWeight.Bold
                 )
-                
-                // Background track
-                CircularProgressIndicator(
-                    progress = { 1f },
-                    modifier = Modifier.fillMaxSize(),
-                    color = Color(0xFF2A2A30),
-                    strokeWidth = 14.dp,
-                    trackColor = Color.Transparent
+                Text(
+                    text = "COMPLETED",
+                    color = Color.Gray,
+                    fontSize = 11.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 2.sp
                 )
-                
-                // Progress indicator with gradient effect
-                CircularProgressIndicator(
-                    progress = { animatedProgress },
-                    modifier = Modifier.fillMaxSize(),
-                    color = challengeColor,
-                    strokeWidth = 14.dp,
-                    trackColor = Color.Transparent,
-                    strokeCap = StrokeCap.Round
-                )
-                
-                // Center content
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
-                    Text(
-                        text = "$percentage%",
-                        color = Color.White,
-                        fontSize = 36.sp,
-                        fontWeight = FontWeight.Bold
-                    )
-                    Text(
-                        text = "COMPLETED",
-                        color = Color.Gray,
-                        fontSize = 11.sp,
-                        letterSpacing = 2.sp
-                    )
-                }
             }
             
             Spacer(modifier = Modifier.height(16.dp))
@@ -518,18 +507,25 @@ private fun ChallengeProgressOverview(
                 Text(
                     text = "Day ${progress?.currentDay ?: 1} of $total",
                     color = Color.White,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
+                    fontSize = 13.sp,
+                    fontWeight = FontWeight.Medium,
+                    letterSpacing = 0.5.sp
                 )
             }
             
             Spacer(modifier = Modifier.height(20.dp))
             
-            // Premium Mark Today Button
+            // Premium Mark Today Button with Glow
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
                     .height(52.dp)
+                    .shadow(
+                        elevation = 12.dp,
+                        shape = RoundedCornerShape(16.dp),
+                        ambientColor = challengeColor,
+                        spotColor = challengeColor
+                    )
                     .clip(RoundedCornerShape(16.dp))
                     .background(challengeColor)
                     .clickable(onClick = onMarkToday),
@@ -550,7 +546,6 @@ private fun ChallengeProgressOverview(
                         fontWeight = FontWeight.SemiBold
                     )
                 }
-            }
         }
     }
 }
@@ -595,8 +590,9 @@ private fun ChallengeDayGrid(
             Text(
                 text = "$totalDays-Day Journey",
                 color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.2.sp
             )
             
             // Progress mini indicator
@@ -617,20 +613,9 @@ private fun ChallengeDayGrid(
         
         Spacer(modifier = Modifier.height(16.dp))
         
-        // Premium Card with subtle gradient
-        Box(
-            modifier = Modifier
-                .fillMaxWidth()
-                .clip(RoundedCornerShape(24.dp))
-                .background(
-                    brush = Brush.verticalGradient(
-                        colors = listOf(
-                            CardDark,
-                            CardDark.copy(alpha = 0.98f)
-                        )
-                    )
-                )
-                .padding(20.dp)
+        // Premium Card with Liquid Glass effect
+        LiquidGlassCard(
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column {
                 // Modern Legend
@@ -657,8 +642,12 @@ private fun ChallengeDayGrid(
                 
                 Spacer(modifier = Modifier.height(20.dp))
                 
+                val configuration = androidx.compose.ui.platform.LocalConfiguration.current
+                val screenWidth = configuration.screenWidthDp.dp
+                val availableWidth = screenWidth - 40.dp - 48.dp // padding + card inner padding
+                val cellSize = (availableWidth / 6f)
                 val rows = Math.ceil(totalDays / 6.0).toInt()
-                val gridHeight = (rows * 48 + (rows - 1) * 10).coerceAtLeast(48).dp
+                val gridHeight = (rows * cellSize.value + (rows - 1) * 10).dp
                 
                 val itemsToShow = dayEntries.take(totalDays)
                 
@@ -690,6 +679,8 @@ private fun PremiumDayCell(
     challengeColor: Color,
     onClick: () -> Unit
 ) {
+    val haptic = LocalHapticFeedback.current
+    val interaction = remember { MutableInteractionSource() }
     val backgroundColor by animateColorAsState(
         targetValue = when {
             day.completed -> challengeColor
@@ -701,8 +692,11 @@ private fun PremiumDayCell(
     )
     
     val scale by animateFloatAsState(
-        targetValue = if (isToday) 1.08f else 1f,
-        animationSpec = spring(dampingRatio = Spring.DampingRatioMediumBouncy),
+        targetValue = if (isToday) 1.1f else 1f,
+        animationSpec = spring(
+            dampingRatio = Spring.DampingRatioLowBouncy,
+            stiffness = Spring.StiffnessLow
+        ),
         label = "dayScale"
     )
     
@@ -714,7 +708,8 @@ private fun PremiumDayCell(
     
     Box(
         modifier = Modifier
-            .size(48.dp)
+            .fillMaxWidth() // Fill the grid cell width
+            .aspectRatio(1f) // Keep it perfect square
             .scale(scale),
         contentAlignment = Alignment.Center
     ) {
@@ -723,7 +718,7 @@ private fun PremiumDayCell(
             Box(
                 modifier = Modifier
                     .fillMaxSize()
-                    .clip(RoundedCornerShape(14.dp))
+                    .clip(CircleShape)
                     .background(challengeColor.copy(alpha = glowAlpha * 0.3f))
             )
         }
@@ -732,7 +727,7 @@ private fun PremiumDayCell(
         Box(
             modifier = Modifier
                 .fillMaxSize()
-                .clip(RoundedCornerShape(14.dp))
+                .clip(CircleShape)
                 .background(backgroundColor)
                 .border(
                     width = when {
@@ -745,9 +740,19 @@ private fun PremiumDayCell(
                         day.completed -> Color.Transparent
                         else -> Color(0xFF3A3A40)
                     },
-                    shape = RoundedCornerShape(14.dp)
+                    shape = CircleShape
                 )
-                .clickable(onClick = onClick),
+                .clickable(
+                    interactionSource = interaction,
+                    indication = rememberRipple(
+                        color = challengeColor,
+                        bounded = true
+                    ),
+                    onClick = {
+                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                        onClick()
+                    }
+                ),
             contentAlignment = Alignment.Center
         ) {
             if (day.completed) {
@@ -828,22 +833,8 @@ private fun ChallengeStreakCard(
     currentStreak: Int,
     challengeColor: Color
 ) {
-    // Premium streak card with animated gradient
-    Box(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(
-                brush = Brush.linearGradient(
-                    colors = listOf(
-                        CardDark,
-                        challengeColor.copy(alpha = 0.08f)
-                    ),
-                    start = Offset(0f, 0f),
-                    end = Offset(Float.POSITIVE_INFINITY, 0f)
-                )
-            )
-            .padding(1.dp)
+    PremiumCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Row(
             modifier = Modifier
@@ -907,9 +898,9 @@ private fun ChallengeStreakCard(
                 Spacer(modifier = Modifier.height(6.dp))
                 Text(
                     text = if (currentStreak > 0) 
-                        "🔥 Keep the momentum going!" 
+                        "Keep the momentum going!" 
                     else 
-                        "✨ Start your streak today!",
+                        "Start your streak today!",
                     color = Color.Gray,
                     fontSize = 13.sp
                 )
@@ -941,17 +932,16 @@ private fun ChallengeDescriptionCard(
     description: String,
     challengeColor: Color
 ) {
-    Card(
-        modifier = Modifier.fillMaxWidth(),
-        colors = CardDefaults.cardColors(containerColor = CardDark),
-        shape = RoundedCornerShape(20.dp)
+    PremiumCard(
+        modifier = Modifier.fillMaxWidth()
     ) {
         Column(modifier = Modifier.padding(20.dp)) {
             Text(
                 text = "About This Challenge",
                 color = challengeColor,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                letterSpacing = 0.5.sp
             )
             
             Spacer(modifier = Modifier.height(8.dp))
@@ -973,17 +963,16 @@ private fun ChallengeAnalyticsSection(
 ) {
     Column {
         // Stats Overview
-        Card(
-            modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(containerColor = CardDark),
-            shape = RoundedCornerShape(20.dp)
+        PremiumCard(
+            modifier = Modifier.fillMaxWidth()
         ) {
             Column(modifier = Modifier.padding(20.dp)) {
                 Text(
                     text = "Challenge Statistics",
                     color = Color.White,
                     fontSize = 18.sp,
-                    fontWeight = FontWeight.Bold
+                    fontWeight = FontWeight.SemiBold,
+                    letterSpacing = 0.5.sp
                 )
                 
                 Spacer(modifier = Modifier.height(16.dp))
@@ -1014,12 +1003,9 @@ private fun ChallengeAnalyticsSection(
         Spacer(modifier = Modifier.height(20.dp))
         
         // Motivation Card
-        Card(
+        PremiumCard(
             modifier = Modifier.fillMaxWidth(),
-            colors = CardDefaults.cardColors(
-                containerColor = challengeColor.copy(alpha = 0.15f)
-            ),
-            shape = RoundedCornerShape(20.dp)
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
             Column(
                 modifier = Modifier.padding(24.dp),
@@ -1111,6 +1097,152 @@ private fun DayDetailDialog(
     )
 }
 
+// Premium Reusable Components
+
+@Composable
+fun PremiumCard(
+    modifier: Modifier = Modifier,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.06f),
+                        Color.White.copy(alpha = 0.02f)
+                    )
+                )
+            )
+            .border(
+                1.dp,
+                Color.White.copy(alpha = 0.08f),
+                RoundedCornerShape(28.dp)
+            )
+    ) {
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = horizontalAlignment,
+            content = content
+        )
+    }
+}
+
+@Composable
+fun LiquidGlassCard(
+    modifier: Modifier = Modifier,
+    horizontalAlignment: Alignment.Horizontal = Alignment.Start,
+    content: @Composable ColumnScope.() -> Unit
+) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.08f),
+                        Color.White.copy(alpha = 0.02f)
+                    )
+                )
+            )
+            .border(
+                1.dp,
+                Color.White.copy(alpha = 0.15f),
+                RoundedCornerShape(28.dp)
+            )
+    ) {
+        // inner glow
+        Box(
+            modifier = Modifier
+                .matchParentSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.06f),
+                            Color.Transparent
+                        )
+                    )
+                )
+        )
+
+        Column(
+            modifier = Modifier.padding(24.dp),
+            horizontalAlignment = horizontalAlignment,
+            content = content
+        )
+    }
+}
+
+@Composable
+fun ThreeDProgressRing(
+    progress: Float,
+    color: Color,
+    size: androidx.compose.ui.unit.Dp = 160.dp
+) {
+    val animatedProgress by animateFloatAsState(
+        targetValue = progress,
+        animationSpec = tween(1400, easing = FastOutSlowInEasing),
+        label = "progress"
+    )
+
+    Box(
+        modifier = Modifier.size(size),
+        contentAlignment = Alignment.Center
+    ) {
+        Canvas(modifier = Modifier.fillMaxSize()) {
+            val stroke = 16.dp.toPx()
+
+            // Shadow ring (depth)
+            drawArc(
+                color = Color.Black.copy(alpha = 0.35f),
+                startAngle = -90f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(width = stroke),
+                topLeft = Offset(4f, 4f)
+            )
+
+            // Base track
+            drawArc(
+                color = Color(0xFF2A2A30),
+                startAngle = -90f,
+                sweepAngle = 360f,
+                useCenter = false,
+                style = Stroke(width = stroke)
+            )
+
+            // Main progress gradient
+            drawArc(
+                brush = Brush.sweepGradient(
+                    listOf(
+                        color,
+                        color.copy(alpha = 0.6f),
+                        color
+                    )
+                ),
+                startAngle = -90f,
+                sweepAngle = 360 * animatedProgress,
+                useCenter = false,
+                style = Stroke(
+                    width = stroke,
+                    cap = StrokeCap.Round
+                )
+            )
+
+            // Highlight ring (3D shine)
+            drawArc(
+                color = Color.White.copy(alpha = 0.25f),
+                startAngle = -90f,
+                sweepAngle = 360 * animatedProgress * 0.4f,
+                useCenter = false,
+                style = Stroke(width = stroke * 0.3f)
+            )
+        }
+    }
+}
+
 // API Functions
 private suspend fun loadChallengeDetail(
     context: android.content.Context,
@@ -1119,7 +1251,7 @@ private suspend fun loadChallengeDetail(
     onLoaded: (ChallengeDetail, ChallengeProgress, List<DayEntry>) -> Unit
 ) {
     try {
-        val response: ChallengeDetailApiResponse = httpClient.get("$BASE_URL/api/challenges/$challengeId").body()
+        val response: ChallengeDetailApiResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/challenges/$challengeId").body()
         
         if (response.success) {
             val challenge = response.challenge
@@ -1208,7 +1340,7 @@ private suspend fun markTodayComplete(
     onSuccess: (ChallengeProgress, List<DayEntry>) -> Unit
 ) {
     try {
-        val response: HttpResponse = httpClient.post("$BASE_URL/api/challenges/$challengeId/mark-today") {
+        val response: HttpResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/challenges/$challengeId/mark-today") {
             contentType(ContentType.Application.Json)
             setBody(mapOf("userId" to userId))
         }
@@ -1254,7 +1386,7 @@ private suspend fun toggleDayComplete(
     onSuccess: (List<DayEntry>, ChallengeProgress) -> Unit
 ) {
     try {
-        val response: HttpResponse = httpClient.post("$BASE_URL/api/challenges/$challengeId/day/$dayNumber/toggle") {
+        val response: HttpResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/challenges/$challengeId/day/$dayNumber/toggle") {
             contentType(ContentType.Application.Json)
             setBody(mapOf("userId" to userId, "completed" to completed))
         }

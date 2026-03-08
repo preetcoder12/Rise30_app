@@ -1,5 +1,6 @@
 package com.rise30.app
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.border
 import androidx.compose.foundation.clickable
@@ -10,6 +11,7 @@ import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
@@ -18,6 +20,7 @@ import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.graphics.ColorFilter
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -71,7 +74,7 @@ fun EditChallengeScreen(
     LaunchedEffect(challengeId) {
         isLoading = true
         try {
-            val response: ChallengeDetailApiResponse = httpClient.get("$BASE_URL/api/challenges/$challengeId").body()
+            val response: ChallengeDetailApiResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/challenges/$challengeId").body()
             if (response.success) {
                 val challenge = response.challenge
                 name = challenge.name
@@ -100,7 +103,17 @@ fun EditChallengeScreen(
         "#EC407A" to "Pink",
         "#26C6DA" to "Cyan"
     )
-    val icons = listOf("🎯", "💧", "🏃", "📚", "🧘", "💪", "🎨", "💻", "🎵", "🌱", "⭐", "🔥")
+    val icons = listOf(
+        "star" to R.drawable.star,
+        "run" to R.drawable.run,
+        "gym" to R.drawable.gym,
+        "books" to R.drawable.books,
+        "yoga" to R.drawable.yoga,
+        "leaf" to R.drawable.leaf,
+        "music" to R.drawable.music,
+        "tech" to R.drawable.tech,
+        "drop" to R.drawable.drop
+    )
     
     val isFormValid = name.isNotBlank() && duration.isNotBlank() && duration.toIntOrNull() != null
     
@@ -119,14 +132,17 @@ fun EditChallengeScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 15.dp, bottom = 15.dp),
+                        .padding(top = 20.dp, bottom = 10.dp),
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.offset(x = (-16).dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.back),
                             contentDescription = "Back",
-                            tint = Accent
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                     
@@ -266,8 +282,10 @@ fun EditChallengeScreen(
                 Spacer(modifier = Modifier.height(12.dp))
                 
                 Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .horizontalScroll(rememberScrollState()),
+                    horizontalArrangement = Arrangement.spacedBy(2.dp)
                 ) {
                     colors.forEach { (colorHex, colorName) ->
                         ColorOption(
@@ -296,11 +314,11 @@ fun EditChallengeScreen(
                         .horizontalScroll(rememberScrollState()),
                     horizontalArrangement = Arrangement.spacedBy(12.dp)
                 ) {
-                    icons.forEach { icon ->
+                    icons.forEach { (name, resId) ->
                         IconOption(
-                            icon = icon,
-                            selected = selectedIcon == icon,
-                            onClick = { selectedIcon = icon }
+                            resId = resId,
+                            selected = selectedIcon == name,
+                            onClick = { selectedIcon = name }
                         )
                     }
                 }
@@ -450,17 +468,56 @@ private fun ChallengePreviewCard(
             modifier = Modifier.padding(20.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {
+            // Premium Logo Pattern
             Box(
-                modifier = Modifier
-                    .size(72.dp)
-                    .clip(RoundedCornerShape(20.dp))
-                    .background(color.copy(alpha = 0.2f)),
-                contentAlignment = Alignment.Center
+                modifier = Modifier.size(72.dp)
             ) {
-                Text(
-                    text = icon,
-                    fontSize = 36.sp
-                )
+                // Large Circle with Selected Icon
+                Box(
+                    modifier = Modifier
+                        .size(64.dp)
+                        .clip(CircleShape)
+                        .background(color.copy(alpha = 0.15f))
+                        .border(1.dp, color.copy(alpha = 0.3f), CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    val resId = when(icon) {
+                        "star" -> R.drawable.star
+                        "run" -> R.drawable.run
+                        "gym" -> R.drawable.gym
+                        "books" -> R.drawable.books
+                        "yoga" -> R.drawable.yoga
+                        "leaf" -> R.drawable.leaf
+                        "music" -> R.drawable.music
+                        "tech" -> R.drawable.tech
+                        "drop" -> R.drawable.drop
+                        else -> R.drawable.yoga
+                    }
+                    
+                    Image(
+                        painter = painterResource(id = resId),
+                        contentDescription = null,
+                        modifier = Modifier.size(32.dp)
+                    )
+                }
+                
+                // Extra Small Badge with Name Initial (Top Right)
+                Box(
+                    modifier = Modifier
+                        .size(32.dp)
+                        .align(Alignment.TopEnd)
+                        .clip(CircleShape)
+                        .background(color)
+                        .border(2.dp, CardDark, CircleShape),
+                    contentAlignment = Alignment.Center
+                ) {
+                    Text(
+                        text = if (name.isNotBlank()) name.take(1).uppercase() else "C",
+                        color = Color.Black,
+                        fontSize = 14.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
             }
             
             Spacer(modifier = Modifier.width(16.dp))
@@ -537,21 +594,23 @@ private fun ColorOption(
 
 @Composable
 private fun IconOption(
-    icon: String,
+    resId: Int,
     selected: Boolean,
     onClick: () -> Unit
 ) {
     Box(
         modifier = Modifier
-            .size(48.dp)
-            .clip(RoundedCornerShape(12.dp))
-            .background(if (selected) Accent else CardDark)
+            .size(64.dp)
+            .clip(CircleShape)
+            .background(if (selected) Accent else Color(0xFF2E2E2E))
             .clickable(onClick = onClick),
         contentAlignment = Alignment.Center
     ) {
-        Text(
-            text = icon,
-            fontSize = 24.sp
+        Image(
+            painter = painterResource(id = resId),
+            contentDescription = null,
+            modifier = Modifier.size(32.dp),
+            colorFilter = if (selected) ColorFilter.tint(Color.Black) else null
         )
     }
 }
@@ -585,7 +644,7 @@ private suspend fun updateChallenge(
             unit = unit
         )
         
-        val response: HttpResponse = httpClient.put("$BASE_URL/api/challenges/$challengeId") {
+        val response: HttpResponse = ApiConfig.httpClient.put("${ApiConfig.BASE_URL}/api/challenges/$challengeId") {
             contentType(ContentType.Application.Json)
             setBody(request)
         }

@@ -44,6 +44,7 @@ router.get('/:userId/profile', async (req: Request, res: Response) => {
       profile: {
         id: user.id,
         email: user.email,
+        displayName: user.displayName,
         createdAt: user.createdAt,
         stats: {
           totalChallenges,
@@ -147,12 +148,13 @@ router.get('/:userId/analytics', async (req: Request, res: Response) => {
 router.put('/:userId/profile', async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId as string
-    const { displayName, avatarUrl } = req.body
+    const { displayName } = req.body
 
-    // Note: Add these fields to User model if needed
     const user = await prisma.user.update({
       where: { id: userId },
-      data: {}
+      data: {
+        ...(displayName !== undefined && { displayName: displayName.trim() })
+      }
     })
 
     res.json({ success: true, user })

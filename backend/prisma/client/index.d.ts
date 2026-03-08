@@ -38,6 +38,11 @@ export type DailyEntry = $Result.DefaultSelection<Prisma.$DailyEntryPayload>
  * 
  */
 export type Streak = $Result.DefaultSelection<Prisma.$StreakPayload>
+/**
+ * Model DailyHabit
+ * 
+ */
+export type DailyHabit = $Result.DefaultSelection<Prisma.$DailyHabitPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -211,6 +216,16 @@ export class PrismaClient<
     * ```
     */
   get streak(): Prisma.StreakDelegate<ExtArgs>;
+
+  /**
+   * `prisma.dailyHabit`: Exposes CRUD operations for the **DailyHabit** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more DailyHabits
+    * const dailyHabits = await prisma.dailyHabit.findMany()
+    * ```
+    */
+  get dailyHabit(): Prisma.DailyHabitDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -656,7 +671,8 @@ export namespace Prisma {
     Challenge: 'Challenge',
     WaterEntry: 'WaterEntry',
     DailyEntry: 'DailyEntry',
-    Streak: 'Streak'
+    Streak: 'Streak',
+    DailyHabit: 'DailyHabit'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -672,7 +688,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "challenge" | "waterEntry" | "dailyEntry" | "streak"
+      modelProps: "user" | "challenge" | "waterEntry" | "dailyEntry" | "streak" | "dailyHabit"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1026,6 +1042,76 @@ export namespace Prisma {
           }
         }
       }
+      DailyHabit: {
+        payload: Prisma.$DailyHabitPayload<ExtArgs>
+        fields: Prisma.DailyHabitFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.DailyHabitFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.DailyHabitFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload>
+          }
+          findFirst: {
+            args: Prisma.DailyHabitFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.DailyHabitFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload>
+          }
+          findMany: {
+            args: Prisma.DailyHabitFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload>[]
+          }
+          create: {
+            args: Prisma.DailyHabitCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload>
+          }
+          createMany: {
+            args: Prisma.DailyHabitCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.DailyHabitCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload>[]
+          }
+          delete: {
+            args: Prisma.DailyHabitDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload>
+          }
+          update: {
+            args: Prisma.DailyHabitUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload>
+          }
+          deleteMany: {
+            args: Prisma.DailyHabitDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.DailyHabitUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.DailyHabitUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$DailyHabitPayload>
+          }
+          aggregate: {
+            args: Prisma.DailyHabitAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateDailyHabit>
+          }
+          groupBy: {
+            args: Prisma.DailyHabitGroupByArgs<ExtArgs>
+            result: $Utils.Optional<DailyHabitGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.DailyHabitCountArgs<ExtArgs>
+            result: $Utils.Optional<DailyHabitCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1191,6 +1277,7 @@ export namespace Prisma {
     streaks: number
     dailyEntries: number
     waterEntries: number
+    dailyHabits: number
   }
 
   export type UserCountOutputTypeSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -1198,6 +1285,7 @@ export namespace Prisma {
     streaks?: boolean | UserCountOutputTypeCountStreaksArgs
     dailyEntries?: boolean | UserCountOutputTypeCountDailyEntriesArgs
     waterEntries?: boolean | UserCountOutputTypeCountWaterEntriesArgs
+    dailyHabits?: boolean | UserCountOutputTypeCountDailyHabitsArgs
   }
 
   // Custom InputTypes
@@ -1237,6 +1325,13 @@ export namespace Prisma {
    */
   export type UserCountOutputTypeCountWaterEntriesArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
     where?: WaterEntryWhereInput
+  }
+
+  /**
+   * UserCountOutputType without action
+   */
+  export type UserCountOutputTypeCountDailyHabitsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DailyHabitWhereInput
   }
 
 
@@ -1306,18 +1401,21 @@ export namespace Prisma {
   export type UserMinAggregateOutputType = {
     id: string | null
     email: string | null
+    displayName: string | null
     createdAt: Date | null
   }
 
   export type UserMaxAggregateOutputType = {
     id: string | null
     email: string | null
+    displayName: string | null
     createdAt: Date | null
   }
 
   export type UserCountAggregateOutputType = {
     id: number
     email: number
+    displayName: number
     createdAt: number
     _all: number
   }
@@ -1326,18 +1424,21 @@ export namespace Prisma {
   export type UserMinAggregateInputType = {
     id?: true
     email?: true
+    displayName?: true
     createdAt?: true
   }
 
   export type UserMaxAggregateInputType = {
     id?: true
     email?: true
+    displayName?: true
     createdAt?: true
   }
 
   export type UserCountAggregateInputType = {
     id?: true
     email?: true
+    displayName?: true
     createdAt?: true
     _all?: true
   }
@@ -1417,6 +1518,7 @@ export namespace Prisma {
   export type UserGroupByOutputType = {
     id: string
     email: string
+    displayName: string | null
     createdAt: Date
     _count: UserCountAggregateOutputType | null
     _min: UserMinAggregateOutputType | null
@@ -1440,23 +1542,27 @@ export namespace Prisma {
   export type UserSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
+    displayName?: boolean
     createdAt?: boolean
     challenges?: boolean | User$challengesArgs<ExtArgs>
     streaks?: boolean | User$streaksArgs<ExtArgs>
     dailyEntries?: boolean | User$dailyEntriesArgs<ExtArgs>
     waterEntries?: boolean | User$waterEntriesArgs<ExtArgs>
+    dailyHabits?: boolean | User$dailyHabitsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
     id?: boolean
     email?: boolean
+    displayName?: boolean
     createdAt?: boolean
   }, ExtArgs["result"]["user"]>
 
   export type UserSelectScalar = {
     id?: boolean
     email?: boolean
+    displayName?: boolean
     createdAt?: boolean
   }
 
@@ -1465,6 +1571,7 @@ export namespace Prisma {
     streaks?: boolean | User$streaksArgs<ExtArgs>
     dailyEntries?: boolean | User$dailyEntriesArgs<ExtArgs>
     waterEntries?: boolean | User$waterEntriesArgs<ExtArgs>
+    dailyHabits?: boolean | User$dailyHabitsArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1476,10 +1583,12 @@ export namespace Prisma {
       streaks: Prisma.$StreakPayload<ExtArgs>[]
       dailyEntries: Prisma.$DailyEntryPayload<ExtArgs>[]
       waterEntries: Prisma.$WaterEntryPayload<ExtArgs>[]
+      dailyHabits: Prisma.$DailyHabitPayload<ExtArgs>[]
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
       email: string
+      displayName: string | null
       createdAt: Date
     }, ExtArgs["result"]["user"]>
     composites: {}
@@ -1849,6 +1958,7 @@ export namespace Prisma {
     streaks<T extends User$streaksArgs<ExtArgs> = {}>(args?: Subset<T, User$streaksArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$StreakPayload<ExtArgs>, T, "findMany"> | Null>
     dailyEntries<T extends User$dailyEntriesArgs<ExtArgs> = {}>(args?: Subset<T, User$dailyEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyEntryPayload<ExtArgs>, T, "findMany"> | Null>
     waterEntries<T extends User$waterEntriesArgs<ExtArgs> = {}>(args?: Subset<T, User$waterEntriesArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$WaterEntryPayload<ExtArgs>, T, "findMany"> | Null>
+    dailyHabits<T extends User$dailyHabitsArgs<ExtArgs> = {}>(args?: Subset<T, User$dailyHabitsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "findMany"> | Null>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -1880,6 +1990,7 @@ export namespace Prisma {
   interface UserFieldRefs {
     readonly id: FieldRef<"User", 'String'>
     readonly email: FieldRef<"User", 'String'>
+    readonly displayName: FieldRef<"User", 'String'>
     readonly createdAt: FieldRef<"User", 'DateTime'>
   }
     
@@ -2272,6 +2383,26 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: WaterEntryScalarFieldEnum | WaterEntryScalarFieldEnum[]
+  }
+
+  /**
+   * User.dailyHabits
+   */
+  export type User$dailyHabitsArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    where?: DailyHabitWhereInput
+    orderBy?: DailyHabitOrderByWithRelationInput | DailyHabitOrderByWithRelationInput[]
+    cursor?: DailyHabitWhereUniqueInput
+    take?: number
+    skip?: number
+    distinct?: DailyHabitScalarFieldEnum | DailyHabitScalarFieldEnum[]
   }
 
   /**
@@ -6550,6 +6681,939 @@ export namespace Prisma {
 
 
   /**
+   * Model DailyHabit
+   */
+
+  export type AggregateDailyHabit = {
+    _count: DailyHabitCountAggregateOutputType | null
+    _min: DailyHabitMinAggregateOutputType | null
+    _max: DailyHabitMaxAggregateOutputType | null
+  }
+
+  export type DailyHabitMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    completed: boolean | null
+    date: Date | null
+  }
+
+  export type DailyHabitMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    name: string | null
+    completed: boolean | null
+    date: Date | null
+  }
+
+  export type DailyHabitCountAggregateOutputType = {
+    id: number
+    userId: number
+    name: number
+    completed: number
+    date: number
+    _all: number
+  }
+
+
+  export type DailyHabitMinAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    completed?: true
+    date?: true
+  }
+
+  export type DailyHabitMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    completed?: true
+    date?: true
+  }
+
+  export type DailyHabitCountAggregateInputType = {
+    id?: true
+    userId?: true
+    name?: true
+    completed?: true
+    date?: true
+    _all?: true
+  }
+
+  export type DailyHabitAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DailyHabit to aggregate.
+     */
+    where?: DailyHabitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DailyHabits to fetch.
+     */
+    orderBy?: DailyHabitOrderByWithRelationInput | DailyHabitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: DailyHabitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DailyHabits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DailyHabits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned DailyHabits
+    **/
+    _count?: true | DailyHabitCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: DailyHabitMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: DailyHabitMaxAggregateInputType
+  }
+
+  export type GetDailyHabitAggregateType<T extends DailyHabitAggregateArgs> = {
+        [P in keyof T & keyof AggregateDailyHabit]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateDailyHabit[P]>
+      : GetScalarType<T[P], AggregateDailyHabit[P]>
+  }
+
+
+
+
+  export type DailyHabitGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: DailyHabitWhereInput
+    orderBy?: DailyHabitOrderByWithAggregationInput | DailyHabitOrderByWithAggregationInput[]
+    by: DailyHabitScalarFieldEnum[] | DailyHabitScalarFieldEnum
+    having?: DailyHabitScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: DailyHabitCountAggregateInputType | true
+    _min?: DailyHabitMinAggregateInputType
+    _max?: DailyHabitMaxAggregateInputType
+  }
+
+  export type DailyHabitGroupByOutputType = {
+    id: string
+    userId: string
+    name: string
+    completed: boolean
+    date: Date
+    _count: DailyHabitCountAggregateOutputType | null
+    _min: DailyHabitMinAggregateOutputType | null
+    _max: DailyHabitMaxAggregateOutputType | null
+  }
+
+  type GetDailyHabitGroupByPayload<T extends DailyHabitGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<DailyHabitGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof DailyHabitGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], DailyHabitGroupByOutputType[P]>
+            : GetScalarType<T[P], DailyHabitGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type DailyHabitSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    completed?: boolean
+    date?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["dailyHabit"]>
+
+  export type DailyHabitSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    completed?: boolean
+    date?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["dailyHabit"]>
+
+  export type DailyHabitSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    name?: boolean
+    completed?: boolean
+    date?: boolean
+  }
+
+  export type DailyHabitInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type DailyHabitIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $DailyHabitPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "DailyHabit"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      name: string
+      completed: boolean
+      date: Date
+    }, ExtArgs["result"]["dailyHabit"]>
+    composites: {}
+  }
+
+  type DailyHabitGetPayload<S extends boolean | null | undefined | DailyHabitDefaultArgs> = $Result.GetResult<Prisma.$DailyHabitPayload, S>
+
+  type DailyHabitCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<DailyHabitFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: DailyHabitCountAggregateInputType | true
+    }
+
+  export interface DailyHabitDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['DailyHabit'], meta: { name: 'DailyHabit' } }
+    /**
+     * Find zero or one DailyHabit that matches the filter.
+     * @param {DailyHabitFindUniqueArgs} args - Arguments to find a DailyHabit
+     * @example
+     * // Get one DailyHabit
+     * const dailyHabit = await prisma.dailyHabit.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends DailyHabitFindUniqueArgs>(args: SelectSubset<T, DailyHabitFindUniqueArgs<ExtArgs>>): Prisma__DailyHabitClient<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one DailyHabit that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {DailyHabitFindUniqueOrThrowArgs} args - Arguments to find a DailyHabit
+     * @example
+     * // Get one DailyHabit
+     * const dailyHabit = await prisma.dailyHabit.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends DailyHabitFindUniqueOrThrowArgs>(args: SelectSubset<T, DailyHabitFindUniqueOrThrowArgs<ExtArgs>>): Prisma__DailyHabitClient<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first DailyHabit that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DailyHabitFindFirstArgs} args - Arguments to find a DailyHabit
+     * @example
+     * // Get one DailyHabit
+     * const dailyHabit = await prisma.dailyHabit.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends DailyHabitFindFirstArgs>(args?: SelectSubset<T, DailyHabitFindFirstArgs<ExtArgs>>): Prisma__DailyHabitClient<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first DailyHabit that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DailyHabitFindFirstOrThrowArgs} args - Arguments to find a DailyHabit
+     * @example
+     * // Get one DailyHabit
+     * const dailyHabit = await prisma.dailyHabit.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends DailyHabitFindFirstOrThrowArgs>(args?: SelectSubset<T, DailyHabitFindFirstOrThrowArgs<ExtArgs>>): Prisma__DailyHabitClient<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more DailyHabits that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DailyHabitFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all DailyHabits
+     * const dailyHabits = await prisma.dailyHabit.findMany()
+     * 
+     * // Get first 10 DailyHabits
+     * const dailyHabits = await prisma.dailyHabit.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const dailyHabitWithIdOnly = await prisma.dailyHabit.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends DailyHabitFindManyArgs>(args?: SelectSubset<T, DailyHabitFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a DailyHabit.
+     * @param {DailyHabitCreateArgs} args - Arguments to create a DailyHabit.
+     * @example
+     * // Create one DailyHabit
+     * const DailyHabit = await prisma.dailyHabit.create({
+     *   data: {
+     *     // ... data to create a DailyHabit
+     *   }
+     * })
+     * 
+     */
+    create<T extends DailyHabitCreateArgs>(args: SelectSubset<T, DailyHabitCreateArgs<ExtArgs>>): Prisma__DailyHabitClient<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many DailyHabits.
+     * @param {DailyHabitCreateManyArgs} args - Arguments to create many DailyHabits.
+     * @example
+     * // Create many DailyHabits
+     * const dailyHabit = await prisma.dailyHabit.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends DailyHabitCreateManyArgs>(args?: SelectSubset<T, DailyHabitCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many DailyHabits and returns the data saved in the database.
+     * @param {DailyHabitCreateManyAndReturnArgs} args - Arguments to create many DailyHabits.
+     * @example
+     * // Create many DailyHabits
+     * const dailyHabit = await prisma.dailyHabit.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many DailyHabits and only return the `id`
+     * const dailyHabitWithIdOnly = await prisma.dailyHabit.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends DailyHabitCreateManyAndReturnArgs>(args?: SelectSubset<T, DailyHabitCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a DailyHabit.
+     * @param {DailyHabitDeleteArgs} args - Arguments to delete one DailyHabit.
+     * @example
+     * // Delete one DailyHabit
+     * const DailyHabit = await prisma.dailyHabit.delete({
+     *   where: {
+     *     // ... filter to delete one DailyHabit
+     *   }
+     * })
+     * 
+     */
+    delete<T extends DailyHabitDeleteArgs>(args: SelectSubset<T, DailyHabitDeleteArgs<ExtArgs>>): Prisma__DailyHabitClient<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one DailyHabit.
+     * @param {DailyHabitUpdateArgs} args - Arguments to update one DailyHabit.
+     * @example
+     * // Update one DailyHabit
+     * const dailyHabit = await prisma.dailyHabit.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends DailyHabitUpdateArgs>(args: SelectSubset<T, DailyHabitUpdateArgs<ExtArgs>>): Prisma__DailyHabitClient<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more DailyHabits.
+     * @param {DailyHabitDeleteManyArgs} args - Arguments to filter DailyHabits to delete.
+     * @example
+     * // Delete a few DailyHabits
+     * const { count } = await prisma.dailyHabit.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends DailyHabitDeleteManyArgs>(args?: SelectSubset<T, DailyHabitDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more DailyHabits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DailyHabitUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many DailyHabits
+     * const dailyHabit = await prisma.dailyHabit.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends DailyHabitUpdateManyArgs>(args: SelectSubset<T, DailyHabitUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one DailyHabit.
+     * @param {DailyHabitUpsertArgs} args - Arguments to update or create a DailyHabit.
+     * @example
+     * // Update or create a DailyHabit
+     * const dailyHabit = await prisma.dailyHabit.upsert({
+     *   create: {
+     *     // ... data to create a DailyHabit
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the DailyHabit we want to update
+     *   }
+     * })
+     */
+    upsert<T extends DailyHabitUpsertArgs>(args: SelectSubset<T, DailyHabitUpsertArgs<ExtArgs>>): Prisma__DailyHabitClient<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of DailyHabits.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DailyHabitCountArgs} args - Arguments to filter DailyHabits to count.
+     * @example
+     * // Count the number of DailyHabits
+     * const count = await prisma.dailyHabit.count({
+     *   where: {
+     *     // ... the filter for the DailyHabits we want to count
+     *   }
+     * })
+    **/
+    count<T extends DailyHabitCountArgs>(
+      args?: Subset<T, DailyHabitCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], DailyHabitCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a DailyHabit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DailyHabitAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends DailyHabitAggregateArgs>(args: Subset<T, DailyHabitAggregateArgs>): Prisma.PrismaPromise<GetDailyHabitAggregateType<T>>
+
+    /**
+     * Group by DailyHabit.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {DailyHabitGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends DailyHabitGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: DailyHabitGroupByArgs['orderBy'] }
+        : { orderBy?: DailyHabitGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, DailyHabitGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetDailyHabitGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the DailyHabit model
+   */
+  readonly fields: DailyHabitFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for DailyHabit.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__DailyHabitClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the DailyHabit model
+   */ 
+  interface DailyHabitFieldRefs {
+    readonly id: FieldRef<"DailyHabit", 'String'>
+    readonly userId: FieldRef<"DailyHabit", 'String'>
+    readonly name: FieldRef<"DailyHabit", 'String'>
+    readonly completed: FieldRef<"DailyHabit", 'Boolean'>
+    readonly date: FieldRef<"DailyHabit", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * DailyHabit findUnique
+   */
+  export type DailyHabitFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    /**
+     * Filter, which DailyHabit to fetch.
+     */
+    where: DailyHabitWhereUniqueInput
+  }
+
+  /**
+   * DailyHabit findUniqueOrThrow
+   */
+  export type DailyHabitFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    /**
+     * Filter, which DailyHabit to fetch.
+     */
+    where: DailyHabitWhereUniqueInput
+  }
+
+  /**
+   * DailyHabit findFirst
+   */
+  export type DailyHabitFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    /**
+     * Filter, which DailyHabit to fetch.
+     */
+    where?: DailyHabitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DailyHabits to fetch.
+     */
+    orderBy?: DailyHabitOrderByWithRelationInput | DailyHabitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DailyHabits.
+     */
+    cursor?: DailyHabitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DailyHabits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DailyHabits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DailyHabits.
+     */
+    distinct?: DailyHabitScalarFieldEnum | DailyHabitScalarFieldEnum[]
+  }
+
+  /**
+   * DailyHabit findFirstOrThrow
+   */
+  export type DailyHabitFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    /**
+     * Filter, which DailyHabit to fetch.
+     */
+    where?: DailyHabitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DailyHabits to fetch.
+     */
+    orderBy?: DailyHabitOrderByWithRelationInput | DailyHabitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for DailyHabits.
+     */
+    cursor?: DailyHabitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DailyHabits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DailyHabits.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of DailyHabits.
+     */
+    distinct?: DailyHabitScalarFieldEnum | DailyHabitScalarFieldEnum[]
+  }
+
+  /**
+   * DailyHabit findMany
+   */
+  export type DailyHabitFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    /**
+     * Filter, which DailyHabits to fetch.
+     */
+    where?: DailyHabitWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of DailyHabits to fetch.
+     */
+    orderBy?: DailyHabitOrderByWithRelationInput | DailyHabitOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing DailyHabits.
+     */
+    cursor?: DailyHabitWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` DailyHabits from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` DailyHabits.
+     */
+    skip?: number
+    distinct?: DailyHabitScalarFieldEnum | DailyHabitScalarFieldEnum[]
+  }
+
+  /**
+   * DailyHabit create
+   */
+  export type DailyHabitCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    /**
+     * The data needed to create a DailyHabit.
+     */
+    data: XOR<DailyHabitCreateInput, DailyHabitUncheckedCreateInput>
+  }
+
+  /**
+   * DailyHabit createMany
+   */
+  export type DailyHabitCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many DailyHabits.
+     */
+    data: DailyHabitCreateManyInput | DailyHabitCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * DailyHabit createManyAndReturn
+   */
+  export type DailyHabitCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many DailyHabits.
+     */
+    data: DailyHabitCreateManyInput | DailyHabitCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * DailyHabit update
+   */
+  export type DailyHabitUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    /**
+     * The data needed to update a DailyHabit.
+     */
+    data: XOR<DailyHabitUpdateInput, DailyHabitUncheckedUpdateInput>
+    /**
+     * Choose, which DailyHabit to update.
+     */
+    where: DailyHabitWhereUniqueInput
+  }
+
+  /**
+   * DailyHabit updateMany
+   */
+  export type DailyHabitUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update DailyHabits.
+     */
+    data: XOR<DailyHabitUpdateManyMutationInput, DailyHabitUncheckedUpdateManyInput>
+    /**
+     * Filter which DailyHabits to update
+     */
+    where?: DailyHabitWhereInput
+  }
+
+  /**
+   * DailyHabit upsert
+   */
+  export type DailyHabitUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    /**
+     * The filter to search for the DailyHabit to update in case it exists.
+     */
+    where: DailyHabitWhereUniqueInput
+    /**
+     * In case the DailyHabit found by the `where` argument doesn't exist, create a new DailyHabit with this data.
+     */
+    create: XOR<DailyHabitCreateInput, DailyHabitUncheckedCreateInput>
+    /**
+     * In case the DailyHabit was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<DailyHabitUpdateInput, DailyHabitUncheckedUpdateInput>
+  }
+
+  /**
+   * DailyHabit delete
+   */
+  export type DailyHabitDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+    /**
+     * Filter which DailyHabit to delete.
+     */
+    where: DailyHabitWhereUniqueInput
+  }
+
+  /**
+   * DailyHabit deleteMany
+   */
+  export type DailyHabitDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which DailyHabits to delete
+     */
+    where?: DailyHabitWhereInput
+  }
+
+  /**
+   * DailyHabit without action
+   */
+  export type DailyHabitDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the DailyHabit
+     */
+    select?: DailyHabitSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: DailyHabitInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -6566,6 +7630,7 @@ export namespace Prisma {
   export const UserScalarFieldEnum: {
     id: 'id',
     email: 'email',
+    displayName: 'displayName',
     createdAt: 'createdAt'
   };
 
@@ -6637,6 +7702,17 @@ export namespace Prisma {
   };
 
   export type StreakScalarFieldEnum = (typeof StreakScalarFieldEnum)[keyof typeof StreakScalarFieldEnum]
+
+
+  export const DailyHabitScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    name: 'name',
+    completed: 'completed',
+    date: 'date'
+  };
+
+  export type DailyHabitScalarFieldEnum = (typeof DailyHabitScalarFieldEnum)[keyof typeof DailyHabitScalarFieldEnum]
 
 
   export const SortOrder: {
@@ -6740,21 +7816,25 @@ export namespace Prisma {
     NOT?: UserWhereInput | UserWhereInput[]
     id?: StringFilter<"User"> | string
     email?: StringFilter<"User"> | string
+    displayName?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     challenges?: ChallengeListRelationFilter
     streaks?: StreakListRelationFilter
     dailyEntries?: DailyEntryListRelationFilter
     waterEntries?: WaterEntryListRelationFilter
+    dailyHabits?: DailyHabitListRelationFilter
   }
 
   export type UserOrderByWithRelationInput = {
     id?: SortOrder
     email?: SortOrder
+    displayName?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     challenges?: ChallengeOrderByRelationAggregateInput
     streaks?: StreakOrderByRelationAggregateInput
     dailyEntries?: DailyEntryOrderByRelationAggregateInput
     waterEntries?: WaterEntryOrderByRelationAggregateInput
+    dailyHabits?: DailyHabitOrderByRelationAggregateInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -6763,16 +7843,19 @@ export namespace Prisma {
     AND?: UserWhereInput | UserWhereInput[]
     OR?: UserWhereInput[]
     NOT?: UserWhereInput | UserWhereInput[]
+    displayName?: StringNullableFilter<"User"> | string | null
     createdAt?: DateTimeFilter<"User"> | Date | string
     challenges?: ChallengeListRelationFilter
     streaks?: StreakListRelationFilter
     dailyEntries?: DailyEntryListRelationFilter
     waterEntries?: WaterEntryListRelationFilter
+    dailyHabits?: DailyHabitListRelationFilter
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
     id?: SortOrder
     email?: SortOrder
+    displayName?: SortOrderInput | SortOrder
     createdAt?: SortOrder
     _count?: UserCountOrderByAggregateInput
     _max?: UserMaxOrderByAggregateInput
@@ -6785,6 +7868,7 @@ export namespace Prisma {
     NOT?: UserScalarWhereWithAggregatesInput | UserScalarWhereWithAggregatesInput[]
     id?: StringWithAggregatesFilter<"User"> | string
     email?: StringWithAggregatesFilter<"User"> | string
+    displayName?: StringNullableWithAggregatesFilter<"User"> | string | null
     createdAt?: DateTimeWithAggregatesFilter<"User"> | Date | string
   }
 
@@ -7153,61 +8237,128 @@ export namespace Prisma {
     lastCompletedDay?: IntWithAggregatesFilter<"Streak"> | number
   }
 
+  export type DailyHabitWhereInput = {
+    AND?: DailyHabitWhereInput | DailyHabitWhereInput[]
+    OR?: DailyHabitWhereInput[]
+    NOT?: DailyHabitWhereInput | DailyHabitWhereInput[]
+    id?: StringFilter<"DailyHabit"> | string
+    userId?: StringFilter<"DailyHabit"> | string
+    name?: StringFilter<"DailyHabit"> | string
+    completed?: BoolFilter<"DailyHabit"> | boolean
+    date?: DateTimeFilter<"DailyHabit"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type DailyHabitOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    completed?: SortOrder
+    date?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type DailyHabitWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId_name_date?: DailyHabitUserIdNameDateCompoundUniqueInput
+    AND?: DailyHabitWhereInput | DailyHabitWhereInput[]
+    OR?: DailyHabitWhereInput[]
+    NOT?: DailyHabitWhereInput | DailyHabitWhereInput[]
+    userId?: StringFilter<"DailyHabit"> | string
+    name?: StringFilter<"DailyHabit"> | string
+    completed?: BoolFilter<"DailyHabit"> | boolean
+    date?: DateTimeFilter<"DailyHabit"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id" | "userId_name_date">
+
+  export type DailyHabitOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    completed?: SortOrder
+    date?: SortOrder
+    _count?: DailyHabitCountOrderByAggregateInput
+    _max?: DailyHabitMaxOrderByAggregateInput
+    _min?: DailyHabitMinOrderByAggregateInput
+  }
+
+  export type DailyHabitScalarWhereWithAggregatesInput = {
+    AND?: DailyHabitScalarWhereWithAggregatesInput | DailyHabitScalarWhereWithAggregatesInput[]
+    OR?: DailyHabitScalarWhereWithAggregatesInput[]
+    NOT?: DailyHabitScalarWhereWithAggregatesInput | DailyHabitScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"DailyHabit"> | string
+    userId?: StringWithAggregatesFilter<"DailyHabit"> | string
+    name?: StringWithAggregatesFilter<"DailyHabit"> | string
+    completed?: BoolWithAggregatesFilter<"DailyHabit"> | boolean
+    date?: DateTimeWithAggregatesFilter<"DailyHabit"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     streaks?: StreakCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryCreateNestedManyWithoutUserInput
     waterEntries?: WaterEntryCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryUncheckedCreateNestedManyWithoutUserInput
     waterEntries?: WaterEntryUncheckedCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     streaks?: StreakUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUpdateManyWithoutUserNestedInput
     waterEntries?: WaterEntryUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUncheckedUpdateManyWithoutUserNestedInput
     waterEntries?: WaterEntryUncheckedUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
   }
 
   export type UserUpdateManyMutationInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type UserUncheckedUpdateManyInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
@@ -7601,6 +8752,61 @@ export namespace Prisma {
     lastCompletedDay?: IntFieldUpdateOperationsInput | number
   }
 
+  export type DailyHabitCreateInput = {
+    id?: string
+    name: string
+    completed?: boolean
+    date?: Date | string
+    user: UserCreateNestedOneWithoutDailyHabitsInput
+  }
+
+  export type DailyHabitUncheckedCreateInput = {
+    id?: string
+    userId: string
+    name: string
+    completed?: boolean
+    date?: Date | string
+  }
+
+  export type DailyHabitUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutDailyHabitsNestedInput
+  }
+
+  export type DailyHabitUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DailyHabitCreateManyInput = {
+    id?: string
+    userId: string
+    name: string
+    completed?: boolean
+    date?: Date | string
+  }
+
+  export type DailyHabitUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DailyHabitUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -7614,6 +8820,21 @@ export namespace Prisma {
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     mode?: QueryMode
     not?: NestedStringFilter<$PrismaModel> | string
+  }
+
+  export type StringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
   export type DateTimeFilter<$PrismaModel = never> = {
@@ -7651,6 +8872,17 @@ export namespace Prisma {
     none?: WaterEntryWhereInput
   }
 
+  export type DailyHabitListRelationFilter = {
+    every?: DailyHabitWhereInput
+    some?: DailyHabitWhereInput
+    none?: DailyHabitWhereInput
+  }
+
+  export type SortOrderInput = {
+    sort: SortOrder
+    nulls?: NullsOrder
+  }
+
   export type ChallengeOrderByRelationAggregateInput = {
     _count?: SortOrder
   }
@@ -7667,21 +8899,28 @@ export namespace Prisma {
     _count?: SortOrder
   }
 
+  export type DailyHabitOrderByRelationAggregateInput = {
+    _count?: SortOrder
+  }
+
   export type UserCountOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
+    displayName?: SortOrder
     createdAt?: SortOrder
   }
 
   export type UserMaxOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
+    displayName?: SortOrder
     createdAt?: SortOrder
   }
 
   export type UserMinOrderByAggregateInput = {
     id?: SortOrder
     email?: SortOrder
+    displayName?: SortOrder
     createdAt?: SortOrder
   }
 
@@ -7703,6 +8942,24 @@ export namespace Prisma {
     _max?: NestedStringFilter<$PrismaModel>
   }
 
+  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    mode?: QueryMode
+    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedStringNullableFilter<$PrismaModel>
+    _max?: NestedStringNullableFilter<$PrismaModel>
+  }
+
   export type DateTimeWithAggregatesFilter<$PrismaModel = never> = {
     equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
     in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
@@ -7715,21 +8972,6 @@ export namespace Prisma {
     _count?: NestedIntFilter<$PrismaModel>
     _min?: NestedDateTimeFilter<$PrismaModel>
     _max?: NestedDateTimeFilter<$PrismaModel>
-  }
-
-  export type StringNullableFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    mode?: QueryMode
-    not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
   export type IntFilter<$PrismaModel = never> = {
@@ -7762,11 +9004,6 @@ export namespace Prisma {
   export type UserRelationFilter = {
     is?: UserWhereInput
     isNot?: UserWhereInput
-  }
-
-  export type SortOrderInput = {
-    sort: SortOrder
-    nulls?: NullsOrder
   }
 
   export type ChallengeCountOrderByAggregateInput = {
@@ -7834,24 +9071,6 @@ export namespace Prisma {
   export type ChallengeSumOrderByAggregateInput = {
     duration?: SortOrder
     targetValue?: SortOrder
-  }
-
-  export type StringNullableWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    mode?: QueryMode
-    not?: NestedStringNullableWithAggregatesFilter<$PrismaModel> | string | null
-    _count?: NestedIntNullableFilter<$PrismaModel>
-    _min?: NestedStringNullableFilter<$PrismaModel>
-    _max?: NestedStringNullableFilter<$PrismaModel>
   }
 
   export type IntWithAggregatesFilter<$PrismaModel = never> = {
@@ -8116,6 +9335,36 @@ export namespace Prisma {
     lastCompletedDay?: SortOrder
   }
 
+  export type DailyHabitUserIdNameDateCompoundUniqueInput = {
+    userId: string
+    name: string
+    date: Date | string
+  }
+
+  export type DailyHabitCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    completed?: SortOrder
+    date?: SortOrder
+  }
+
+  export type DailyHabitMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    completed?: SortOrder
+    date?: SortOrder
+  }
+
+  export type DailyHabitMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    name?: SortOrder
+    completed?: SortOrder
+    date?: SortOrder
+  }
+
   export type ChallengeCreateNestedManyWithoutUserInput = {
     create?: XOR<ChallengeCreateWithoutUserInput, ChallengeUncheckedCreateWithoutUserInput> | ChallengeCreateWithoutUserInput[] | ChallengeUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ChallengeCreateOrConnectWithoutUserInput | ChallengeCreateOrConnectWithoutUserInput[]
@@ -8142,6 +9391,13 @@ export namespace Prisma {
     connectOrCreate?: WaterEntryCreateOrConnectWithoutUserInput | WaterEntryCreateOrConnectWithoutUserInput[]
     createMany?: WaterEntryCreateManyUserInputEnvelope
     connect?: WaterEntryWhereUniqueInput | WaterEntryWhereUniqueInput[]
+  }
+
+  export type DailyHabitCreateNestedManyWithoutUserInput = {
+    create?: XOR<DailyHabitCreateWithoutUserInput, DailyHabitUncheckedCreateWithoutUserInput> | DailyHabitCreateWithoutUserInput[] | DailyHabitUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: DailyHabitCreateOrConnectWithoutUserInput | DailyHabitCreateOrConnectWithoutUserInput[]
+    createMany?: DailyHabitCreateManyUserInputEnvelope
+    connect?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
   }
 
   export type ChallengeUncheckedCreateNestedManyWithoutUserInput = {
@@ -8172,8 +9428,19 @@ export namespace Prisma {
     connect?: WaterEntryWhereUniqueInput | WaterEntryWhereUniqueInput[]
   }
 
+  export type DailyHabitUncheckedCreateNestedManyWithoutUserInput = {
+    create?: XOR<DailyHabitCreateWithoutUserInput, DailyHabitUncheckedCreateWithoutUserInput> | DailyHabitCreateWithoutUserInput[] | DailyHabitUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: DailyHabitCreateOrConnectWithoutUserInput | DailyHabitCreateOrConnectWithoutUserInput[]
+    createMany?: DailyHabitCreateManyUserInputEnvelope
+    connect?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
+  }
+
   export type StringFieldUpdateOperationsInput = {
     set?: string
+  }
+
+  export type NullableStringFieldUpdateOperationsInput = {
+    set?: string | null
   }
 
   export type DateTimeFieldUpdateOperationsInput = {
@@ -8236,6 +9503,20 @@ export namespace Prisma {
     deleteMany?: WaterEntryScalarWhereInput | WaterEntryScalarWhereInput[]
   }
 
+  export type DailyHabitUpdateManyWithoutUserNestedInput = {
+    create?: XOR<DailyHabitCreateWithoutUserInput, DailyHabitUncheckedCreateWithoutUserInput> | DailyHabitCreateWithoutUserInput[] | DailyHabitUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: DailyHabitCreateOrConnectWithoutUserInput | DailyHabitCreateOrConnectWithoutUserInput[]
+    upsert?: DailyHabitUpsertWithWhereUniqueWithoutUserInput | DailyHabitUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: DailyHabitCreateManyUserInputEnvelope
+    set?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
+    disconnect?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
+    delete?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
+    connect?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
+    update?: DailyHabitUpdateWithWhereUniqueWithoutUserInput | DailyHabitUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: DailyHabitUpdateManyWithWhereWithoutUserInput | DailyHabitUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: DailyHabitScalarWhereInput | DailyHabitScalarWhereInput[]
+  }
+
   export type ChallengeUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<ChallengeCreateWithoutUserInput, ChallengeUncheckedCreateWithoutUserInput> | ChallengeCreateWithoutUserInput[] | ChallengeUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ChallengeCreateOrConnectWithoutUserInput | ChallengeCreateOrConnectWithoutUserInput[]
@@ -8292,6 +9573,20 @@ export namespace Prisma {
     deleteMany?: WaterEntryScalarWhereInput | WaterEntryScalarWhereInput[]
   }
 
+  export type DailyHabitUncheckedUpdateManyWithoutUserNestedInput = {
+    create?: XOR<DailyHabitCreateWithoutUserInput, DailyHabitUncheckedCreateWithoutUserInput> | DailyHabitCreateWithoutUserInput[] | DailyHabitUncheckedCreateWithoutUserInput[]
+    connectOrCreate?: DailyHabitCreateOrConnectWithoutUserInput | DailyHabitCreateOrConnectWithoutUserInput[]
+    upsert?: DailyHabitUpsertWithWhereUniqueWithoutUserInput | DailyHabitUpsertWithWhereUniqueWithoutUserInput[]
+    createMany?: DailyHabitCreateManyUserInputEnvelope
+    set?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
+    disconnect?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
+    delete?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
+    connect?: DailyHabitWhereUniqueInput | DailyHabitWhereUniqueInput[]
+    update?: DailyHabitUpdateWithWhereUniqueWithoutUserInput | DailyHabitUpdateWithWhereUniqueWithoutUserInput[]
+    updateMany?: DailyHabitUpdateManyWithWhereWithoutUserInput | DailyHabitUpdateManyWithWhereWithoutUserInput[]
+    deleteMany?: DailyHabitScalarWhereInput | DailyHabitScalarWhereInput[]
+  }
+
   export type UserCreateNestedOneWithoutChallengesInput = {
     create?: XOR<UserCreateWithoutChallengesInput, UserUncheckedCreateWithoutChallengesInput>
     connectOrCreate?: UserCreateOrConnectWithoutChallengesInput
@@ -8338,10 +9633,6 @@ export namespace Prisma {
     connectOrCreate?: WaterEntryCreateOrConnectWithoutChallengeInput | WaterEntryCreateOrConnectWithoutChallengeInput[]
     createMany?: WaterEntryCreateManyChallengeInputEnvelope
     connect?: WaterEntryWhereUniqueInput | WaterEntryWhereUniqueInput[]
-  }
-
-  export type NullableStringFieldUpdateOperationsInput = {
-    set?: string | null
   }
 
   export type IntFieldUpdateOperationsInput = {
@@ -8552,6 +9843,20 @@ export namespace Prisma {
     update?: XOR<XOR<ChallengeUpdateToOneWithWhereWithoutStreaksInput, ChallengeUpdateWithoutStreaksInput>, ChallengeUncheckedUpdateWithoutStreaksInput>
   }
 
+  export type UserCreateNestedOneWithoutDailyHabitsInput = {
+    create?: XOR<UserCreateWithoutDailyHabitsInput, UserUncheckedCreateWithoutDailyHabitsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutDailyHabitsInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type UserUpdateOneRequiredWithoutDailyHabitsNestedInput = {
+    create?: XOR<UserCreateWithoutDailyHabitsInput, UserUncheckedCreateWithoutDailyHabitsInput>
+    connectOrCreate?: UserCreateOrConnectWithoutDailyHabitsInput
+    upsert?: UserUpsertWithoutDailyHabitsInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutDailyHabitsInput, UserUpdateWithoutDailyHabitsInput>, UserUncheckedUpdateWithoutDailyHabitsInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -8564,6 +9869,20 @@ export namespace Prisma {
     startsWith?: string | StringFieldRefInput<$PrismaModel>
     endsWith?: string | StringFieldRefInput<$PrismaModel>
     not?: NestedStringFilter<$PrismaModel> | string
+  }
+
+  export type NestedStringNullableFilter<$PrismaModel = never> = {
+    equals?: string | StringFieldRefInput<$PrismaModel> | null
+    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
+    lt?: string | StringFieldRefInput<$PrismaModel>
+    lte?: string | StringFieldRefInput<$PrismaModel>
+    gt?: string | StringFieldRefInput<$PrismaModel>
+    gte?: string | StringFieldRefInput<$PrismaModel>
+    contains?: string | StringFieldRefInput<$PrismaModel>
+    startsWith?: string | StringFieldRefInput<$PrismaModel>
+    endsWith?: string | StringFieldRefInput<$PrismaModel>
+    not?: NestedStringNullableFilter<$PrismaModel> | string | null
   }
 
   export type NestedDateTimeFilter<$PrismaModel = never> = {
@@ -8605,50 +9924,6 @@ export namespace Prisma {
     not?: NestedIntFilter<$PrismaModel> | number
   }
 
-  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
-    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
-    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
-    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
-    _count?: NestedIntFilter<$PrismaModel>
-    _min?: NestedDateTimeFilter<$PrismaModel>
-    _max?: NestedDateTimeFilter<$PrismaModel>
-  }
-
-  export type NestedStringNullableFilter<$PrismaModel = never> = {
-    equals?: string | StringFieldRefInput<$PrismaModel> | null
-    in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    notIn?: string[] | ListStringFieldRefInput<$PrismaModel> | null
-    lt?: string | StringFieldRefInput<$PrismaModel>
-    lte?: string | StringFieldRefInput<$PrismaModel>
-    gt?: string | StringFieldRefInput<$PrismaModel>
-    gte?: string | StringFieldRefInput<$PrismaModel>
-    contains?: string | StringFieldRefInput<$PrismaModel>
-    startsWith?: string | StringFieldRefInput<$PrismaModel>
-    endsWith?: string | StringFieldRefInput<$PrismaModel>
-    not?: NestedStringNullableFilter<$PrismaModel> | string | null
-  }
-
-  export type NestedFloatNullableFilter<$PrismaModel = never> = {
-    equals?: number | FloatFieldRefInput<$PrismaModel> | null
-    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
-    lt?: number | FloatFieldRefInput<$PrismaModel>
-    lte?: number | FloatFieldRefInput<$PrismaModel>
-    gt?: number | FloatFieldRefInput<$PrismaModel>
-    gte?: number | FloatFieldRefInput<$PrismaModel>
-    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
-  }
-
-  export type NestedBoolFilter<$PrismaModel = never> = {
-    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
-    not?: NestedBoolFilter<$PrismaModel> | boolean
-  }
-
   export type NestedStringNullableWithAggregatesFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel> | null
     in?: string[] | ListStringFieldRefInput<$PrismaModel> | null
@@ -8675,6 +9950,36 @@ export namespace Prisma {
     gt?: number | IntFieldRefInput<$PrismaModel>
     gte?: number | IntFieldRefInput<$PrismaModel>
     not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedDateTimeWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    in?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    notIn?: Date[] | string[] | ListDateTimeFieldRefInput<$PrismaModel>
+    lt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    lte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gt?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    gte?: Date | string | DateTimeFieldRefInput<$PrismaModel>
+    not?: NestedDateTimeWithAggregatesFilter<$PrismaModel> | Date | string
+    _count?: NestedIntFilter<$PrismaModel>
+    _min?: NestedDateTimeFilter<$PrismaModel>
+    _max?: NestedDateTimeFilter<$PrismaModel>
+  }
+
+  export type NestedFloatNullableFilter<$PrismaModel = never> = {
+    equals?: number | FloatFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListFloatFieldRefInput<$PrismaModel> | null
+    lt?: number | FloatFieldRefInput<$PrismaModel>
+    lte?: number | FloatFieldRefInput<$PrismaModel>
+    gt?: number | FloatFieldRefInput<$PrismaModel>
+    gte?: number | FloatFieldRefInput<$PrismaModel>
+    not?: NestedFloatNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type NestedBoolFilter<$PrismaModel = never> = {
+    equals?: boolean | BooleanFieldRefInput<$PrismaModel>
+    not?: NestedBoolFilter<$PrismaModel> | boolean
   }
 
   export type NestedIntWithAggregatesFilter<$PrismaModel = never> = {
@@ -8917,6 +10222,30 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type DailyHabitCreateWithoutUserInput = {
+    id?: string
+    name: string
+    completed?: boolean
+    date?: Date | string
+  }
+
+  export type DailyHabitUncheckedCreateWithoutUserInput = {
+    id?: string
+    name: string
+    completed?: boolean
+    date?: Date | string
+  }
+
+  export type DailyHabitCreateOrConnectWithoutUserInput = {
+    where: DailyHabitWhereUniqueInput
+    create: XOR<DailyHabitCreateWithoutUserInput, DailyHabitUncheckedCreateWithoutUserInput>
+  }
+
+  export type DailyHabitCreateManyUserInputEnvelope = {
+    data: DailyHabitCreateManyUserInput | DailyHabitCreateManyUserInput[]
+    skipDuplicates?: boolean
+  }
+
   export type ChallengeUpsertWithWhereUniqueWithoutUserInput = {
     where: ChallengeWhereUniqueInput
     update: XOR<ChallengeUpdateWithoutUserInput, ChallengeUncheckedUpdateWithoutUserInput>
@@ -9048,22 +10377,53 @@ export namespace Prisma {
     updatedAt?: DateTimeFilter<"WaterEntry"> | Date | string
   }
 
+  export type DailyHabitUpsertWithWhereUniqueWithoutUserInput = {
+    where: DailyHabitWhereUniqueInput
+    update: XOR<DailyHabitUpdateWithoutUserInput, DailyHabitUncheckedUpdateWithoutUserInput>
+    create: XOR<DailyHabitCreateWithoutUserInput, DailyHabitUncheckedCreateWithoutUserInput>
+  }
+
+  export type DailyHabitUpdateWithWhereUniqueWithoutUserInput = {
+    where: DailyHabitWhereUniqueInput
+    data: XOR<DailyHabitUpdateWithoutUserInput, DailyHabitUncheckedUpdateWithoutUserInput>
+  }
+
+  export type DailyHabitUpdateManyWithWhereWithoutUserInput = {
+    where: DailyHabitScalarWhereInput
+    data: XOR<DailyHabitUpdateManyMutationInput, DailyHabitUncheckedUpdateManyWithoutUserInput>
+  }
+
+  export type DailyHabitScalarWhereInput = {
+    AND?: DailyHabitScalarWhereInput | DailyHabitScalarWhereInput[]
+    OR?: DailyHabitScalarWhereInput[]
+    NOT?: DailyHabitScalarWhereInput | DailyHabitScalarWhereInput[]
+    id?: StringFilter<"DailyHabit"> | string
+    userId?: StringFilter<"DailyHabit"> | string
+    name?: StringFilter<"DailyHabit"> | string
+    completed?: BoolFilter<"DailyHabit"> | boolean
+    date?: DateTimeFilter<"DailyHabit"> | Date | string
+  }
+
   export type UserCreateWithoutChallengesInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     streaks?: StreakCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryCreateNestedManyWithoutUserInput
     waterEntries?: WaterEntryCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutChallengesInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryUncheckedCreateNestedManyWithoutUserInput
     waterEntries?: WaterEntryUncheckedCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutChallengesInput = {
@@ -9181,19 +10541,23 @@ export namespace Prisma {
   export type UserUpdateWithoutChallengesInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     streaks?: StreakUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUpdateManyWithoutUserNestedInput
     waterEntries?: WaterEntryUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutChallengesInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUncheckedUpdateManyWithoutUserNestedInput
     waterEntries?: WaterEntryUncheckedUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type DailyEntryUpsertWithWhereUniqueWithoutChallengeInput = {
@@ -9247,19 +10611,23 @@ export namespace Prisma {
   export type UserCreateWithoutWaterEntriesInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     streaks?: StreakCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutWaterEntriesInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryUncheckedCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutWaterEntriesInput = {
@@ -9328,19 +10696,23 @@ export namespace Prisma {
   export type UserUpdateWithoutWaterEntriesInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     streaks?: StreakUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWaterEntriesInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUncheckedUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ChallengeUpsertWithoutWaterEntriesInput = {
@@ -9399,19 +10771,23 @@ export namespace Prisma {
   export type UserCreateWithoutDailyEntriesInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     streaks?: StreakCreateNestedManyWithoutUserInput
     waterEntries?: WaterEntryCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutDailyEntriesInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
     waterEntries?: WaterEntryUncheckedCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutDailyEntriesInput = {
@@ -9480,19 +10856,23 @@ export namespace Prisma {
   export type UserUpdateWithoutDailyEntriesInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     streaks?: StreakUpdateManyWithoutUserNestedInput
     waterEntries?: WaterEntryUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDailyEntriesInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
     waterEntries?: WaterEntryUncheckedUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ChallengeUpsertWithoutDailyTasksInput = {
@@ -9551,19 +10931,23 @@ export namespace Prisma {
   export type UserCreateWithoutStreaksInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     challenges?: ChallengeCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryCreateNestedManyWithoutUserInput
     waterEntries?: WaterEntryCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutStreaksInput = {
     id?: string
     email: string
+    displayName?: string | null
     createdAt?: Date | string
     challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
     dailyEntries?: DailyEntryUncheckedCreateNestedManyWithoutUserInput
     waterEntries?: WaterEntryUncheckedCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutStreaksInput = {
@@ -9632,19 +11016,23 @@ export namespace Prisma {
   export type UserUpdateWithoutStreaksInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUpdateManyWithoutUserNestedInput
     waterEntries?: WaterEntryUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutStreaksInput = {
     id?: StringFieldUpdateOperationsInput | string
     email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUncheckedUpdateManyWithoutUserNestedInput
     waterEntries?: WaterEntryUncheckedUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
   }
 
   export type ChallengeUpsertWithoutStreaksInput = {
@@ -9700,6 +11088,66 @@ export namespace Prisma {
     waterEntries?: WaterEntryUncheckedUpdateManyWithoutChallengeNestedInput
   }
 
+  export type UserCreateWithoutDailyHabitsInput = {
+    id?: string
+    email: string
+    displayName?: string | null
+    createdAt?: Date | string
+    challenges?: ChallengeCreateNestedManyWithoutUserInput
+    streaks?: StreakCreateNestedManyWithoutUserInput
+    dailyEntries?: DailyEntryCreateNestedManyWithoutUserInput
+    waterEntries?: WaterEntryCreateNestedManyWithoutUserInput
+  }
+
+  export type UserUncheckedCreateWithoutDailyHabitsInput = {
+    id?: string
+    email: string
+    displayName?: string | null
+    createdAt?: Date | string
+    challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
+    streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
+    dailyEntries?: DailyEntryUncheckedCreateNestedManyWithoutUserInput
+    waterEntries?: WaterEntryUncheckedCreateNestedManyWithoutUserInput
+  }
+
+  export type UserCreateOrConnectWithoutDailyHabitsInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutDailyHabitsInput, UserUncheckedCreateWithoutDailyHabitsInput>
+  }
+
+  export type UserUpsertWithoutDailyHabitsInput = {
+    update: XOR<UserUpdateWithoutDailyHabitsInput, UserUncheckedUpdateWithoutDailyHabitsInput>
+    create: XOR<UserCreateWithoutDailyHabitsInput, UserUncheckedCreateWithoutDailyHabitsInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutDailyHabitsInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutDailyHabitsInput, UserUncheckedUpdateWithoutDailyHabitsInput>
+  }
+
+  export type UserUpdateWithoutDailyHabitsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    challenges?: ChallengeUpdateManyWithoutUserNestedInput
+    streaks?: StreakUpdateManyWithoutUserNestedInput
+    dailyEntries?: DailyEntryUpdateManyWithoutUserNestedInput
+    waterEntries?: WaterEntryUpdateManyWithoutUserNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutDailyHabitsInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
+    streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
+    dailyEntries?: DailyEntryUncheckedUpdateManyWithoutUserNestedInput
+    waterEntries?: WaterEntryUncheckedUpdateManyWithoutUserNestedInput
+  }
+
   export type ChallengeCreateManyUserInput = {
     id?: string
     name: string
@@ -9749,6 +11197,13 @@ export namespace Prisma {
     completed?: boolean
     createdAt?: Date | string
     updatedAt?: Date | string
+  }
+
+  export type DailyHabitCreateManyUserInput = {
+    id?: string
+    name: string
+    completed?: boolean
+    date?: Date | string
   }
 
   export type ChallengeUpdateWithoutUserInput = {
@@ -9908,6 +11363,27 @@ export namespace Prisma {
     completed?: BoolFieldUpdateOperationsInput | boolean
     createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DailyHabitUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DailyHabitUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type DailyHabitUncheckedUpdateManyWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    name?: StringFieldUpdateOperationsInput | string
+    completed?: BoolFieldUpdateOperationsInput | boolean
+    date?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DailyEntryCreateManyChallengeInput = {
@@ -10075,6 +11551,10 @@ export namespace Prisma {
      * @deprecated Use StreakDefaultArgs instead
      */
     export type StreakArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = StreakDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use DailyHabitDefaultArgs instead
+     */
+    export type DailyHabitArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DailyHabitDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

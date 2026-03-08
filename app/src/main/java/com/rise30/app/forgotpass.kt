@@ -1,17 +1,13 @@
 package com.rise30.app
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
-import androidx.compose.foundation.layout.Arrangement
-import androidx.compose.foundation.layout.Box
-import androidx.compose.foundation.layout.Column
-import androidx.compose.foundation.layout.Spacer
-import androidx.compose.foundation.layout.fillMaxSize
-import androidx.compose.foundation.layout.fillMaxWidth
-import androidx.compose.foundation.layout.height
-import androidx.compose.foundation.layout.navigationBarsPadding
-import androidx.compose.foundation.layout.padding
-import androidx.compose.foundation.layout.size
-import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.foundation.layout.*
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import androidx.compose.foundation.layout.offset
+import androidx.compose.material3.IconButton
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -61,16 +57,30 @@ fun ForgotPasswordScreen(
                 .padding(horizontal = 32.dp, vertical = 24.dp)
         ) {
             
-            // --- TOP BACK BUTTON ---
-            TextButton(
-                onClick = onBackToSignIn,
-                modifier = Modifier.align(Alignment.TopStart)
+            // Header with Back Button and Title
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
+                IconButton(
+                    onClick = onBackToSignIn,
+                    modifier = Modifier.offset(x = (-16).dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.back),
+                        contentDescription = "Back",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                
                 Text(
-                    text = "← Back to login", 
-                    color = Color.LightGray,
-                    fontSize = 14.sp,
-                    fontWeight = FontWeight.Medium
+                    text = "Reset Password",
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.ExtraBold,
+                    color = LemonYellow,
+                    letterSpacing = 1.sp
                 )
             }
 
@@ -79,15 +89,8 @@ fun ForgotPasswordScreen(
                 modifier = Modifier.align(Alignment.Center),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                // --- HEADER ---
-                Text(
-                    text = "Reset Password",
-                    fontSize = 36.sp,
-                    fontWeight = FontWeight.ExtraBold,
-                    color = LemonYellow,
-                    textAlign = TextAlign.Center,
-                    letterSpacing = 1.sp
-                )
+                // Header moved to top Row
+                Spacer(modifier = Modifier.height(12.dp))
                 Spacer(modifier = Modifier.height(12.dp))
                 Text(
                     text = "Enter your email to receive a reset link",

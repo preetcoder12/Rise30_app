@@ -73,4 +73,24 @@ object CacheManager {
             return null
         }
     }
+
+    // --- User Profile ---
+    fun saveProfile(context: Context, userId: String, profile: UserProfileResponse) {
+        try {
+            val json = Json.encodeToString(profile)
+            getPrefs(context).edit().putString("profile_" + userId, json).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun getProfile(context: Context, userId: String): UserProfileResponse? {
+        try {
+            val json = getPrefs(context).getString("profile_" + userId, null) ?: return null
+            return Json.decodeFromString<UserProfileResponse>(json)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
 }

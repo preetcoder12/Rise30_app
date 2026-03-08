@@ -1,6 +1,7 @@
 package com.rise30.app
 
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.Canvas
 import androidx.compose.foundation.background
 import androidx.compose.foundation.clickable
@@ -9,6 +10,7 @@ import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.res.painterResource
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.*
 import androidx.compose.material.icons.filled.LocalFireDepartment
@@ -101,15 +103,18 @@ fun WaterChallengeScreen(
                 Row(
                     modifier = Modifier
                         .fillMaxWidth()
-                        .padding(top = 15.dp, bottom = 15.dp),
+                        .padding(top = 20.dp, bottom = 15.dp),
                     horizontalArrangement = Arrangement.SpaceBetween,
                     verticalAlignment = Alignment.CenterVertically
                 ) {
-                    TextButton(onClick = onBack) {
-                        Text(
-                            text = "← Back",
-                            color = WaterBlue,
-                            fontSize = 16.sp
+                    IconButton(
+                        onClick = onBack,
+                        modifier = Modifier.offset(x = (-16).dp)
+                    ) {
+                        Image(
+                            painter = painterResource(id = R.drawable.back),
+                            contentDescription = "Back",
+                            modifier = Modifier.size(24.dp)
                         )
                     }
                     
@@ -402,10 +407,9 @@ private fun WaterAddButton(
             horizontalAlignment = Alignment.CenterHorizontally,
             verticalArrangement = Arrangement.Center
         ) {
-            Icon(
-                imageVector = Icons.Filled.WaterDrop,
+            Image(
+                painter = painterResource(id = R.drawable.drop),
                 contentDescription = "Water",
-                tint = Color(0xFF4FC3F7),
                 modifier = Modifier.size(24.dp)
             )
             Spacer(modifier = Modifier.height(4.dp))
@@ -721,10 +725,9 @@ private fun WaterAnalyticsSection(
                     .padding(24.dp),
                 horizontalAlignment = Alignment.CenterHorizontally
             ) {
-                Icon(
-                    imageVector = Icons.Filled.WaterDrop,
+                Image(
+                    painter = painterResource(id = R.drawable.drop),
                     contentDescription = "Total Water",
-                    tint = WaterBlue,
                     modifier = Modifier.size(40.dp)
                 )
                 Spacer(modifier = Modifier.height(8.dp))
@@ -767,18 +770,7 @@ fun StatItem(
     }
 }
 
-// API Client - shared across the app
-val httpClient = HttpClient(Android) {
-    install(ContentNegotiation) {
-        json(Json {
-            ignoreUnknownKeys = true
-            isLenient = true
-        })
-    }
-}
-
-// Base URL for backend API - update with your production URL
-const val BASE_URL = "https://rise30-app.onrender.com"
+// Use ApiConfig.httpClient and ApiConfig.BASE_URL
 
 // Data classes for API
 @Serializable
@@ -888,7 +880,7 @@ private suspend fun loadWaterChallengeData(
     onDataLoaded: (WaterChallengeData) -> Unit
 ) {
     try {
-        val response: WaterChallengeResponse = httpClient.get("$BASE_URL/api/water-challenge/active/$userId").body()
+        val response: WaterChallengeResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/water-challenge/$userId").body()
         
         if (response.active && response.progress != null) {
             onDataLoaded(
@@ -937,7 +929,7 @@ private suspend fun createWaterChallenge(
     onSuccess: (WaterChallengeData) -> Unit
 ) {
     try {
-        val response: WaterChallengeResponse = httpClient.post("$BASE_URL/api/water-challenge/create") {
+        val response: WaterChallengeResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/water-challenge/create") {
             contentType(ContentType.Application.Json)
             setBody(mapOf("userId" to userId))
         }.body()
@@ -1000,7 +992,7 @@ private suspend fun addWater(
     }
     
     try {
-        val response: LogWaterResponse = httpClient.post("$BASE_URL/api/water-challenge/log") {
+        val response: LogWaterResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/water-challenge/add") {
             contentType(ContentType.Application.Json)
             setBody(LogWaterRequest(userId, challengeId, amount))
         }.body()
@@ -1025,7 +1017,7 @@ private suspend fun loadAnalytics(
     if (challengeId == null) return
     
     try {
-        val response: WaterAnalyticsResponse = httpClient.get("$BASE_URL/api/water-challenge/analytics/$userId/$challengeId").body()
+        val response: WaterAnalyticsResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/water-challenge/analytics/$userId/$challengeId").body()
         onDataLoaded(response)
     } catch (e: Exception) {
         // Fallback with mock data

@@ -9,6 +9,7 @@ import { streakRouter } from "./streakRoutes";
 import challengesRouter from "./routes/challenges";
 import waterChallengeRouter from "./routes/waterChallenge";
 import usersRouter from "./routes/users";
+import habitsRouter from "./routes/habits";
 
 dotenv.config();
 
@@ -29,6 +30,45 @@ app.use("/api/streaks", streakRouter);
 app.use("/api/challenges", challengesRouter);
 app.use("/api/water-challenge", waterChallengeRouter);
 app.use("/api/users", usersRouter);
+app.use("/api/habits", habitsRouter);
+
+app.get("/api/motivation", (_req: Request, res: Response) => {
+  const quotes = [
+    { text: "The crossroad is where you find your true strength.", author: "Rise30" },
+    { text: "Consistency is more important than intensity.", author: "Bruce Lee" },
+    { text: "Small steps every day lead to big results.", author: "Anonymous" },
+    { text: "The only bad workout is the one that didn't happen.", author: "Unknown" },
+    { text: "Deep dive into your potential.", author: "Rise30" }
+  ];
+  const quote = quotes[Math.floor(Math.random() * quotes.length)];
+  res.json({ success: true, quote });
+});
+
+app.get("/api/deep-dive", (_req: Request, res: Response) => {
+  const deepDives = [
+    { 
+      title: "The Science of Habit Stacking", 
+      content: "Learn how to build bulletproof routines by anchoring new habits to current ones.",
+      category: "Productivity",
+      readTime: "3 min"
+    },
+    { 
+      title: "Mindfulness and the Prefrontal Cortex", 
+      content: "How 10 minutes of silence reshapes your brain for better focus and less stress.",
+      category: "Mindfulness",
+      readTime: "5 min"
+    },
+    { 
+      title: "Optimal Hydration for Brain Peak", 
+      content: "Why even 1% dehydration can drop your cognitive performance by up to 20%.",
+      category: "Health",
+      readTime: "4 min"
+    }
+  ];
+  const deepDive = deepDives[Math.floor(Math.random() * deepDives.length)];
+  res.json({ success: true, deepDive });
+});
+
 
 // User sync endpoint
 app.post("/api/auth/sync", async (req: Request, res: Response) => {

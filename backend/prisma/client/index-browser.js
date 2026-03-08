@@ -125,6 +125,7 @@ exports.Prisma.TransactionIsolationLevel = makeStrictEnum({
 exports.Prisma.UserScalarFieldEnum = {
   id: 'id',
   email: 'email',
+  displayName: 'displayName',
   createdAt: 'createdAt'
 };
 
@@ -183,6 +184,14 @@ exports.Prisma.StreakScalarFieldEnum = {
   lastCompletedDay: 'lastCompletedDay'
 };
 
+exports.Prisma.DailyHabitScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  name: 'name',
+  completed: 'completed',
+  date: 'date'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -204,7 +213,8 @@ exports.Prisma.ModelName = {
   Challenge: 'Challenge',
   WaterEntry: 'WaterEntry',
   DailyEntry: 'DailyEntry',
-  Streak: 'Streak'
+  Streak: 'Streak',
+  DailyHabit: 'DailyHabit'
 };
 
 /**

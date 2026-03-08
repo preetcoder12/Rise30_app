@@ -2,12 +2,16 @@ package com.rise30.app
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.foundation.rememberScrollState
 import androidx.compose.foundation.shape.CircleShape
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.verticalScroll
+import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
 import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
@@ -41,23 +45,31 @@ fun NotificationsPage(
                 .verticalScroll(scrollState)
                 .padding(horizontal = 20.dp)
         ) {
-            Spacer(modifier = Modifier.height(20.dp))
-            
-            // Back Button
-            TextButton(
-                onClick = onBack,
-                modifier = Modifier.padding(bottom = 16.dp)
+            // Header with Back Button and Title
+            Row(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 16.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                Text("← Back", color = Accent)
+                IconButton(
+                    onClick = onBack,
+                    modifier = Modifier.offset(x = (-16).dp)
+                ) {
+                    Image(
+                        painter = painterResource(id = R.drawable.back),
+                        contentDescription = "Back",
+                        modifier = Modifier.size(24.dp)
+                    )
+                }
+                
+                Text(
+                    text = "Notifications",
+                    color = Color.White,
+                    fontSize = 32.sp,
+                    fontWeight = FontWeight.Bold
+                )
             }
-            
-            // Header
-            Text(
-                text = "Notifications",
-                color = Color.White,
-                fontSize = 32.sp,
-                fontWeight = FontWeight.Bold
-            )
             
             Text(
                 text = "Stay updated on your progress",

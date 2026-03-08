@@ -21,6 +21,7 @@ import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
@@ -34,10 +35,14 @@ import io.ktor.client.request.post
 import io.ktor.client.request.setBody
 
 // 🌑 Premium Colors
-val BackgroundDark = Color(0xFF0D0D0F)
-val CardDark = Color(0xFF1A1A1F)
+val BackgroundDark = Color(0xFF080810)
+val CardDark = Color(0xFF14141E)
 val Accent = Color(0xFFFFD54F)
 val AccentSoft = Color(0x33FFD54F)
+
+// Glassmorphism card helper colors
+val GlassTop = Color(0xFF1E1E2E)
+val GlassStroke = Color(0x26FFFFFF) // 15% white
 
 // Data classes for API
 @Serializable
@@ -70,6 +75,44 @@ data class CategoryStat(
     val completed: Int
 )
 
+@Serializable
+data class HabitResponse(
+    val success: Boolean,
+    val habits: List<Habit>
+)
+
+@Serializable
+data class Habit(
+    val id: String? = null,
+    val name: String,
+    val completed: Boolean
+)
+
+@Serializable
+data class MotivationResponse(
+    val success: Boolean,
+    val quote: Quote
+)
+
+@Serializable
+data class Quote(
+    val text: String,
+    val author: String
+)
+@Serializable
+data class DeepDiveResponse(
+    val success: Boolean,
+    val deepDive: DeepDive
+)
+
+@Serializable
+data class DeepDive(
+    val title: String,
+    val content: String,
+    val category: String,
+    val readTime: String
+)
+
 // Using ChallengeSummary and ChallengesResponse from challenges.kt
 
 @Composable
@@ -80,7 +123,7 @@ private fun TopSection(
     Row(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(top = 15.dp, bottom = 15.dp),
+            .padding(top = 15.dp, bottom = 0.dp), // Removed bottom padding to control spacing strictly
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
@@ -130,25 +173,30 @@ private fun MainChallengeCard(
     
     val challengeColor = Color(0xFFFFF44F)
     val isTodayCompleted = challenge?.progress?.isTodayCompleted ?: false
-
-    Card(
+    Box(
         modifier = Modifier
             .fillMaxWidth()
-            .padding(vertical = 12.dp)
+            .padding(bottom = 12.dp)
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF1E1E30),
+                        Color(0xFF12121C)
+                    )
+                )
+            )
             .border(
                 width = 1.dp,
-                color = Color.White.copy(alpha = 0.05f),
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.18f),
+                        Color.White.copy(alpha = 0.04f)
+                    )
+                ),
                 shape = RoundedCornerShape(28.dp)
-            ),
-        shape = RoundedCornerShape(28.dp),
-        colors = CardDefaults.cardColors(
-            containerColor = CardDark
-        ),
-        elevation = CardDefaults.cardElevation(
-            defaultElevation = 8.dp
-        )
+            )
     ) {
-
         Row(
             modifier = Modifier
                 .padding(24.dp)
@@ -221,13 +269,13 @@ private fun MainChallengeCard(
                     lineHeight = 18.sp
                 )
 
-                Spacer(modifier = Modifier.height(11.dp)) // Reduced (14 -> 11) to compensate for text size increase
+                Spacer(modifier = Modifier.height(11.dp))
                 
                 // Challenge Name
                 Text(
                     text = challenge?.name ?: "Daily Challenge",
                     color = Color.White,
-                    fontSize = 17.sp,
+                    fontSize = 20.sp,
                     fontWeight = FontWeight.Bold
                 )
 
@@ -238,19 +286,19 @@ private fun MainChallengeCard(
                         Text(
                             text = "$streakLength day streak  •  ",
                             color = Accent,
-                            fontSize = 20.sp, // 12 + 3
+                            fontSize = 30.sp,
                             fontWeight = FontWeight.SemiBold
                         )
                     }
                     Text(
                         text = "Day $currentDay/$totalDays",
                         color = challengeColor,
-                        fontSize = 17.sp, // 12 + 3
+                        fontSize = 21.sp,
                         fontWeight = FontWeight.Bold
                     )
                 }
 
-                Spacer(modifier = Modifier.height(5.dp)) // Request: 5px (5dp) above button
+                Spacer(modifier = Modifier.height(5.dp))
 
                 // Button
                 Button(
@@ -300,7 +348,7 @@ private fun WeeklyOverview(userId: String) {
 
         scope.launch {
             try {
-                val response: AnalyticsResponse = httpClient.get("$BASE_URL/api/users/$userId/analytics").body()
+                val response: AnalyticsResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/users/$userId/analytics").body()
                 if (response.success) {
                     analyticsData = response.analytics
                     CacheManager.saveAnalytics(context, userId, response)
@@ -318,8 +366,25 @@ private fun WeeklyOverview(userId: String) {
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(32.dp))
-            .background(CardDark)
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF1A1A2E),
+                        Color(0xFF10101A)
+                    )
+                )
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.15f),
+                        Color.White.copy(alpha = 0.03f)
+                    )
+                ),
+                shape = RoundedCornerShape(28.dp)
+            )
             .padding(24.dp)
     ) {
         Row(
@@ -473,41 +538,82 @@ private fun InfoBox(label: String, valueText: String) {
 
 @Composable
 private fun MotivationCard() {
-    Card(
+    var quote by remember { mutableStateOf(Quote("Loading your daily motivation...", "Rise30")) }
+    
+    LaunchedEffect(Unit) {
+        try {
+            val response: MotivationResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/motivation").body()
+            if (response.success) {
+                quote = response.quote
+            }
+        } catch (e: Exception) { /* use default */ }
+    }
+
+    Box(
         modifier = Modifier
-            .fillMaxWidth(),
-        colors = CardDefaults.cardColors(
-            containerColor = CardDark
-        ),
-        shape = RoundedCornerShape(24.dp)
+            .fillMaxWidth()
+            .clip(RoundedCornerShape(22.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(
+                        Color(0xFF1E1E2E),
+                        Color(0xFF14141E)
+                    )
+                )
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.12f),
+                        Color.Transparent
+                    )
+                ),
+                shape = RoundedCornerShape(22.dp)
+            )
     ) {
         Column(
-            modifier = Modifier.padding(20.dp),
-            verticalArrangement = Arrangement.spacedBy(8.dp)
+            modifier = Modifier.padding(22.dp),
+            horizontalAlignment = Alignment.CenterHorizontally
         ) {
-            Row(verticalAlignment = Alignment.CenterVertically) {
-                Image(
-                    painter = painterResource(id = R.drawable.bulb),
+            Box(
+                modifier = Modifier
+                    .size(42.dp)
+                    .clip(CircleShape)
+                    .background(Accent.copy(alpha = 0.12f)),
+                contentAlignment = Alignment.Center
+            ) {
+                Icon(
+                    imageVector = Icons.Filled.AcUnit, // Check icon fallback
                     contentDescription = null,
-                    modifier = Modifier.size(31.dp) // +30% scaled
-                )
-                Spacer(modifier = Modifier.width(8.dp))
-                Text(
-                    text = "Today’s Shift",
-                    color = Accent,
-                    fontSize = 17.sp,
-                    fontWeight = FontWeight.SemiBold
+                    tint = Accent,
+                    modifier = Modifier.size(24.dp)
                 )
             }
+            
+            Spacer(modifier = Modifier.height(18.dp))
+            
             Text(
-                text = "You don’t need more time, you need more intentional time. One deep, distraction-free block today moves you closer to the identity you want.",
+                text = "“${quote.text}”",
                 color = Color.White,
-                fontSize = 18.sp // Scaled
+                fontSize = 19.sp,
+                lineHeight = 28.sp,
+                fontWeight = FontWeight.Medium,
+                textAlign = TextAlign.Center,
+                fontStyle = androidx.compose.ui.text.font.FontStyle.Italic
+            )
+            
+            Spacer(modifier = Modifier.height(14.dp))
+            
+            Text(
+                text = "— ${quote.author}",
+                color = Accent,
+                fontSize = 15.sp,
+                fontWeight = FontWeight.Bold
             )
         }
     }
 }
-
 @Composable
 fun HomeFloatingBottomBar(
     currentTab: MainTab,
@@ -736,7 +842,7 @@ fun HomePage(
 
         scope.launch {
             try {
-                val response: ChallengesResponse = httpClient.get("$BASE_URL/api/challenges/user/$userId").body()
+                val response: ChallengesResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/challenges/user/$userId").body()
                 if (response.success && response.challenges.isNotEmpty()) {
                     // Update Cache 
                     val challengesSummary = response.challenges.map { c ->
@@ -773,8 +879,21 @@ fun HomePage(
 
     Surface(
         modifier = Modifier.fillMaxSize(),
-        color = BackgroundDark
+        color = Color.Transparent
     ) {
+        Box(
+            modifier = Modifier
+                .fillMaxSize()
+                .background(
+                    Brush.radialGradient(
+                        colors = listOf(
+                            Color(0xFF151525),
+                            Color(0xFF090912)
+                        ),
+                        radius = 1800f
+                    )
+                )
+        ) {
         Column(
             modifier = Modifier
                 .fillMaxSize()
@@ -784,8 +903,8 @@ fun HomePage(
         ) {
 
             TopSection(userName, onNotificationClick)
-
-            Spacer(modifier = Modifier.height(30.dp))
+            
+            Spacer(modifier = Modifier.height(16.dp)) // Strictly 16dp below the username section
 
 
 
@@ -795,7 +914,7 @@ fun HomePage(
                     recentChallenge?.let { challenge ->
                         scope.launch {
                             try {
-                                val response: HttpResponse = httpClient.post("$BASE_URL/api/challenges/${challenge.id}/mark-today") {
+                                val response: HttpResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/challenges/${challenge.id}/mark-today") {
                                     contentType(ContentType.Application.Json)
                                     setBody(mapOf("userId" to userId))
                                 }
@@ -811,32 +930,36 @@ fun HomePage(
                 }
             )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             WeeklyOverview(userId)
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            PowerMorningSection()
+            PowerMorningSection(userId)
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             FriendsSection()
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
-            StreakShieldSection()
+            StreakShieldSection(
+                currentStreak = recentChallenge?.progress?.currentStreak ?: 0,
+                longestStreak = 0 // longestStreak shown per-challenge; WeeklyOverview fetches the global one
+            )
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             DailyDeepDiveSection()
 
-            Spacer(modifier = Modifier.height(30.dp))
+            Spacer(modifier = Modifier.height(16.dp))
 
             MotivationCard()
 
             Spacer(modifier = Modifier.height(120.dp))
         }
+        } // close Box
     }
 }
 
@@ -845,12 +968,26 @@ fun HomePage(
 ////////////////////////////////////////////////////////////
 
 @Composable
-private fun PowerMorningSection() {
+private fun PowerMorningSection(userId: String) {
+    val ritualHabitNames = listOf(
+        "Drink 1 Glass of Water",
+        "5 Min Meditation",
+        "No Social Media (1h)"
+    )
+    
+    val scope = rememberCoroutineScope()
+    var habitsState by remember { mutableStateOf<Map<String, Boolean>>(emptyMap()) }
+    var isLoading by remember { mutableStateOf(true) }
 
-    var habits by remember {
-        mutableStateOf(
-            listOf(false, false, false)
-        )
+    LaunchedEffect(userId) {
+        try {
+            val response: HabitResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/habits/$userId").body()
+            if (response.success) {
+                val stateMap = response.habits.associate { it.name to it.completed }
+                habitsState = stateMap
+            }
+        } catch (e: Exception) { /* handle error */ }
+        finally { isLoading = false }
     }
 
     Column {
@@ -871,45 +1008,72 @@ private fun PowerMorningSection() {
 
         Spacer(modifier = Modifier.height(16.dp))
 
-        listOf(
-            "Drink 1 Glass of Water",
-            "5 Min Meditation",
-            "No Social Media (1h)"
-        ).forEachIndexed { index, text ->
-
-            val completed = habits[index]
+        ritualHabitNames.forEach { habitName ->
+            val isCompleted = habitsState[habitName] ?: false
 
             Row(
                 modifier = Modifier
                     .fillMaxWidth()
+                    .padding(vertical = 6.dp)
                     .clip(RoundedCornerShape(20.dp))
-                    .background(CardDark)
+                    .background(
+                        Brush.linearGradient(
+                            colors = listOf(Color(0xFF1A1A28), Color(0xFF0E0E18))
+                        )
+                    )
+                    .border(
+                        1.dp,
+                        if (isCompleted) Accent.copy(alpha = 0.3f) else Color.White.copy(alpha = 0.05f),
+                        RoundedCornerShape(20.dp)
+                    )
                     .clickable {
-                        habits = habits.toMutableList().also {
-                            it[index] = !it[index]
+                        val newCompleted = !isCompleted
+                        habitsState = habitsState + (habitName to newCompleted)
+                        scope.launch {
+                            try {
+                                ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/habits/toggle") {
+                                    contentType(ContentType.Application.Json)
+                                    setBody(mapOf(
+                                        "userId" to userId,
+                                        "name" to habitName,
+                                        "completed" to newCompleted
+                                    ))
+                                }
+                            } catch (e: Exception) {
+                                // rollback on error
+                                habitsState = habitsState + (habitName to isCompleted)
+                            }
                         }
                     }
                     .padding(16.dp),
                 verticalAlignment = Alignment.CenterVertically
             ) {
-
                 Box(
                     modifier = Modifier
-                        .size(22.dp)
+                        .size(24.dp)
                         .clip(CircleShape)
-                        .background(if (completed) Accent else Color.Gray)
-                )
+                        .background(if (isCompleted) Accent else Color.White.copy(alpha = 0.1f))
+                        .padding(4.dp),
+                    contentAlignment = Alignment.Center
+                ) {
+                    if (isCompleted) {
+                        Icon(
+                            imageVector = Icons.Filled.AcUnit,
+                            contentDescription = null,
+                            tint = Color.Black,
+                            modifier = Modifier.size(16.dp)
+                        )
+                    }
+                }
 
                 Spacer(modifier = Modifier.width(16.dp))
 
                 Text(
-                    text,
-                    color = Color.White,
-                    fontSize = 14.sp
+                    text = habitName,
+                    color = if (isCompleted) Color.White else Color.Gray,
+                    fontSize = 16.sp
                 )
             }
-
-            Spacer(modifier = Modifier.height(12.dp))
         }
     }
 }
@@ -920,9 +1084,7 @@ private fun PowerMorningSection() {
 
 @Composable
 private fun FriendsSection() {
-
     Column {
-
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
                 painter = painterResource(id = R.drawable.friends),
@@ -931,7 +1093,7 @@ private fun FriendsSection() {
             )
             Spacer(modifier = Modifier.width(8.dp))
             Text(
-                "Friends in the Trenches",
+                "Community",
                 fontSize = 18.sp,
                 fontWeight = FontWeight.SemiBold,
                 color = Color.White
@@ -940,34 +1102,41 @@ private fun FriendsSection() {
 
         Spacer(modifier = Modifier.height(12.dp))
 
-        Text(
-            "542 others are focusing right now",
-            fontSize = 13.sp,
-            color = Color.Gray
-        )
-
-        Spacer(modifier = Modifier.height(16.dp))
-
-        Row(
-            modifier = Modifier.horizontalScroll(rememberScrollState())
-        ) {
-            repeat(10) {
-                Box(
-                    modifier = Modifier
-                        .padding(end = 12.dp)
-                        .size(50.dp)
-                        .clip(CircleShape)
-                        .background(CardDark),
-                    contentAlignment = Alignment.Center
-                ) {
-                    Box(
-                        modifier = Modifier
-                            .size(10.dp)
-                            .clip(CircleShape)
-                            .background(Color.Green)
-                            .align(Alignment.TopEnd)
+        Box(
+            modifier = Modifier
+                .fillMaxWidth()
+                .clip(RoundedCornerShape(20.dp))
+                .background(
+                    Brush.linearGradient(
+                        colors = listOf(Color(0xFF1A1A28), Color(0xFF0E0E18))
                     )
-                }
+                )
+                .border(
+                    width = 1.dp,
+                    brush = Brush.linearGradient(
+                        colors = listOf(
+                            Color.White.copy(alpha = 0.10f),
+                            Color.White.copy(alpha = 0.02f)
+                        )
+                    ),
+                    shape = RoundedCornerShape(20.dp)
+                )
+                .padding(20.dp)
+        ) {
+            Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
+                Icon(
+                    imageVector = Icons.Filled.AcUnit,
+                    contentDescription = null,
+                    tint = Color.Gray.copy(alpha = 0.5f),
+                    modifier = Modifier.size(32.dp)
+                )
+                Spacer(modifier = Modifier.height(8.dp))
+                Text(
+                    text = "Community features coming soon!",
+                    color = Color.Gray,
+                    fontSize = 13.sp,
+                    textAlign = androidx.compose.ui.text.style.TextAlign.Center
+                )
             }
         }
     }
@@ -978,12 +1147,33 @@ private fun FriendsSection() {
 ////////////////////////////////////////////////////////////
 
 @Composable
-private fun StreakShieldSection() {
+private fun StreakShieldSection(currentStreak: Int = 0, longestStreak: Int = 0) {
+    // Shield integrity is based on how close current streak is to longest streak
+    val shieldIntegrity = if (longestStreak > 0) {
+        (currentStreak.toFloat() / longestStreak.toFloat()).coerceIn(0f, 1f)
+    } else if (currentStreak > 0) 1f else 0f
+    val shieldPercent = (shieldIntegrity * 100).toInt()
+    val isActive = currentStreak > 0
+
     Column(
         modifier = Modifier
             .fillMaxWidth()
-            .clip(RoundedCornerShape(32.dp))
-            .background(CardDark)
+            .clip(RoundedCornerShape(28.dp))
+            .background(
+                Brush.linearGradient(
+                    colors = listOf(Color(0xFF1E1E30), Color(0xFF0C0C18))
+                )
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Accent.copy(alpha = 0.20f),
+                        Color.White.copy(alpha = 0.04f)
+                    )
+                ),
+                shape = RoundedCornerShape(28.dp)
+            )
             .padding(24.dp)
     ) {
         Row(
@@ -1005,15 +1195,15 @@ private fun StreakShieldSection() {
                     color = Accent
                 )
             }
-            
+            val statusColor = if (isActive) Color.Green else Color.Gray
             Text(
-                "Active",
-                color = Color.Green.copy(alpha = 0.8f),
+                if (isActive) "Active" else "Inactive",
+                color = statusColor.copy(alpha = 0.8f),
                 fontSize = 12.sp,
                 fontWeight = FontWeight.Bold,
                 modifier = Modifier
                     .clip(RoundedCornerShape(50))
-                    .background(Color.Green.copy(alpha = 0.1f))
+                    .background(statusColor.copy(alpha = 0.1f))
                     .padding(horizontal = 12.dp, vertical = 4.dp)
             )
         }
@@ -1021,7 +1211,10 @@ private fun StreakShieldSection() {
         Spacer(modifier = Modifier.height(16.dp))
 
         Text(
-            "Your streak is currently protected from a 1-day lapse. Keep the momentum going!",
+            if (isActive)
+                "Current streak: $currentStreak day${if (currentStreak == 1) "" else "s"}. Keep the momentum going!"
+            else
+                "Start a challenge and complete today to activate your streak shield!",
             color = Color.Gray,
             fontSize = 14.sp,
             lineHeight = 20.sp
@@ -1030,7 +1223,7 @@ private fun StreakShieldSection() {
         Spacer(modifier = Modifier.height(24.dp))
 
         LinearProgressIndicator(
-            progress = { 0.85f },
+            progress = { shieldIntegrity },
             modifier = Modifier
                 .fillMaxWidth()
                 .height(10.dp)
@@ -1038,15 +1231,15 @@ private fun StreakShieldSection() {
             color = Accent,
             trackColor = Color.White.copy(alpha = 0.05f)
         )
-        
+
         Spacer(modifier = Modifier.height(12.dp))
-        
+
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
             Text("Shield Integrity", color = Color.Gray, fontSize = 12.sp)
-            Text("85%", color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
+            Text("$shieldPercent%", color = Accent, fontSize = 12.sp, fontWeight = FontWeight.Bold)
         }
     }
 }
@@ -1064,8 +1257,21 @@ private fun DailyDeepDiveSection() {
             .clip(RoundedCornerShape(24.dp))
             .background(
                 Brush.linearGradient(
-                    listOf(Color(0xFF2A2A2E), Color(0xFF1C1C22))
+                    colors = listOf(
+                        Color(0xFF1A1A28),
+                        Color(0xFF0C0C14)
+                    )
                 )
+            )
+            .border(
+                width = 1.dp,
+                brush = Brush.linearGradient(
+                    colors = listOf(
+                        Color.White.copy(alpha = 0.13f),
+                        Color.White.copy(alpha = 0.02f)
+                    )
+                ),
+                shape = RoundedCornerShape(24.dp)
             )
             .padding(24.dp)
     ) {
