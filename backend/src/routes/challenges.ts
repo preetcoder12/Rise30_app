@@ -340,6 +340,46 @@ router.put('/:challengeId', async (req, res) => {
       }
     })
 
+    // If duration was changed, sync daily entries
+    if (durationInt !== undefined && durationInt !== challenge.duration) {
+      if (durationInt < challenge.duration) {
+        // Delete extra entries
+        await prisma.dailyEntry.deleteMany({
+          where: {
+            challengeId,
+            dayNumber: { gt: durationInt }
+          }
+        })
+      } else if (durationInt > challenge.duration) {
+        // Create missing entries
+        const newEntries = []
+        for (let i = challenge.duration + 1; i <= durationInt; i++) {
+          const date = new Date(challenge.startDate)
+          date.setDate(date.getDate() + (i - 1))
+          
+          newEntries.push({
+            id: randomUUID(),
+            userId: challenge.userId,
+            challengeId,
+            dayNumber: i,
+            date,
+            completed: false
+          })
+        }
+        if (newEntries.length > 0) {
+          await prisma.dailyEntry.createMany({ data: newEntries })
+        }
+      }
+      
+      // Update end date
+      const newEndDate = new Date(challenge.startDate)
+      newEndDate.setDate(newEndDate.getDate() + durationInt)
+      await prisma.challenge.update({
+        where: { id: challengeId },
+        data: { endDate: newEndDate }
+      })
+    }
+
     res.json({ success: true, challenge: updatedChallenge })
   } catch (error) {
     console.error('Error updating challenge:', error)
