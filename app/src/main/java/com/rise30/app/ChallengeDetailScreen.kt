@@ -241,10 +241,11 @@ fun ChallengeDetailScreen(
                         
                         Spacer(modifier = Modifier.height(24.dp))
                         
-                        // 30-Day Grid
+                        // Challenge Day Grid
                         ChallengeDayGrid(
                             dayEntries = dayEntries,
                             currentDay = progress?.currentDay ?: 1,
+                            totalDays = progress?.totalDays ?: challenge?.duration ?: 30,
                             challengeColor = challengeColor,
                             onDayClick = { day ->
                                 selectedDay = day
@@ -589,6 +590,7 @@ private fun QuickStat(
 private fun ChallengeDayGrid(
     dayEntries: List<DayEntry>,
     currentDay: Int,
+    totalDays: Int,
     challengeColor: Color,
     onDayClick: (DayEntry) -> Unit
 ) {
@@ -600,7 +602,7 @@ private fun ChallengeDayGrid(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Text(
-                text = "30-Day Journey",
+                text = "$totalDays-Day Journey",
                 color = Color.White,
                 fontSize = 20.sp,
                 fontWeight = FontWeight.Bold
@@ -614,7 +616,7 @@ private fun ChallengeDayGrid(
                     .padding(horizontal = 12.dp, vertical = 6.dp)
             ) {
                 Text(
-                    text = "${dayEntries.count { it.completed }}/30",
+                    text = "${dayEntries.count { it.completed }}/$totalDays",
                     color = challengeColor,
                     fontSize = 13.sp,
                     fontWeight = FontWeight.SemiBold
@@ -664,10 +666,13 @@ private fun ChallengeDayGrid(
                 
                 Spacer(modifier = Modifier.height(20.dp))
                 
-                // Premium Day Grid - 6 columns x 5 rows
+                val rows = Math.ceil(totalDays / 6.0).toInt()
+                val gridHeight = (rows * 48 + (rows - 1) * 10).coerceAtLeast(48).dp
+                
+                // Dynamic Day Grid
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(6),
-                    modifier = Modifier.height(320.dp),
+                    modifier = Modifier.height(gridHeight),
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
