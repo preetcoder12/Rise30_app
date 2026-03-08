@@ -81,10 +81,19 @@ fun ChallengesPage(
     // Load challenges from real database
     LaunchedEffect(userId, refreshTrigger, currentTab) {
         if (currentTab == MainTab.Challenges) {
-            isLoading = true
+            
+            // First display cached data instantly
+            val cached = CacheManager.getChallenges(context, userId)
+            if (cached != null && cached.isNotEmpty()) {
+                challenges = cached
+                isLoading = false
+            } else {
+                isLoading = true
+            }
+            
             errorMessage = null
             try {
-                loadUserChallengesFromApi(userId) { loadedChallenges ->
+                loadUserChallengesFromApi(context, userId) { loadedChallenges ->
                     challenges = loadedChallenges
                     isLoading = false
                 }
@@ -413,6 +422,7 @@ private fun EmptyChallengesView(
 
 // Real API call to fetch user challenges from database
 private suspend fun loadUserChallengesFromApi(
+    context: android.content.Context,
     userId: String,
     onLoaded: (List<ChallengeSummary>) -> Unit
 ) {
@@ -436,6 +446,7 @@ private suspend fun loadUserChallengesFromApi(
                     isActive = c.isActive
                 )
             }
+            CacheManager.saveChallenges(context, userId, challenges)
             onLoaded(challenges)
         } else {
             onLoaded(emptyList())

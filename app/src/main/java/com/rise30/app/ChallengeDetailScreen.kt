@@ -35,6 +35,7 @@ import io.ktor.client.call.*
 import io.ktor.client.request.*
 import io.ktor.client.statement.*
 import io.ktor.http.*
+import androidx.compose.ui.platform.LocalContext
 
 @Serializable
 data class ChallengeDetail(
@@ -118,6 +119,7 @@ fun ChallengeDetailScreen(
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     val scrollState = rememberScrollState()
     
@@ -131,7 +133,46 @@ fun ChallengeDetailScreen(
     
     // Load challenge data
     LaunchedEffect(challengeId) {
-        loadChallengeDetail(userId, challengeId) { detail, prog, entries ->
+        // Try Cache First
+        val cached = CacheManager.getChallengeDetail(context, challengeId)
+        if (cached != null && cached.success) {
+            val progressObj = cached.challenge.progress
+            challenge = ChallengeDetail(
+                id = cached.challenge.id,
+                name = cached.challenge.name,
+                description = cached.challenge.description,
+                type = cached.challenge.type,
+                category = cached.challenge.category,
+                duration = cached.challenge.duration,
+                color = cached.challenge.color,
+                icon = cached.challenge.icon,
+                isActive = cached.challenge.isActive,
+                targetValue = cached.challenge.targetValue,
+                unit = cached.challenge.unit
+            )
+            progress = ChallengeProgress(
+                completedDays = progressObj.completedDays,
+                totalDays = progressObj.totalDays,
+                percentage = progressObj.percentage,
+                currentStreak = progressObj.currentStreak,
+                currentDay = progressObj.currentDay
+            )
+            dayEntries = cached.challenge.dailyTasks.map { task ->
+                DayEntry(
+                    dayNumber = task.dayNumber,
+                    date = task.date,
+                    completed = task.completed,
+                    completedAt = task.completedAt,
+                    notes = task.notes,
+                    value = task.value
+                )
+            }
+            isLoading = false
+        } else {
+            isLoading = true
+        }
+
+        loadChallengeDetail(context, userId, challengeId) { detail, prog, entries ->
             challenge = detail
             progress = prog
             dayEntries = entries
@@ -190,7 +231,7 @@ fun ChallengeDetailScreen(
                             challengeIcon = challengeIcon,
                             onMarkToday = {
                                 scope.launch {
-                                    markTodayComplete(userId, challengeId) { updatedProgress, updatedEntries ->
+                                    markTodayComplete(context, userId, challengeId) { updatedProgress, updatedEntries ->
                                         progress = updatedProgress
                                         dayEntries = updatedEntries
                                     }
@@ -252,6 +293,7 @@ fun ChallengeDetailScreen(
             onToggleComplete = { completed ->
                 scope.launch {
                     toggleDayComplete(
+                        context = context,
                         userId = userId,
                         challengeId = challengeId,
                         dayNumber = selectedDay!!.dayNumber,
@@ -1073,6 +1115,7 @@ private fun DayDetailDialog(
 
 // API Functions
 private suspend fun loadChallengeDetail(
+    context: android.content.Context,
     userId: String,
     challengeId: String,
     onLoaded: (ChallengeDetail, ChallengeProgress, List<DayEntry>) -> Unit
@@ -1118,6 +1161,7 @@ private suspend fun loadChallengeDetail(
                 currentDay = progress.currentDay
             )
             
+            CacheManager.saveChallengeDetail(context, challengeId, response)
             onLoaded(challengeDetail, challengeProgress, entries)
         }
     } catch (e: Exception) {
@@ -1160,6 +1204,7 @@ private suspend fun loadChallengeDetail(
 }
 
 private suspend fun markTodayComplete(
+    context: android.content.Context,
     userId: String,
     challengeId: String,
     onSuccess: (ChallengeProgress, List<DayEntry>) -> Unit
@@ -1172,7 +1217,7 @@ private suspend fun markTodayComplete(
         
         if (response.status.isSuccess()) {
             // Reload challenge details to get updated progress
-            loadChallengeDetail(userId, challengeId, onLoaded = { detail, progress, entries ->
+            loadChallengeDetail(context, userId, challengeId, onLoaded = { detail, progress, entries ->
                 onSuccess(progress, entries)
             })
         }
@@ -1202,6 +1247,7 @@ private suspend fun markTodayComplete(
 }
 
 private suspend fun toggleDayComplete(
+    context: android.content.Context,
     userId: String,
     challengeId: String,
     dayNumber: Int,
@@ -1216,7 +1262,7 @@ private suspend fun toggleDayComplete(
         
         if (response.status.isSuccess()) {
             // Reload challenge details to get updated progress
-            loadChallengeDetail(userId, challengeId, onLoaded = { detail, progress, entries ->
+            loadChallengeDetail(context, userId, challengeId, onLoaded = { detail, progress, entries ->
                 onSuccess(entries, progress)
             })
         }

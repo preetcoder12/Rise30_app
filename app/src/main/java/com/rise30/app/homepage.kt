@@ -25,6 +25,7 @@ import io.ktor.client.request.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
+import androidx.compose.ui.platform.LocalContext
 
 // 🌑 Premium Colors
 val BackgroundDark = Color(0xFF0D0D0F)
@@ -550,6 +551,7 @@ fun HomePage(
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
+    val context = LocalContext.current
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
     
@@ -559,10 +561,58 @@ fun HomePage(
     
     // Load user's challenges
     LaunchedEffect(userId) {
+        // Try Cache First
+        val cached = CacheManager.getChallenges(context, userId)
+        if (cached != null && cached.isNotEmpty()) {
+            // Map ChallengeSummary back to ChallengeApiData-like structure for the UI
+            val summary = cached.firstOrNull { it.isActive } ?: cached.firstOrNull()
+            if (summary != null) {
+                recentChallenge = ChallengeApiData(
+                    id = summary.id,
+                    name = summary.name,
+                    description = summary.description,
+                    type = summary.type,
+                    category = summary.category,
+                    duration = summary.duration,
+                    color = summary.color,
+                    icon = summary.icon,
+                    isActive = summary.isActive,
+                    progress = ChallengeProgressData(
+                        completedDays = summary.completedDays,
+                        totalDays = summary.duration,
+                        percentage = summary.progress,
+                        currentStreak = summary.currentStreak,
+                        isTodayCompleted = false,
+                        currentDayNumber = summary.completedDays + 1
+                    )
+                )
+                isLoadingChallenge = false
+            }
+        }
+
         scope.launch {
             try {
                 val response: ChallengesResponse = httpClient.get("$BASE_URL/api/challenges/user/$userId").body()
                 if (response.success && response.challenges.isNotEmpty()) {
+                    // Update Cache 
+                    val challengesSummary = response.challenges.map { c ->
+                        ChallengeSummary(
+                            id = c.id,
+                            name = c.name,
+                            description = c.description,
+                            type = c.type,
+                            category = c.category,
+                            duration = c.duration,
+                            color = c.color ?: "#4FC3F7",
+                            icon = c.icon ?: "🎯",
+                            progress = c.progress.percentage,
+                            completedDays = c.progress.completedDays,
+                            currentStreak = c.progress.currentStreak,
+                            isActive = c.isActive
+                        )
+                    }
+                    CacheManager.saveChallenges(context, userId, challengesSummary)
+
                     // Get the first active challenge, or the first challenge if none are active
                     recentChallenge = response.challenges
                         .firstOrNull { it.isActive } 
