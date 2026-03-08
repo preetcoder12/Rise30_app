@@ -253,16 +253,24 @@ private fun MainChallengeCard(
 
 @Composable
 private fun WeeklyOverview(userId: String) {
+    val context = LocalContext.current
     val scope = rememberCoroutineScope()
     var weeklyData by remember { mutableStateOf<List<WeeklyProgressItem>>(emptyList()) }
     var isLoading by remember { mutableStateOf(true) }
     
     LaunchedEffect(userId) {
+        val cached = CacheManager.getAnalytics(context, userId)
+        if (cached != null) {
+            weeklyData = cached.analytics.weeklyProgress
+            isLoading = false
+        }
+
         scope.launch {
             try {
                 val response: AnalyticsResponse = httpClient.get("$BASE_URL/api/users/$userId/analytics").body()
                 if (response.success) {
                     weeklyData = response.analytics.weeklyProgress
+                    CacheManager.saveAnalytics(context, userId, response)
                 }
             } catch (e: Exception) {
                 // Use empty data on error

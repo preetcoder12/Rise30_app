@@ -54,4 +54,23 @@ object CacheManager {
             return null
         }
     }
+    // --- Analytics Details ---
+    fun saveAnalytics(context: Context, userId: String, analytics: AnalyticsResponse) {
+        try {
+            val json = Json.encodeToString(analytics)
+            getPrefs(context).edit().putString("analytics_" + userId, json).apply()
+        } catch (e: Exception) {
+            e.printStackTrace()
+        }
+    }
+
+    fun getAnalytics(context: Context, userId: String): AnalyticsResponse? {
+        try {
+            val json = getPrefs(context).getString("analytics_" + userId, null) ?: return null
+            return Json.decodeFromString<AnalyticsResponse>(json)
+        } catch (e: Exception) {
+            e.printStackTrace()
+            return null
+        }
+    }
 }
