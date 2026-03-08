@@ -524,8 +524,9 @@ private fun ChallengeProgressOverview(
                     .background(Color.White.copy(alpha = 0.06f))
                     .padding(horizontal = 20.dp, vertical = 10.dp)
             ) {
+                val total = progress?.totalDays ?: 30
                 Text(
-                    text = "Day ${progress?.currentDay ?: 1} of ${progress?.totalDays ?: 30}",
+                    text = "Day ${progress?.currentDay ?: 1} of $total",
                     color = Color.White,
                     fontSize = 14.sp,
                     fontWeight = FontWeight.Medium
@@ -669,6 +670,8 @@ private fun ChallengeDayGrid(
                 val rows = Math.ceil(totalDays / 6.0).toInt()
                 val gridHeight = (rows * 48 + (rows - 1) * 10).coerceAtLeast(48).dp
                 
+                val itemsToShow = dayEntries.take(totalDays)
+                
                 // Dynamic Day Grid
                 LazyVerticalGrid(
                     columns = GridCells.Fixed(6),
@@ -676,7 +679,7 @@ private fun ChallengeDayGrid(
                     horizontalArrangement = Arrangement.spacedBy(10.dp),
                     verticalArrangement = Arrangement.spacedBy(10.dp)
                 ) {
-                    items(dayEntries) { day ->
+                    items(itemsToShow) { day ->
                         PremiumDayCell(
                             day = day,
                             isToday = day.dayNumber == currentDay,
@@ -1170,37 +1173,37 @@ private suspend fun loadChallengeDetail(
             onLoaded(challengeDetail, challengeProgress, entries)
         }
     } catch (e: Exception) {
-        // Fallback to mock data on error
+        // Fallback to minimal mock data
         val mockChallenge = ChallengeDetail(
             id = challengeId,
-            name = "30-Day Water Challenge",
-            description = "Drink 2 liters of water every day for 30 days to improve your hydration and overall health.",
-            type = "water",
-            category = "health",
+            name = "Loading Challenge...",
+            description = "One moment while we load your details.",
+            type = "custom",
+            category = "personal",
             duration = 30,
             color = "#4FC3F7",
-            icon = "💧",
+            icon = "🎯",
             isActive = true,
-            targetValue = 2.0f,
-            unit = "liters"
+            targetValue = null,
+            unit = null
         )
         
         val mockProgress = ChallengeProgress(
-            completedDays = 12,
+            completedDays = 0,
             totalDays = 30,
-            percentage = 40,
-            currentStreak = 5,
-            currentDay = 13
+            percentage = 0,
+            currentStreak = 0,
+            currentDay = 1
         )
         
         val mockEntries = (1..30).map { day ->
             DayEntry(
                 dayNumber = day,
-                date = "2026-03-${day.toString().padStart(2, '0')}",
-                completed = day <= 12,
-                completedAt = if (day <= 12) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" else null,
+                date = "",
+                completed = false,
+                completedAt = null,
                 notes = null,
-                value = if (day <= 12) 2.0f else null
+                value = null
             )
         }
         
@@ -1228,22 +1231,23 @@ private suspend fun markTodayComplete(
         }
     } catch (e: Exception) {
         // Fallback to local update on error
+        val fallbackDuration = 30 // Should ideally use current context duration
         val updatedProgress = ChallengeProgress(
-            completedDays = 13,
-            totalDays = 30,
-            percentage = 43,
-            currentStreak = 6,
-            currentDay = 13
+            completedDays = 0,
+            totalDays = fallbackDuration,
+            percentage = 0,
+            currentStreak = 0,
+            currentDay = 1
         )
         
-        val updatedEntries = (1..30).map { day ->
+        val updatedEntries = (1..fallbackDuration).map { day ->
             DayEntry(
                 dayNumber = day,
-                date = "2026-03-${day.toString().padStart(2, '0')}",
-                completed = day <= 13,
-                completedAt = if (day <= 13) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" else null,
+                date = "",
+                completed = false,
+                completedAt = null,
                 notes = null,
-                value = if (day <= 13) 2.0f else null
+                value = null
             )
         }
         
@@ -1273,24 +1277,23 @@ private suspend fun toggleDayComplete(
         }
     } catch (e: Exception) {
         // Fallback to local update on error
+        val fallbackDuration = 30
         val updatedProgress = ChallengeProgress(
-            completedDays = if (completed) 13 else 11,
-            totalDays = 30,
-            percentage = if (completed) 43 else 37,
-            currentStreak = if (completed) 6 else 4,
-            currentDay = 13
+            completedDays = 0,
+            totalDays = fallbackDuration,
+            percentage = 0,
+            currentStreak = 0,
+            currentDay = 1
         )
         
-        val updatedEntries = (1..30).map { day ->
+        val updatedEntries = (1..fallbackDuration).map { day ->
             DayEntry(
                 dayNumber = day,
-                date = "2026-03-${day.toString().padStart(2, '0')}",
-                completed = if (day == dayNumber) completed else day <= 12,
-                completedAt = if (day == dayNumber && completed) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" 
-                             else if (day <= 12 && day != dayNumber) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z"
-                             else null,
+                date = "",
+                completed = day == dayNumber && completed,
+                completedAt = if (day == dayNumber && completed) "2026-03-${day.toString().padStart(2, '0')}T10:00:00Z" else null,
                 notes = null,
-                value = if (day == dayNumber && completed) 2.0f else if (day <= 12 && day != dayNumber) 2.0f else null
+                value = null
             )
         }
         
