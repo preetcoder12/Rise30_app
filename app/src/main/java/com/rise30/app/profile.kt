@@ -113,13 +113,13 @@ fun ProfilePage(
                     Text(
                         text = "Rise30",
                         color = Accent,
-                        fontSize = 20.sp,
+                        fontSize = 22.sp, // 17 + 5
                         fontWeight = FontWeight.ExtraBold
                     )
                     Text(
-                        text = "Monday, July 22", // Should be dynamic in real app
+                        text = "Monday, July 22",
                         color = Color.LightGray,
-                        fontSize = 14.sp
+                        fontSize = 19.sp // 15 + 4
                     )
                 }
 
@@ -132,7 +132,7 @@ fun ProfilePage(
                 ) {
                     Box(
                         modifier = Modifier
-                            .size(110.dp)
+                            .size(139.dp)
                             .clip(RoundedCornerShape(24.dp))
                             .background(Accent)
                             .padding(3.dp)
@@ -158,14 +158,14 @@ fun ProfilePage(
                     Text(
                         text = userName,
                         color = Color.White,
-                        fontSize = 22.sp,
+                        fontSize = 28.sp, // 22 + 6
                         fontWeight = FontWeight.Bold
                     )
 
                     Text(
                         text = "Join Date: Mar 2024",
                         color = Color.Gray,
-                        fontSize = 13.sp
+                        fontSize = 18.sp // 14 + 4
                     )
                 }
 
@@ -175,7 +175,7 @@ fun ProfilePage(
                 Text(
                     text = "My Progress Dashboard",
                     color = Color.White,
-                    fontSize = 18.sp,
+                    fontSize = 17.sp, // 20 - 3
                     fontWeight = FontWeight.Bold
                 )
 
@@ -229,7 +229,7 @@ fun ProfilePage(
                 Text(
                     text = "Unlocked Badges",
                     color = Color.White,
-                    fontSize = 18.sp,
+                    fontSize = 17.sp, // 20 - 3
                     fontWeight = FontWeight.Bold
                 )
 
@@ -249,17 +249,17 @@ fun ProfilePage(
                 Spacer(modifier = Modifier.height(30.dp))
 
                 // --- Challenge History ---
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceBetween,
-                    verticalAlignment = Alignment.CenterVertically
+                Column(
+                    modifier = Modifier.fillMaxWidth()
                 ) {
                     Text(
                         text = "Challenge History",
                         color = Color.White,
-                        fontSize = 18.sp,
+                        fontSize = 17.sp, // 20 - 3
                         fontWeight = FontWeight.Bold
                     )
+                    
+                    Spacer(modifier = Modifier.height(10.dp))
 
                     Row(horizontalArrangement = Arrangement.spacedBy(8.dp)) {
                         HistoryTabPill("All", true)
@@ -300,7 +300,7 @@ fun ProfilePage(
                 Text(
                     text = "Account & Settings",
                     color = Color.White,
-                    fontSize = 18.sp,
+                    fontSize = 17.sp, // 20 - 3
                     fontWeight = FontWeight.Bold
                 )
 
@@ -317,7 +317,7 @@ fun ProfilePage(
                     ),
                     shape = RoundedCornerShape(12.dp)
                 ) {
-                    Text(text = "Edit Profile", fontWeight = FontWeight.Bold)
+                    Text(text = "Edit Profile", fontWeight = FontWeight.Bold, fontSize = 15.sp)
                 }
 
                 Spacer(modifier = Modifier.height(12.dp))
@@ -342,9 +342,11 @@ fun ProfilePage(
 
                 TextButton(
                     onClick = onSignOut,
-                    modifier = Modifier.fillMaxWidth()
+                    modifier = Modifier
+                        .fillMaxWidth()
+                        .padding(bottom = 120.dp)
                 ) {
-                    Text(text = "Sign Out", color = Color.Red)
+                    Text(text = "Sign Out", color = Color.Red, fontSize = 15.sp)
                 }
 
         }
@@ -359,51 +361,68 @@ private fun StatCard(
     value: String,
     subtitle: String
 ) {
+    val parts = value.split(" ")
+    val n = parts.getOrNull(0) ?: ""
+    val unit = if (parts.size > 1) parts.subList(1, parts.size).joinToString(" ") else ""
+
     Card(
-        modifier = modifier.height(110.dp),
+        modifier = modifier.height(171.dp), // 176 - 5
         colors = CardDefaults.cardColors(containerColor = CardDark),
         shape = RoundedCornerShape(16.dp)
     ) {
         Column(
-            modifier = Modifier.padding(12.dp),
-            verticalArrangement = Arrangement.SpaceBetween
+            modifier = Modifier.padding(14.dp),
+            verticalArrangement = Arrangement.SpaceBetween,
+            horizontalAlignment = Alignment.Start
         ) {
             Row(verticalAlignment = Alignment.CenterVertically) {
                 Icon(
                     imageVector = icon,
                     contentDescription = null,
                     tint = Accent,
-                    modifier = Modifier.size(24.dp)
+                    modifier = Modifier.size(35.dp) // +30% size
                 )
                 Spacer(modifier = Modifier.width(8.dp))
                 Text(
                     text = title,
                     color = Color.LightGray,
-                    fontSize = 10.sp,
+                    fontSize = 15.sp, // 17 - 2
                     fontWeight = FontWeight.SemiBold,
-                    lineHeight = 12.sp
+                    lineHeight = 20.sp
                 )
             }
 
-            Column {
-                Text(
-                    text = value,
-                    color = Color.White,
-                    fontSize = 15.sp,
-                    fontWeight = FontWeight.Bold
-                )
+            Column(
+                verticalArrangement = Arrangement.spacedBy(8.dp),
+                horizontalAlignment = Alignment.Start
+            ) { // 8dp gap
+                Column(horizontalAlignment = Alignment.Start) {
+                    Text(
+                        text = n,
+                        color = Color.White,
+                        fontSize = 27.sp, // 19 + 8
+                        fontWeight = FontWeight.Bold
+                    )
+                    if (unit.isNotEmpty()) {
+                        Spacer(modifier = Modifier.height(3.dp))
+                        Text(
+                            text = unit,
+                            color = Color.White,
+                            fontSize = 15.sp // 17 - 2
+                        )
+                    }
+                }
                 if (subtitle.isNotEmpty()) {
                     Text(
                         text = subtitle,
                         color = Color.Gray,
-                        fontSize = 9.sp
+                        fontSize = 15.sp // 17 - 2
                     )
                 }
             }
         }
     }
 }
-
 @Composable
 private fun GoalCard(
     modifier: Modifier = Modifier,
@@ -425,7 +444,7 @@ private fun GoalCard(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(40.dp),
+                modifier = Modifier.size(48.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
@@ -484,11 +503,11 @@ private fun BadgeItem(
 ) {
     Column(
         horizontalAlignment = Alignment.CenterHorizontally,
-        modifier = Modifier.width(80.dp)
+        modifier = Modifier.width(86.dp) // +6 (80+6)
     ) {
         Box(
             modifier = Modifier
-                .size(70.dp)
+                .size(110.dp) // 113 - 3
                 .clip(HexagonShape())
                 .background(CardDark)
                 .border(2.dp, Accent, HexagonShape()),
@@ -498,29 +517,29 @@ private fun BadgeItem(
                 Image(
                     painter = painter,
                     contentDescription = name,
-                    modifier = Modifier.size(40.dp)
+                    modifier = Modifier.size(62.dp) // +30%
                 )
             } else if (icon != null) {
                 Icon(
                     imageVector = icon,
                     contentDescription = name,
                     tint = Accent,
-                    modifier = Modifier.size(35.dp)
+                    modifier = Modifier.size(53.dp) // +30%
                 )
             }
         }
-        Spacer(modifier = Modifier.height(8.dp))
+        Spacer(modifier = Modifier.height(12.dp))
         Text(
             text = name,
             color = Color.White,
-            fontSize = 12.sp,
+            fontSize = 18.sp, // Scaled
             fontWeight = FontWeight.Bold,
             textAlign = TextAlign.Center
         )
         Text(
             text = category,
             color = Color.Gray,
-            fontSize = 10.sp,
+            fontSize = 16.sp, // Scaled
             textAlign = TextAlign.Center
         )
     }
@@ -537,7 +556,7 @@ private fun HistoryTabPill(label: String, selected: Boolean) {
         Text(
             text = label,
             color = if (selected) Color.Black else Color.Gray,
-            fontSize = 10.sp,
+            fontSize = 11.sp,
             fontWeight = if (selected) FontWeight.Bold else FontWeight.Normal
         )
     }
@@ -560,7 +579,7 @@ private fun HistoryItem(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier.size(50.dp),
+                modifier = Modifier.size(61.dp),
                 contentAlignment = Alignment.Center
             ) {
                 Canvas(modifier = Modifier.fillMaxSize()) {
@@ -577,27 +596,27 @@ private fun HistoryItem(
                     )
                 }
                 // Small tree icon or similar
-                Icon(Icons.Rounded.Eco, contentDescription = null, tint = Accent, modifier = Modifier.size(20.dp))
+                Icon(Icons.Rounded.Eco, contentDescription = null, tint = Accent, modifier = Modifier.size(22.dp))
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = title,
                     color = Color.White,
-                    fontSize = 14.sp,
+                    fontSize = 18.sp, // 20 - 2
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = progress,
                     color = Color.LightGray,
-                    fontSize = 12.sp
+                    fontSize = 16.sp // 18 - 2
                 )
                 Text(
                     text = nextMilestone,
                     color = Color.Gray,
-                    fontSize = 11.sp
+                    fontSize = 15.sp // 17 - 2
                 )
             }
         }
@@ -620,22 +639,21 @@ private fun HistoryItemCompleted(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Box(
-                modifier = Modifier
-                    .size(50.dp)
+                modifier = Modifier.size(65.dp)
                     .clip(CircleShape)
                     .background(Color(0xFF4CAF50)),
                 contentAlignment = Alignment.Center
             ) {
-                Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White)
+                Icon(Icons.Rounded.Check, contentDescription = null, tint = Color.White, modifier = Modifier.size(27.dp))
             }
 
             Spacer(modifier = Modifier.width(16.dp))
 
-            Column {
+            Column(verticalArrangement = Arrangement.spacedBy(8.dp)) {
                 Text(
                     text = title,
                     color = Color.White,
-                    fontSize = 14.sp,
+                    fontSize = 18.sp, // 20 - 2
                     fontWeight = FontWeight.Bold
                 )
                 Row(verticalAlignment = Alignment.CenterVertically) {
@@ -643,20 +661,20 @@ private fun HistoryItemCompleted(
                         Icons.Rounded.CheckCircle,
                         contentDescription = null,
                         tint = Color(0xFF4CAF50),
-                        modifier = Modifier.size(14.dp)
+                        modifier = Modifier.size(20.dp)
                     )
                     Spacer(modifier = Modifier.width(4.dp))
                     Text(
                         text = awardText,
                         color = Color(0xFF4CAF50),
-                        fontSize = 12.sp,
+                        fontSize = 16.sp, // 18 - 2
                         fontWeight = FontWeight.Bold
                     )
                 }
                 Text(
                     text = duration,
                     color = Color.Gray,
-                    fontSize = 11.sp
+                    fontSize = 15.sp // 17 - 2
                 )
             }
         }
@@ -686,13 +704,13 @@ private fun SettingsItem(
             Text(
                 text = label,
                 color = Color.White,
-                fontSize = 14.sp,
+                fontSize = 18.sp, // 20 - 2
                 fontWeight = FontWeight.Medium
             )
             Text(
                 text = value,
                 color = valueColor,
-                fontSize = 14.sp,
+                fontSize = 18.sp, // 20 - 2
                 fontWeight = FontWeight.Bold
             )
         }

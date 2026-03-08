@@ -76,7 +76,12 @@ class MainActivity : ComponentActivity() {
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install Android 12+ splash screen using Theme.Rise30.Splash
-        installSplashScreen()
+        val splashScreen = installSplashScreen()
+        
+        splashScreen.setKeepOnScreenCondition {
+            viewModel.state.isInitializing
+        }
+
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
 
@@ -130,7 +135,10 @@ class MainActivity : ComponentActivity() {
                     }
                 }
 
-                if (state.currentUser != null) {
+                if (state.isInitializing) {
+                    // Keep screen blank/background colored while native splash screen is showing
+                    Box(modifier = Modifier.fillMaxSize().background(Charcoal))
+                } else if (state.currentUser != null) {
                     val displayName = state.currentUser?.user?.userMetadata?.get("full_name")?.toString()?.replace("\"", "") ?: state.currentUser?.user?.email ?: "User"
                     val userId = state.currentUser?.user?.id ?: ""
                     
@@ -220,15 +228,8 @@ class MainActivity : ComponentActivity() {
                                         targetState = currentTab,
                                         modifier = Modifier.fillMaxSize(),
                                         transitionSpec = {
-                                            val direction = if (
-                                                targetState.ordinal > initialState.ordinal
-                                            ) {
-                                                AnimatedContentTransitionScope.SlideDirection.Left
-                                            } else {
-                                                AnimatedContentTransitionScope.SlideDirection.Right
-                                            }
-                                            slideIntoContainer(direction) + fadeIn() togetherWith
-                                            slideOutOfContainer(direction) + fadeOut()
+                                            fadeIn(animationSpec = tween(400, easing = LinearEasing)) togetherWith 
+                                            fadeOut(animationSpec = tween(400, easing = LinearEasing))
                                         },
                                         label = "main_tab"
                                     ) { tab ->
@@ -354,6 +355,7 @@ class MainActivity : ComponentActivity() {
 }
 
 data class AuthUiState(
+    val isInitializing: Boolean = true,
     val isLoading: Boolean = false,
     val currentUser: UserSession? = null,
     val error: String? = null,
@@ -370,23 +372,24 @@ class AuthViewModel : ViewModel() {
     init {
         viewModelScope.launch {
             // Load session from storage on init
-            state = state.copy(currentUser = auth.currentSessionOrNull())
+            state = state.copy(currentUser = auth.currentSessionOrNull(), isInitializing = false)
 
             // Listen for auth state changes to keep session alive
             auth.sessionStatus.collect { status ->
                 when (status) {
                     is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> {
-                        state = state.copy(currentUser = status.session)
+                        state = state.copy(currentUser = status.session, isInitializing = false)
                     }
                     is io.github.jan.supabase.auth.status.SessionStatus.NotAuthenticated -> {
-                        state = state.copy(currentUser = null)
+                        state = state.copy(currentUser = null, isInitializing = false)
                     }
                     is io.github.jan.supabase.auth.status.SessionStatus.RefreshFailure -> {
                         // Token refresh failed, user needs to re-login
-                        state = state.copy(currentUser = null, error = "Session expired. Please sign in again.")
+                        state = state.copy(currentUser = null, error = "Session expired. Please sign in again.", isInitializing = false)
                     }
                     io.github.jan.supabase.auth.status.SessionStatus.Initializing -> {
                         // Auth is initializing, keep current state
+                        state = state.copy(isInitializing = true)
                     }
                 }
             }

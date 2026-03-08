@@ -14,6 +14,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.ArrowBack
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
+import androidx.compose.animation.animateContentSize
 import androidx.compose.ui.Alignment
 import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
@@ -86,325 +87,349 @@ fun CreateChallengeScreen(
         color = BackgroundDark
     ) {
         Column(
+            modifier = Modifier
+                .fillMaxSize()
+                .statusBarsPadding()
+                .verticalScroll(scrollState)
+                .padding(20.dp)
+                .animateContentSize(),
+            verticalArrangement = Arrangement.spacedBy(20.dp)
+        ) {
+            // Header
+            Row(
                 modifier = Modifier
-                    .fillMaxSize()
-                    .statusBarsPadding()
-                    .verticalScroll(scrollState)
-                    .padding(horizontal = 20.dp)
+                    .fillMaxWidth()
+                    .padding(vertical = 10.dp),
+                verticalAlignment = Alignment.CenterVertically
             ) {
-                // Header
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .padding(top = 15.dp, bottom = 15.dp),
-                    verticalAlignment = Alignment.CenterVertically
-                ) {
-                    IconButton(onClick = onBack) {
-                        Icon(
-                            imageVector = Icons.Default.ArrowBack,
-                            contentDescription = "Back",
-                            tint = Accent
-                        )
-                    }
-                    
-                    Text(
-                        text = "Create Challenge",
-                        color = Color.White,
-                        fontSize = 20.sp,
-                        fontWeight = FontWeight.Bold,
-                        modifier = Modifier.padding(start = 8.dp)
+                IconButton(onClick = onBack) {
+                    Icon(
+                        imageVector = Icons.Default.ArrowBack,
+                        contentDescription = "Back",
+                        tint = Color.White
                     )
                 }
                 
-                Spacer(modifier = Modifier.height(5.dp))
+                Spacer(modifier = Modifier.width(6.dp))
                 
-                // Preview Card
-                ChallengePreviewCard(
-                    name = name.ifBlank { "Challenge Name" },
-                    description = description,
-                    icon = selectedIcon,
-                    color = Color(android.graphics.Color.parseColor(selectedColor)),
-                    duration = duration.toIntOrNull() ?: 30
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Form Fields
                 Text(
-                    text = "Challenge Details",
+                    text = "Create Challenge",
                     color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold
+                    fontSize = 22.sp,
+                    fontWeight = FontWeight.Bold
                 )
-                
-                Spacer(modifier = Modifier.height(16.dp))
-                
-                // Name Input
-                OutlinedTextField(
-                    value = name,
-                    onValueChange = { name = it },
-                    label = { Text("Challenge Name") },
-                    placeholder = { Text("e.g., 30-Day Water Challenge") },
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Accent,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedLabelColor = Accent,
-                        unfocusedLabelColor = Color.Gray,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Description Input
-                OutlinedTextField(
-                    value = description,
-                    onValueChange = { description = it },
-                    label = { Text("Description (Optional)") },
-                    placeholder = { Text("Describe your challenge...") },
-                    modifier = Modifier.fillMaxWidth(),
-                    minLines = 3,
-                    maxLines = 5,
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Accent,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedLabelColor = Accent,
-                        unfocusedLabelColor = Color.Gray,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                // Duration Input
-                OutlinedTextField(
-                    value = duration,
-                    onValueChange = { 
-                        if (it.isEmpty() || it.toIntOrNull() != null) {
-                            duration = it
-                        }
-                    },
-                    label = { Text("Duration (Days)") },
-                    keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
-                    modifier = Modifier.fillMaxWidth(),
-                    colors = OutlinedTextFieldDefaults.colors(
-                        focusedBorderColor = Accent,
-                        unfocusedBorderColor = Color.Gray,
-                        focusedLabelColor = Accent,
-                        unfocusedLabelColor = Color.Gray,
-                        focusedTextColor = Color.White,
-                        unfocusedTextColor = Color.White
-                    ),
-                    shape = RoundedCornerShape(12.dp)
-                )
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Category Selection
-                Text(
-                    text = "Category",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(8.dp)
-                ) {
-                    categories.forEach { category ->
-                        CategoryChip(
-                            label = category,
-                            selected = selectedCategory == category,
-                            onClick = { selectedCategory = category }
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Color Selection
-                Text(
-                    text = "Theme Color",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.SpaceEvenly
-                ) {
-                    colors.forEach { (colorHex, colorName) ->
-                        ColorOption(
-                            color = Color(android.graphics.Color.parseColor(colorHex)),
-                            selected = selectedColor == colorHex,
-                            onClick = { selectedColor = colorHex }
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Icon Selection
-                Text(
-                    text = "Icon",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .horizontalScroll(rememberScrollState()),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
-                ) {
-                    icons.forEach { icon ->
-                        IconOption(
-                            icon = icon,
-                            selected = selectedIcon == icon,
-                            onClick = { selectedIcon = icon }
-                        )
-                    }
-                }
-                
-                Spacer(modifier = Modifier.height(24.dp))
-                
-                // Optional: Target Value
-                Text(
-                    text = "Target (Optional)",
-                    color = Color.White,
-                    fontSize = 16.sp,
-                    fontWeight = FontWeight.SemiBold
-                )
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                Row(
-                    modifier = Modifier.fillMaxWidth(),
-                    horizontalArrangement = Arrangement.spacedBy(12.dp)
+            }
+            
+            // Preview Card
+            ChallengePreviewCard(
+                name = name.ifBlank { "Challenge Name" },
+                description = description,
+                icon = selectedIcon,
+                color = try { Color(android.graphics.Color.parseColor(selectedColor)) } catch(e:Exception) { Accent },
+                duration = duration.toIntOrNull() ?: 30
+            )
+            
+            // Form Fields Card
+            Card(
+                modifier = Modifier.fillMaxWidth(),
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = CardDark),
+                elevation = CardDefaults.cardElevation(6.dp)
+            ) {
+                Column(
+                    modifier = Modifier.padding(20.dp),
+                    verticalArrangement = Arrangement.spacedBy(14.dp)
                 ) {
                     OutlinedTextField(
-                        value = targetValue,
+                        value = name,
+                        onValueChange = { name = it },
+                        label = { Text("Challenge Name") },
+                        placeholder = { Text("e.g., 30-Day Water Challenge") },
+                        modifier = Modifier.fillMaxWidth(),
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Accent,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedLabelColor = Accent,
+                            unfocusedLabelColor = Color.Gray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Accent
+                        ),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                    
+                    OutlinedTextField(
+                        value = description,
+                        onValueChange = { description = it },
+                        label = { Text("Description") },
+                        placeholder = { Text("Describe your challenge...") },
+                        modifier = Modifier.fillMaxWidth(),
+                        minLines = 3,
+                        maxLines = 5,
+                        colors = OutlinedTextFieldDefaults.colors(
+                            focusedBorderColor = Accent,
+                            unfocusedBorderColor = Color.Gray,
+                            focusedLabelColor = Accent,
+                            unfocusedLabelColor = Color.Gray,
+                            focusedTextColor = Color.White,
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Accent
+                        ),
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                    
+                    OutlinedTextField(
+                        value = duration,
                         onValueChange = { 
-                            if (it.isEmpty() || it.toFloatOrNull() != null) {
-                                targetValue = it
+                            if (it.isEmpty() || it.toIntOrNull() != null) {
+                                duration = it
                             }
                         },
-                        label = { Text("Amount") },
-                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
-                        modifier = Modifier.weight(1f),
+                        label = { Text("Duration (Days)") },
+                        keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Number),
+                        modifier = Modifier.fillMaxWidth(),
                         colors = OutlinedTextFieldDefaults.colors(
                             focusedBorderColor = Accent,
                             unfocusedBorderColor = Color.Gray,
                             focusedLabelColor = Accent,
                             unfocusedLabelColor = Color.Gray,
                             focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
+                            unfocusedTextColor = Color.White,
+                            cursorColor = Accent
                         ),
-                        shape = RoundedCornerShape(12.dp)
+                        shape = RoundedCornerShape(14.dp)
+                    )
+                }
+            }
+            
+            // Category Selection
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = CardDark),
+                elevation = CardDefaults.cardElevation(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        "Category",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
                     )
                     
-                    OutlinedTextField(
-                        value = unit,
-                        onValueChange = { unit = it },
-                        label = { Text("Unit") },
-                        placeholder = { Text("e.g., liters, min") },
-                        modifier = Modifier.weight(1f),
-                        colors = OutlinedTextFieldDefaults.colors(
-                            focusedBorderColor = Accent,
-                            unfocusedBorderColor = Color.Gray,
-                            focusedLabelColor = Accent,
-                            unfocusedLabelColor = Color.Gray,
-                            focusedTextColor = Color.White,
-                            unfocusedTextColor = Color.White
-                        ),
-                        shape = RoundedCornerShape(12.dp)
-                    )
-                }
-                
-                Spacer(modifier = Modifier.height(32.dp))
-                
-                // Error Message
-                if (errorMessage != null) {
-                    Text(
-                        text = errorMessage!!,
-                        color = Color(0xFFEF5350),
-                        fontSize = 14.sp,
-                        textAlign = TextAlign.Center,
-                        modifier = Modifier.fillMaxWidth()
-                    )
                     Spacer(modifier = Modifier.height(12.dp))
-                }
-                
-                // Create Button
-                Button(
-                    onClick = {
-                        scope.launch {
-                            isLoading = true
-                            errorMessage = null
-                            
-                            createChallenge(
-                                userId = userId,
-                                name = name,
-                                description = description,
-                                category = selectedCategory,
-                                duration = duration.toInt(),
-                                color = selectedColor,
-                                icon = selectedIcon,
-                                targetValue = targetValue.toFloatOrNull(),
-                                unit = unit.ifBlank { null },
-                                onSuccess = {
-                                    isLoading = false
-                                    onChallengeCreated()
-                                },
-                                onError = { error ->
-                                    isLoading = false
-                                    errorMessage = error
-                                }
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(10.dp)
+                    ) {
+                        categories.forEach { category ->
+                            CategoryChip(
+                                label = category,
+                                selected = selectedCategory == category,
+                                onClick = { selectedCategory = category }
                             )
                         }
-                    },
-                    enabled = isFormValid && !isLoading,
-                    modifier = Modifier
-                        .fillMaxWidth()
-                        .height(56.dp),
-                    shape = RoundedCornerShape(16.dp),
-                    colors = ButtonDefaults.buttonColors(
-                        containerColor = Accent,
-                        contentColor = Color.Black,
-                        disabledContainerColor = Color.Gray,
-                        disabledContentColor = Color.DarkGray
+                    }
+                }
+            }
+            
+            // Color Selection
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = CardDark),
+                elevation = CardDefaults.cardElevation(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        "Theme Color",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
                     )
-                ) {
-                    if (isLoading) {
-                        CircularProgressIndicator(
-                            color = Color.Black,
-                            modifier = Modifier.size(24.dp)
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.SpaceEvenly
+                    ) {
+                        colors.forEach { (colorHex, colorName) ->
+                            ColorOption(
+                                color = Color(android.graphics.Color.parseColor(colorHex)),
+                                selected = selectedColor == colorHex,
+                                onClick = { selectedColor = colorHex }
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // Icon Selection
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = CardDark),
+                elevation = CardDefaults.cardElevation(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        "Icon",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
+                    )
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .horizontalScroll(rememberScrollState()),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        icons.forEach { icon ->
+                            IconOption(
+                                icon = icon,
+                                selected = selectedIcon == icon,
+                                onClick = { selectedIcon = icon }
+                            )
+                        }
+                    }
+                }
+            }
+            
+            // Target Value
+            Card(
+                shape = RoundedCornerShape(20.dp),
+                colors = CardDefaults.cardColors(containerColor = CardDark),
+                elevation = CardDefaults.cardElevation(6.dp),
+                modifier = Modifier.fillMaxWidth()
+            ) {
+                Column(modifier = Modifier.padding(18.dp)) {
+                    Text(
+                        "Target (Optional)",
+                        color = Color.White,
+                        fontWeight = FontWeight.SemiBold,
+                        fontSize = 16.sp
+                    )
+                    
+                    Spacer(modifier = Modifier.height(12.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        OutlinedTextField(
+                            value = targetValue,
+                            onValueChange = { 
+                                if (it.isEmpty() || it.toFloatOrNull() != null) {
+                                    targetValue = it
+                                }
+                            },
+                            label = { Text("Amount") },
+                            keyboardOptions = KeyboardOptions(keyboardType = KeyboardType.Decimal),
+                            modifier = Modifier.weight(1f),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Accent,
+                                unfocusedBorderColor = Color.Gray,
+                                focusedLabelColor = Accent,
+                                unfocusedLabelColor = Color.Gray,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(14.dp)
                         )
-                    } else {
-                        Text(
-                            text = "Create Challenge",
-                            fontSize = 16.sp,
-                            fontWeight = FontWeight.Bold
+                        
+                        OutlinedTextField(
+                            value = unit,
+                            onValueChange = { unit = it },
+                            label = { Text("Unit") },
+                            placeholder = { Text("e.g. liters") },
+                            modifier = Modifier.weight(1f),
+                            colors = OutlinedTextFieldDefaults.colors(
+                                focusedBorderColor = Accent,
+                                unfocusedBorderColor = Color.Gray,
+                                focusedLabelColor = Accent,
+                                unfocusedLabelColor = Color.Gray,
+                                focusedTextColor = Color.White,
+                                unfocusedTextColor = Color.White
+                            ),
+                            shape = RoundedCornerShape(14.dp)
                         )
                     }
                 }
-                
+            }
+            
+            // Error Message
+            if (errorMessage != null) {
+                Text(
+                    text = errorMessage!!,
+                    color = Color(0xFFEF5350),
+                    fontSize = 14.sp,
+                    textAlign = TextAlign.Center,
+                    modifier = Modifier.fillMaxWidth()
+                )
+            }
+            
+            // Create Button
+            Button(
+                onClick = {
+                    scope.launch {
+                        isLoading = true
+                        errorMessage = null
+                        
+                        createChallenge(
+                            userId = userId,
+                            name = name,
+                            description = description,
+                            category = selectedCategory,
+                            duration = duration.toInt(),
+                            color = selectedColor,
+                            icon = selectedIcon,
+                            targetValue = targetValue.toFloatOrNull(),
+                            unit = unit.ifBlank { null },
+                            onSuccess = {
+                                isLoading = false
+                                onChallengeCreated()
+                            },
+                            onError = { error ->
+                                isLoading = false
+                                errorMessage = error
+                            }
+                        )
+                    }
+                },
+                enabled = isFormValid && !isLoading,
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .height(60.dp),
+                shape = RoundedCornerShape(18.dp),
+                colors = ButtonDefaults.buttonColors(
+                    containerColor = Accent,
+                    contentColor = Color.Black,
+                    disabledContainerColor = Color.Gray,
+                    disabledContentColor = Color.DarkGray
+                )
+            ) {
+                if (isLoading) {
+                    CircularProgressIndicator(
+                        color = Color.Black,
+                        modifier = Modifier.size(24.dp)
+                    )
+                } else {
+                    Text(
+                        text = "Create Challenge",
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                }
+            }
+            
+            Spacer(modifier = Modifier.height(30.dp))
         }
     }
 }

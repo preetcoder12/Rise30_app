@@ -16,6 +16,7 @@ import androidx.compose.material.icons.filled.Notifications
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
+import androidx.compose.ui.res.painterResource
 import androidx.compose.ui.draw.*
 import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
@@ -107,10 +108,9 @@ private fun TopSection(
                 .clip(CircleShape)
                 .background(CardDark.copy(alpha = 0.5f))
         ) {
-            Icon(
-                imageVector = Icons.Default.Notifications,
+            Image(
+                painter = painterResource(id = R.drawable.bell),
                 contentDescription = "Notifications",
-                tint = Accent,
                 modifier = Modifier.size(24.dp)
             )
         }
@@ -128,39 +128,50 @@ private fun MainChallengeCard(
         (currentDay.coerceAtLeast(0).coerceAtMost(totalDays).toFloat() / totalDays.coerceAtLeast(1))
     }
     
-    val challengeColor = remember(challenge?.color) {
-        try {
-            Color(android.graphics.Color.parseColor(challenge?.color ?: "#FFD54F"))
-        } catch (e: Exception) {
-            Accent
-        }
-    }
+    val challengeColor = Color(0xFFFFF44F)
+    val isTodayCompleted = challenge?.progress?.isTodayCompleted ?: false
 
     Card(
         modifier = Modifier
-            .fillMaxWidth(),
+            .fillMaxWidth()
+            .padding(vertical = 12.dp)
+            .border(
+                width = 1.dp,
+                color = Color.White.copy(alpha = 0.05f),
+                shape = RoundedCornerShape(28.dp)
+            ),
+        shape = RoundedCornerShape(28.dp),
         colors = CardDefaults.cardColors(
             containerColor = CardDark
         ),
-        shape = RoundedCornerShape(24.dp)
+        elevation = CardDefaults.cardElevation(
+            defaultElevation = 8.dp
+        )
     ) {
+
         Row(
             modifier = Modifier
-                .padding(20.dp),
+                .padding(24.dp)
+                .fillMaxWidth(),
             verticalAlignment = Alignment.CenterVertically
         ) {
+
+            // Progress Circle
             Box(
                 modifier = Modifier
                     .size(90.dp),
                 contentAlignment = Alignment.Center
             ) {
-                Canvas(modifier = Modifier.fillMaxSize()) {
+
+                Canvas(
+                    modifier = Modifier.fillMaxSize()
+                ) {
+
                     val strokeWidth = 10.dp.toPx()
-                    val radius = (size.minDimension - strokeWidth) / 2
 
                     // Background circle
                     drawCircle(
-                        color = challengeColor.copy(alpha = 0.2f),
+                        color = challengeColor.copy(alpha = 0.12f),
                         style = Stroke(width = strokeWidth)
                     )
 
@@ -170,89 +181,102 @@ private fun MainChallengeCard(
                         startAngle = -90f,
                         sweepAngle = 360f * progress,
                         useCenter = false,
-                        style = Stroke(width = strokeWidth)
+                        style = Stroke(
+                            width = strokeWidth,
+                            cap = StrokeCap.Round
+                        )
                     )
                 }
-                Column(horizontalAlignment = Alignment.CenterHorizontally) {
+
+                Column(
+                    horizontalAlignment = Alignment.CenterHorizontally
+                ) {
+
                     Text(
                         text = "${(progress * 100).roundToInt()}%",
                         color = Color.White,
-                        fontWeight = FontWeight.Bold,
-                        fontSize = 18.sp
+                        fontSize = 22.sp,
+                        fontWeight = FontWeight.Bold
                     )
+
                     Text(
-                        text = "Day $currentDay/$totalDays",
-                        color = Color.Gray,
-                        fontSize = 12.sp
+                        text = "Done",
+                        color = Color.White.copy(alpha = 0.5f),
+                        fontSize = 11.sp
                     )
                 }
             }
 
-            Spacer(modifier = Modifier.width(18.dp))
+            Spacer(modifier = Modifier.width(20.dp))
 
+            // Text Section
             Column(
                 modifier = Modifier.weight(1f)
             ) {
+
                 Text(
-                    text = challenge?.name ?: "No Active Challenge",
-                    color = Color.White,
-                    fontSize = 18.sp,
-                    fontWeight = FontWeight.SemiBold,
-                    maxLines = 1
-                )
-                Spacer(modifier = Modifier.height(6.dp))
-                Text(
-                    text = challenge?.description ?: "Create a challenge to start your journey!",
-                    color = Color.Gray,
+                    text = challenge?.description ?: "Complete today's focus sessions to finish your challenge.",
+                    color = Color.White.copy(alpha = 0.6f),
                     fontSize = 13.sp,
-                    maxLines = 2
+                    lineHeight = 18.sp
                 )
+
+                Spacer(modifier = Modifier.height(11.dp)) // Reduced (14 -> 11) to compensate for text size increase
                 
-                // Streak info row
-                val streakLength = challenge?.progress?.currentStreak ?: 0
-                if (streakLength > 0) {
-                    Spacer(modifier = Modifier.height(8.dp))
-                    Row(
-                        verticalAlignment = Alignment.CenterVertically
-                    ) {
-                        Icon(
-                            imageVector = Icons.Default.LocalFireDepartment,
-                            contentDescription = null,
-                            tint = Accent,
-                            modifier = Modifier.size(16.dp)
-                        )
-                        Spacer(modifier = Modifier.width(4.dp))
+                // Challenge Name
+                Text(
+                    text = challenge?.name ?: "Daily Challenge",
+                    color = Color.White,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.Bold
+                )
+
+                // Info Row: Streak and Day
+                Row(verticalAlignment = Alignment.CenterVertically) {
+                    val streakLength = challenge?.progress?.currentStreak ?: 0
+                    if (streakLength > 0) {
                         Text(
-                            text = "$streakLength day streak",
+                            text = "$streakLength day streak  •  ",
                             color = Accent,
-                            fontSize = 12.sp,
-                            fontWeight = FontWeight.Medium
+                            fontSize = 20.sp, // 12 + 3
+                            fontWeight = FontWeight.SemiBold
                         )
                     }
+                    Text(
+                        text = "Day $currentDay/$totalDays",
+                        color = challengeColor,
+                        fontSize = 17.sp, // 12 + 3
+                        fontWeight = FontWeight.Bold
+                    )
                 }
-                
-                Spacer(modifier = Modifier.height(12.dp))
-                
-                val isTodayCompleted = challenge?.progress?.isTodayCompleted ?: false
-                
+
+                Spacer(modifier = Modifier.height(5.dp)) // Request: 5px (5dp) above button
+
+                // Button
                 Button(
                     onClick = onMarkComplete,
-                    shape = RoundedCornerShape(20.dp),
+                    enabled = challenge != null && !isTodayCompleted,
                     colors = ButtonDefaults.buttonColors(
-                        containerColor = if (isTodayCompleted) Color(0xFF4CAF50) else challengeColor,
-                        contentColor = Color.Black
+                        containerColor = if (isTodayCompleted) Color(0xFF2E2E2E) else challengeColor,
+                        contentColor = if (isTodayCompleted) Color.LightGray else Color.Black,
+                        disabledContainerColor = Color.DarkGray,
+                        disabledContentColor = Color.LightGray
                     ),
-                    contentPadding = PaddingValues(horizontal = 16.dp, vertical = 8.dp),
-                    enabled = challenge != null && !isTodayCompleted
+                    shape = RoundedCornerShape(12.dp),
+                    contentPadding = PaddingValues(
+                        horizontal = 18.dp,
+                        vertical = 6.dp
+                    )
                 ) {
+
                     Text(
                         text = when {
                             challenge == null -> "Create Challenge"
-                            isTodayCompleted -> "Daily Task Completed ✓"
-                            else -> "Mark Complete Today"
+                            isTodayCompleted -> "Completed"
+                            else -> "Continue"
                         },
-                        fontSize = 13.sp,
-                        fontWeight = FontWeight.SemiBold
+                        fontWeight = FontWeight.Bold,
+                        fontSize = 13.sp
                     )
                 }
             }
@@ -264,8 +288,8 @@ private fun MainChallengeCard(
 private fun WeeklyOverview(userId: String) {
     val context = LocalContext.current
     val scope = rememberCoroutineScope()
-    var analyticsData by remember { mutableStateOf<AnalyticsData?>(null) }
-    var isLoading by remember { mutableStateOf(true) }
+    var analyticsData by remember { mutableStateOf<AnalyticsData?>(CacheManager.getAnalytics(context, userId)?.analytics) }
+    var isLoading by remember { mutableStateOf(analyticsData == null) }
     
     LaunchedEffect(userId) {
         val cached = CacheManager.getAnalytics(context, userId)
@@ -282,7 +306,6 @@ private fun WeeklyOverview(userId: String) {
                     CacheManager.saveAnalytics(context, userId, response)
                 }
             } catch (e: Exception) {
-                // Use empty data on error
             }
             isLoading = false
         }
@@ -314,7 +337,7 @@ private fun WeeklyOverview(userId: String) {
                 Text(
                     text = "Your consistency this week",
                     color = Color.Gray,
-                    fontSize = 14.sp,
+                    fontSize = 18.sp,
                     modifier = Modifier.padding(top = 4.dp)
                 )
             }
@@ -323,27 +346,26 @@ private fun WeeklyOverview(userId: String) {
                 Text(
                     text = "$completedCount/$totalCount days",
                     color = Accent,
-                    fontSize = 18.sp,
+                    fontSize = 19.sp,
                     fontWeight = FontWeight.Bold
                 )
                 Text(
                     text = "This Week",
                     color = Color.Gray,
-                    fontSize = 12.sp
+                    fontSize = 14.sp
                 )
             }
         }
 
         Spacer(modifier = Modifier.height(24.dp))
         
-        // Informative stats row
         Row(
             modifier = Modifier.fillMaxWidth(),
             horizontalArrangement = Arrangement.SpaceBetween
         ) {
-            InfoBox(label = "Longest Streak", value = "${analyticsData?.longestStreak ?: 0} days")
-            InfoBox(label = "In Progress", value = "${analyticsData?.activeChallenges ?: 0} challenges")
-            InfoBox(label = "Overall Journey", value = "${analyticsData?.completionRate ?: 0}%")
+            InfoBox(label = "Longest Streak", valueText = "${analyticsData?.longestStreak ?: 0} days")
+            InfoBox(label = "In Progress", valueText = "${analyticsData?.activeChallenges ?: 0} challenges")
+            InfoBox(label = "Overall Journey", valueText = "${analyticsData?.completionRate ?: 0}% Done")
         }
 
         Spacer(modifier = Modifier.height(32.dp))
@@ -352,7 +374,7 @@ private fun WeeklyOverview(userId: String) {
             Box(
                 modifier = Modifier
                     .fillMaxWidth()
-                    .height(140.dp),
+                    .height(100.dp),
                 contentAlignment = Alignment.Center
             ) {
                 CircularProgressIndicator(color = Accent, strokeWidth = 3.dp)
@@ -360,84 +382,55 @@ private fun WeeklyOverview(userId: String) {
         } else {
             val dayLabels = listOf("M", "T", "W", "T", "F", "S", "S")
             val todayIndex = java.util.Calendar.getInstance().get(java.util.Calendar.DAY_OF_WEEK).let {
-                // Calendar.MONDAY is 2, SUNDAY is 1. We want M=0, T=1, ..., S=6.
                 if (it == java.util.Calendar.SUNDAY) 6 else it - 2
             }
 
-            Row(
-                modifier = Modifier
-                    .fillMaxWidth()
-                    .height(140.dp),
-                horizontalArrangement = Arrangement.SpaceBetween,
-                verticalAlignment = Alignment.Bottom
+            Column(
+                modifier = Modifier.fillMaxWidth(),
+                verticalArrangement = Arrangement.spacedBy(16.dp)
             ) {
                 dayLabels.forEachIndexed { index, label ->
                     val item = weeklyData.getOrNull(index)
                     val progress = if (item != null && item.total > 0) {
                         item.completed.toFloat() / item.total.toFloat()
                     } else 0f
-                    
                     val isToday = index == todayIndex
-                    
-                    // Animate the bar height
                     val animatedProgress by animateFloatAsState(
                         targetValue = progress,
                         animationSpec = tween(durationMillis = 1000, delayMillis = index * 100, easing = FastOutSlowInEasing),
-                        label = "barHeight"
+                        label = "progress"
                     )
 
-                    Column(
-                        horizontalAlignment = Alignment.CenterHorizontally,
-                        modifier = Modifier.weight(1f)
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        verticalAlignment = Alignment.CenterVertically
                     ) {
-                        Box(
-                            modifier = Modifier
-                                .width(32.dp)
-                                .height(100.dp)
-                                .clip(RoundedCornerShape(16.dp))
-                                .background(if (isToday) Color.White.copy(alpha = 0.05f) else Color.Transparent),
-                            contentAlignment = Alignment.BottomCenter
-                        ) {
-                            // Bar Track
-                            Box(
-                                modifier = Modifier
-                                    .width(10.dp)
-                                    .fillMaxHeight()
-                                    .clip(RoundedCornerShape(50))
-                                    .background(Color.White.copy(alpha = 0.05f))
-                            )
-                            
-                            // Progress Fill
-                            Box(
-                                modifier = Modifier
-                                    .width(10.dp)
-                                    .fillMaxHeight(animatedProgress.coerceIn(0.001f, 1f))
-                                    .clip(RoundedCornerShape(50))
-                                    .background(
-                                        brush = Brush.verticalGradient(
-                                            colors = if (isToday) {
-                                                listOf(Accent, Accent.copy(alpha = 0.7f))
-                                            } else {
-                                                listOf(Accent.copy(alpha = 0.8f), Accent.copy(alpha = 0.4f))
-                                            }
-                                        )
-                                    )
-                                    .border(
-                                        width = 1.dp,
-                                        color = if (isToday) Accent.copy(alpha = 0.5f) else Color.Transparent,
-                                        shape = RoundedCornerShape(50)
-                                    )
-                            )
-                        }
-                        
-                        Spacer(modifier = Modifier.height(12.dp))
-                        
                         Text(
                             text = label,
                             color = if (isToday) Accent else Color.Gray.copy(alpha = 0.7f),
-                            fontSize = 12.sp,
-                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal
+                            fontSize = 14.sp,
+                            fontWeight = if (isToday) FontWeight.Bold else FontWeight.Normal,
+                            modifier = Modifier.width(30.dp)
                         )
+                        Box(
+                            modifier = Modifier
+                                .weight(1f)
+                                .height(12.dp)
+                                .clip(RoundedCornerShape(6.dp))
+                                .background(Color.White.copy(alpha = 0.05f))
+                        ) {
+                            Box(
+                                modifier = Modifier
+                                    .fillMaxWidth(animatedProgress.coerceIn(0.001f, 1f))
+                                    .fillMaxHeight()
+                                    .clip(RoundedCornerShape(6.dp))
+                                    .background(
+                                        brush = Brush.horizontalGradient(
+                                            colors = if (isToday) listOf(Accent, Accent.copy(alpha = 0.7f)) else listOf(Accent.copy(alpha = 0.8f), Accent.copy(alpha = 0.4f))
+                                        )
+                                    )
+                            )
+                        }
                     }
                 }
             }
@@ -446,18 +439,34 @@ private fun WeeklyOverview(userId: String) {
 }
 
 @Composable
-private fun InfoBox(label: String, value: String) {
-    Column(modifier = Modifier.padding(horizontal = 4.dp)) {
+private fun InfoBox(label: String, valueText: String) {
+    val parts = valueText.split(" ")
+    val n = parts.getOrNull(0) ?: ""
+    val unit = if (parts.size > 1) parts.subList(1, parts.size).joinToString(" ") else ""
+
+    Column(
+        modifier = Modifier.padding(horizontal = 4.dp),
+        horizontalAlignment = Alignment.Start
+    ) {
         Text(
-            text = value,
+            text = n,
             color = Color.White,
-            fontSize = 16.sp,
+            fontSize = 22.sp,
             fontWeight = FontWeight.Bold
         )
+        if (unit.isNotEmpty()) {
+            Spacer(modifier = Modifier.height(3.dp))
+            Text(
+                text = unit,
+                color = Color.White,
+                fontSize = 11.sp // 13 - 2
+            )
+        }
+        Spacer(modifier = Modifier.height(6.dp))
         Text(
             text = label,
             color = Color.Gray,
-            fontSize = 11.sp
+            fontSize = 11.sp // 13 - 2
         )
     }
 }
@@ -473,19 +482,27 @@ private fun MotivationCard() {
         shape = RoundedCornerShape(24.dp)
     ) {
         Column(
-            modifier = Modifier.padding(20.dp)
+            modifier = Modifier.padding(20.dp),
+            verticalArrangement = Arrangement.spacedBy(8.dp)
         ) {
-            Text(
-                text = "💡 Today’s Shift",
-                color = Accent,
-                fontSize = 16.sp,
-                fontWeight = FontWeight.SemiBold
-            )
-            Spacer(modifier = Modifier.height(10.dp))
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(id = R.drawable.bulb),
+                    contentDescription = null,
+                    modifier = Modifier.size(31.dp) // +30% scaled
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    text = "Today’s Shift",
+                    color = Accent,
+                    fontSize = 17.sp,
+                    fontWeight = FontWeight.SemiBold
+                )
+            }
             Text(
                 text = "You don’t need more time, you need more intentional time. One deep, distraction-free block today moves you closer to the identity you want.",
                 color = Color.White,
-                fontSize = 14.sp
+                fontSize = 18.sp // Scaled
             )
         }
     }
@@ -505,7 +522,6 @@ fun HomeFloatingBottomBar(
         Box(
             modifier = Modifier
                 .navigationBarsPadding()
-                .padding(bottom = 8.dp)
                 .padding(horizontal = 16.dp)
                 .fillMaxWidth()
                 .height(72.dp)
@@ -549,22 +565,19 @@ fun HomeFloatingBottomBar(
                 verticalAlignment = Alignment.CenterVertically
             ) {
                 BottomBarItem(
-                    icon = "🏠",
-                    label = "Home",
+                    iconRes = R.drawable.home,
                     tab = MainTab.Home,
                     currentTab = currentTab,
                     onTabSelected = onTabSelected
                 )
                 BottomBarItem(
-                    icon = "🎯",
-                    label = "Challenges",
+                    iconRes = R.drawable.challenge,
                     tab = MainTab.Challenges,
                     currentTab = currentTab,
                     onTabSelected = onTabSelected
                 )
                 BottomBarItem(
-                    icon = "👤",
-                    label = "Profile",
+                    iconRes = R.drawable.person,
                     tab = MainTab.Profile,
                     currentTab = currentTab,
                     onTabSelected = onTabSelected
@@ -576,8 +589,7 @@ fun HomeFloatingBottomBar(
 
 @Composable
 private fun BottomBarItem(
-    icon: String,
-    label: String,
+    iconRes: Int,
     tab: MainTab,
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
@@ -604,7 +616,7 @@ private fun BottomBarItem(
             // Icon container with background when selected
             Box(
                 modifier = Modifier
-                    .size(if (selected) 36.dp else 32.dp)
+                    .size(if (selected) 40.dp else 36.dp)
                     .clip(RoundedCornerShape(12.dp))
                     .then(
                         if (selected) {
@@ -620,21 +632,13 @@ private fun BottomBarItem(
                     ),
                 contentAlignment = Alignment.Center
             ) {
-                Text(
-                    text = icon,
-                    fontSize = if (selected) 20.sp else 18.sp
+                Icon(
+                    painter = painterResource(id = iconRes),
+                    contentDescription = null,
+                    tint = if (selected) Accent else Color.Gray.copy(alpha = 0.7f),
+                    modifier = Modifier.size(if (selected) 24.dp else 22.dp)
                 )
             }
-            
-            Spacer(modifier = Modifier.height(2.dp))
-            
-            Text(
-                text = label,
-                color = if (selected) Accent else Color.Gray.copy(alpha = 0.7f),
-                fontSize = 11.sp,
-                fontWeight = if (selected) FontWeight.SemiBold else FontWeight.Medium,
-                letterSpacing = 0.3.sp
-            )
             
             // Active indicator dot
             AnimatedVisibility(
@@ -668,8 +672,35 @@ fun HomePage(
     val scope = rememberCoroutineScope()
     
     // State for user's most recent challenge
-    var recentChallenge by remember { mutableStateOf<ChallengeApiData?>(null) }
-    var isLoadingChallenge by remember { mutableStateOf(true) }
+    var recentChallenge by remember { 
+        mutableStateOf<ChallengeApiData?>(
+            CacheManager.getChallenges(context, userId)?.let { cached ->
+                val summary = cached.firstOrNull { it.isActive } ?: cached.firstOrNull()
+                summary?.let {
+                    ChallengeApiData(
+                        id = it.id,
+                        name = it.name,
+                        description = it.description,
+                        type = it.type,
+                        category = it.category,
+                        duration = it.duration,
+                        color = it.color,
+                        icon = it.icon,
+                        isActive = it.isActive,
+                        progress = ChallengeProgressData(
+                            completedDays = it.completedDays,
+                            totalDays = it.duration,
+                            percentage = it.progress,
+                            currentStreak = it.currentStreak,
+                            isTodayCompleted = it.isTodayCompleted,
+                            currentDayNumber = it.currentDayNumber
+                        )
+                    )
+                }
+            }
+        ) 
+    }
+    var isLoadingChallenge by remember { mutableStateOf(recentChallenge == null) }
     var refreshTrigger by remember { mutableStateOf(0) }
     
     // Load user's challenges
@@ -802,10 +833,6 @@ fun HomePage(
 
             Spacer(modifier = Modifier.height(30.dp))
 
-            ProgressProjectionSection()
-
-            Spacer(modifier = Modifier.height(30.dp))
-
             MotivationCard()
 
             Spacer(modifier = Modifier.height(120.dp))
@@ -827,12 +854,20 @@ private fun PowerMorningSection() {
     }
 
     Column {
-        Text(
-            "🔥 Power Morning Ritual",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                painter = painterResource(id = R.drawable.fire),
+                contentDescription = null,
+                modifier = Modifier.size(31.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                "Power Morning Ritual",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
+        }
 
         Spacer(modifier = Modifier.height(16.dp))
 
@@ -888,12 +923,20 @@ private fun FriendsSection() {
 
     Column {
 
-        Text(
-            "👥 Friends in the Trenches",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.SemiBold,
-            color = Color.White
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                painter = painterResource(id = R.drawable.friends),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                "Friends in the Trenches",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = Color.White
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -948,12 +991,20 @@ private fun StreakShieldSection() {
             horizontalArrangement = Arrangement.SpaceBetween,
             verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                "🛡 Streak Shield",
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold,
-                color = Accent
-            )
+            Row(verticalAlignment = Alignment.CenterVertically) {
+                Image(
+                    painter = painterResource(id = R.drawable.shield),
+                    contentDescription = null,
+                    modifier = Modifier.size(28.dp)
+                )
+                Spacer(modifier = Modifier.width(8.dp))
+                Text(
+                    "Streak Shield",
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    color = Accent
+                )
+            }
             
             Text(
                 "Active",
@@ -1019,12 +1070,20 @@ private fun DailyDeepDiveSection() {
             .padding(24.dp)
     ) {
 
-        Text(
-            "🧠 Daily Deep Dive",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Accent
-        )
+        Row(verticalAlignment = Alignment.CenterVertically) {
+            Image(
+                painter = painterResource(id = R.drawable.brain),
+                contentDescription = null,
+                modifier = Modifier.size(24.dp)
+            )
+            Spacer(modifier = Modifier.width(8.dp))
+            Text(
+                "Daily Deep Dive",
+                fontSize = 18.sp,
+                fontWeight = FontWeight.Bold,
+                color = Accent
+            )
+        }
 
         Spacer(modifier = Modifier.height(12.dp))
 
@@ -1032,46 +1091,6 @@ private fun DailyDeepDiveSection() {
             "Neuroplasticity strengthens what you repeat daily. Consistency rewires identity.",
             color = Color.White,
             fontSize = 14.sp
-        )
-    }
-}
-
-////////////////////////////////////////////////////////////
-//////////////// PROGRESS PROJECTION ////////////////////////
-////////////////////////////////////////////////////////////
-
-@Composable
-private fun ProgressProjectionSection() {
-
-    Column(
-        modifier = Modifier
-            .fillMaxWidth()
-            .clip(RoundedCornerShape(24.dp))
-            .background(CardDark)
-            .padding(20.dp)
-    ) {
-
-        Text(
-            "📈 Progress Projection",
-            fontSize = 18.sp,
-            fontWeight = FontWeight.Bold,
-            color = Accent
-        )
-
-        Spacer(modifier = Modifier.height(12.dp))
-
-        Text(
-            "At this pace, you will unlock the Elite Performer badge in 4 days.",
-            color = Color.White,
-            fontSize = 14.sp
-        )
-
-        Spacer(modifier = Modifier.height(6.dp))
-
-        Text(
-            "You saved 12 hours of distraction this week.",
-            color = Color.Gray,
-            fontSize = 13.sp
         )
     }
 }

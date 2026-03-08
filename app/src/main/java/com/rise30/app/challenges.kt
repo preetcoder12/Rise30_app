@@ -225,7 +225,7 @@ fun ChallengesPage(
                     }
                 }
 
-                Spacer(modifier = Modifier.height(106.dp))
+                Spacer(modifier = Modifier.height(130.dp))
             }
 
             // FAB for creating new challenge
