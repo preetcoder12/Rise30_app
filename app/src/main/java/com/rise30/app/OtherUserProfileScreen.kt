@@ -150,6 +150,16 @@ fun OtherUserProfileScreen(
                                             friendshipStatus = "pending"
                                         } catch (e: Exception) {}
                                     }
+                                } else if (friendshipStatus == "received") {
+                                    scope.launch {
+                                        try {
+                                            ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/friends/accept") {
+                                                contentType(ContentType.Application.Json)
+                                                setBody(mapOf("userId" to currentUserId, "friendId" to otherUserId))
+                                            }
+                                            friendshipStatus = "accepted"
+                                        } catch (e: Exception) {}
+                                    }
                                 }
                             },
                             modifier = Modifier
@@ -160,7 +170,7 @@ fun OtherUserProfileScreen(
                                 containerColor = if (friendshipStatus == "accepted") Color(0xFF4CAF50).copy(alpha = 0.2f) else if (friendshipStatus == "pending") Color.Gray.copy(alpha = 0.2f) else Accent,
                                 contentColor = if (friendshipStatus == "accepted") Color(0xFF4CAF50) else Color.Black
                             ),
-                            enabled = friendshipStatus == "none"
+                            enabled = friendshipStatus == "none" || friendshipStatus == "received"
                         ) {
                             Icon(
                                 imageVector = if (friendshipStatus == "accepted") Icons.Default.Check else Icons.Default.PersonAdd,
@@ -172,6 +182,7 @@ fun OtherUserProfileScreen(
                                 text = when(friendshipStatus) {
                                     "accepted" -> "Friends"
                                     "pending" -> "Pending Request"
+                                    "received" -> "Accept Request"
                                     else -> "Add Friend"
                                 },
                                 fontWeight = FontWeight.Bold,

@@ -253,8 +253,12 @@ class MainActivity : ComponentActivity() {
                             when (screen) {
                                 ChallengeScreen.Notifications -> {
                                     NotificationsPage(
-                                        userName = displayName.substringBefore("@"),
-                                        onBack = { currentChallengeScreen = ChallengeScreen.None }
+                                        currentUserId = userId,
+                                        onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                        onUserClick = { requesterId ->
+                                            selectedOtherUserId = requesterId
+                                            currentChallengeScreen = ChallengeScreen.OtherProfile
+                                        }
                                     )
                                 }
                                 ChallengeScreen.WaterChallenge -> {
@@ -343,6 +347,7 @@ class MainActivity : ComponentActivity() {
                                                 userId = userId,
                                                 userName = displayName,
                                                 onMarkComplete = { },
+                                                onCreateChallenge = { currentChallengeScreen = ChallengeScreen.CreateChallenge },
                                                 onNotificationClick = {
                                                     currentChallengeScreen = ChallengeScreen.Notifications
                                                 },
@@ -595,6 +600,9 @@ class AuthViewModel : ViewModel() {
                     }
                 }
                 val session = auth.currentSessionOrNull()
+                if (session != null) {
+                    syncPublicUserRow(session)
+                }
                 state = state.copy(
                     isLoading = false,
                     supabaseSession = session,
@@ -646,19 +654,21 @@ class AuthViewModel : ViewModel() {
         val user = session.user ?: return
         val userId = user.id
         val email = user.email ?: return
+        val displayName = email.substringBefore("@")
 
         try {
-            SupabaseClient.client.from("User").upsert(
-                buildJsonObject {
-                    put("id", userId)
-                    put("email", email)
-                }
-            ) {
-                onConflict = "id"
+            val response: AuthResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/auth/sync") {
+                contentType(ContentType.Application.Json)
+                setBody(mapOf("userId" to userId, "email" to email, "displayName" to displayName))
+            }.body()
+
+            if (response.success) {
+                state = state.copy(info = "Google profile synced.")
+            } else {
+                state = state.copy(error = response.error ?: "Failed to sync Google profile.")
             }
-            state = state.copy(info = "Profile saved to DB.")
         } catch (e: Exception) {
-            state = state.copy(info = "Signed in (profile not saved): ${e.message}")
+            state = state.copy(info = "Signed in locally (API sync failed): ${e.message}")
         }
     }
 }

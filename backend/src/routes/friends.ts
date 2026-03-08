@@ -103,14 +103,58 @@ router.get('/status/:userId/:friendId', async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId as string
     const friendId = req.params.friendId as string
+    
+    // Check if user sent request
     const friendship = await prisma.friendship.findUnique({
       where: {
         userId_friendId: { userId, friendId }
       }
     })
+    
+    // Check if friend sent request to user
+    const reverseFriendship = await prisma.friendship.findUnique({
+      where: {
+        userId_friendId: { userId: friendId, friendId: userId }
+      }
+    })
 
-    res.json({ success: true, status: friendship?.status || 'none' })
+    if (friendship && friendship.status === 'accepted') {
+        res.json({ success: true, status: 'accepted' })
+    } else if (friendship && friendship.status === 'pending') {
+        res.json({ success: true, status: 'pending' })
+    } else if (reverseFriendship && reverseFriendship.status === 'pending') {
+        res.json({ success: true, status: 'received' })
+    } else {
+        res.json({ success: true, status: 'none' })
+    }
   } catch (error) {
+    res.status(500).json({ success: false, error: 'Failed' })
+  }
+})
+
+// Get pending receiving requests
+router.get('/pending/:userId', async (req: Request, res: Response) => {
+  try {
+    const userId = req.params.userId as string
+    const pendingRequests = await prisma.friendship.findMany({
+      where: {
+        friendId: userId,
+        status: 'pending'
+      },
+      include: {
+        user: { // the person who sent the request
+          select: {
+            id: true,
+            displayName: true,
+            email: true
+          }
+        }
+      }
+    })
+
+    res.json({ success: true, requests: pendingRequests.map(f => f.user) })
+  } catch (error) {
+    console.error('Error fetching pending requests:', error)
     res.status(500).json({ success: false, error: 'Failed' })
   }
 })

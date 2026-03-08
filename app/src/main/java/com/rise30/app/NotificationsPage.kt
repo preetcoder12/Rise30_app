@@ -26,12 +26,49 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class PendingRequestsResponse(
+    val success: Boolean,
+    val requests: List<PendingRequestUser> = emptyList()
+)
+
+@Serializable
+data class PendingRequestUser(
+    val id: String,
+    val email: String,
+    val displayName: String? = null
+)
+
 @Composable
 fun NotificationsPage(
-    userName: String,
-    onBack: () -> Unit
+    currentUserId: String,
+    onBack: () -> Unit,
+    onUserClick: (String) -> Unit
 ) {
     val scrollState = rememberScrollState()
+    var pendingRequests by remember { mutableStateOf<List<PendingRequestUser>>(emptyList()) }
+    var isLoading by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(currentUserId) {
+        isLoading = true
+        try {
+            val response: PendingRequestsResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/friends/pending/${currentUserId}").body()
+            if (response.success) {
+                pendingRequests = response.requests
+            }
+        } catch (e: Exception) {
+            // handle error
+        } finally {
+            isLoading = false
+        }
+    }
     
     Box(
         modifier = Modifier
@@ -72,14 +109,90 @@ fun NotificationsPage(
             }
             
             Text(
-                text = "Stay updated on your progress",
+                text = "Stay updated on your connections",
                 color = Color.Gray,
                 fontSize = 16.sp,
                 modifier = Modifier.padding(top = 4.dp, bottom = 24.dp)
             )
-            
-            // Empty state with animation
-            EmptyNotificationsAnimation()
+
+            if (isLoading) {
+                Box(modifier = Modifier.fillMaxWidth().padding(40.dp), contentAlignment = Alignment.Center) {
+                    CircularProgressIndicator(color = Accent)
+                }
+            } else if (pendingRequests.isNotEmpty()) {
+                Text("Friend Requests", color = Color.White, fontWeight = FontWeight.Bold, fontSize = 18.sp)
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                pendingRequests.forEach { user ->
+                    var isAccepting by remember { mutableStateOf(false) }
+                    
+                    Row(
+                        modifier = Modifier
+                            .fillMaxWidth()
+                            .padding(bottom = 12.dp)
+                            .clip(RoundedCornerShape(16.dp))
+                            .background(CardDark)
+                            .clickable { onUserClick(user.id) }
+                            .padding(16.dp),
+                        verticalAlignment = Alignment.CenterVertically
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(48.dp)
+                                .clip(CircleShape)
+                                .background(Accent.copy(alpha = 0.2f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = (user.displayName ?: user.email).take(1).uppercase(),
+                                color = Accent,
+                                fontSize = 20.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.width(12.dp))
+                        
+                        Column(modifier = Modifier.weight(1f)) {
+                            Text(
+                                text = user.displayName ?: "User",
+                                color = Color.White,
+                                fontSize = 16.sp,
+                                fontWeight = FontWeight.SemiBold
+                            )
+                            Text(
+                                text = "Wants to connect",
+                                color = Color.Gray,
+                                fontSize = 13.sp
+                            )
+                        }
+                        
+                        Button(
+                            onClick = {
+                                isAccepting = true
+                                scope.launch {
+                                    try {
+                                        ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/friends/accept") {
+                                            contentType(ContentType.Application.Json)
+                                            setBody(mapOf("userId" to currentUserId, "friendId" to user.id))
+                                        }
+                                        pendingRequests = pendingRequests.filter { it.id != user.id }
+                                    } catch (e: Exception) {}
+                                    isAccepting = false
+                                }
+                            },
+                            enabled = !isAccepting,
+                            colors = ButtonDefaults.buttonColors(containerColor = Accent, contentColor = Color.Black),
+                            shape = RoundedCornerShape(12.dp)
+                        ) {
+                            Text("Accept", fontWeight = FontWeight.Bold)
+                        }
+                    }
+                }
+            } else {
+                // Empty state with animation
+                EmptyNotificationsAnimation()
+            }
             
             Spacer(modifier = Modifier.height(96.dp))
         }

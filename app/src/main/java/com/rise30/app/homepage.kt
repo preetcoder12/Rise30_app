@@ -164,7 +164,8 @@ private fun TopSection(
 @Composable
 private fun MainChallengeCard(
     challenge: ChallengeApiData?,
-    onMarkComplete: () -> Unit
+    onMarkComplete: () -> Unit,
+    onCreateChallenge: () -> Unit = {}
 ) {
     val currentDay = challenge?.progress?.completedDays ?: 0
     val totalDays = challenge?.progress?.totalDays ?: challenge?.duration ?: 30
@@ -303,8 +304,14 @@ private fun MainChallengeCard(
 
                 // Button
                 Button(
-                    onClick = onMarkComplete,
-                    enabled = challenge != null && !isTodayCompleted,
+                    onClick = {
+                        if (challenge == null) {
+                            onCreateChallenge()
+                        } else {
+                            onMarkComplete()
+                        }
+                    },
+                    enabled = challenge == null || !isTodayCompleted,
                     colors = ButtonDefaults.buttonColors(
                         containerColor = if (isTodayCompleted) Color(0xFF2E2E2E) else challengeColor,
                         contentColor = if (isTodayCompleted) Color.LightGray else Color.Black,
@@ -770,6 +777,7 @@ fun HomePage(
     userId: String,
     userName: String,
     onMarkComplete: () -> Unit,
+    onCreateChallenge: () -> Unit,
     onNotificationClick: () -> Unit,
     onSearchFriends: () -> Unit,
     currentTab: MainTab,
@@ -929,7 +937,8 @@ fun HomePage(
                             }
                         }
                     }
-                }
+                },
+                onCreateChallenge = onCreateChallenge
             )
 
             Spacer(modifier = Modifier.height(16.dp))
