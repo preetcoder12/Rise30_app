@@ -246,4 +246,36 @@ router.get('/:userId/achievements', async (req: Request, res: Response) => {
   }
 })
 
+// Search users
+router.get('/search', async (req: Request, res: Response) => {
+  try {
+    const q = req.query.q as string
+    if (!q) {
+      return res.json({ success: true, users: [] })
+    }
+
+    const users = await prisma.user.findMany({
+      where: {
+        OR: [
+          { displayName: { contains: q, mode: 'insensitive' } },
+          { email: { contains: q, mode: 'insensitive' } }
+        ]
+      },
+      take: 10, // Limit results
+      select: {
+          id: true,
+          displayName: true,
+          email: true,
+          createdAt: true
+      }
+    })
+
+    res.json({ success: true, users })
+  } catch (error) {
+    console.error('Error searching users:', error)
+    res.status(500).json({ success: false, error: 'Failed to search users' })
+  }
+})
+
 export default router
+

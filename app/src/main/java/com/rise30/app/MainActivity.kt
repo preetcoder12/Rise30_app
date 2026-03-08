@@ -14,6 +14,7 @@ import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
@@ -47,8 +48,64 @@ import io.github.jan.supabase.auth.user.UserSession
 import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
 import kotlinx.coroutines.withTimeout
+import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
+import android.content.Context
+import android.content.SharedPreferences
+
+@Serializable
+data class UserAccount(
+    val id: String,
+    val email: String,
+    val displayName: String? = null
+)
+
+@Serializable
+data class AuthResponse(
+    val success: Boolean,
+    val user: UserAccount? = null,
+    val token: String? = null,
+    val error: String? = null
+)
+
+object SessionManager {
+    private const val PREF_NAME = "rise30_session"
+    private const val KEY_USER_ID = "user_id"
+    private const val KEY_EMAIL = "email"
+    private const val KEY_DISPLAY_NAME = "display_name"
+    private const val KEY_TOKEN = "auth_token"
+
+    fun saveSession(context: Context, user: UserAccount, token: String?) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().apply {
+            putString(KEY_USER_ID, user.id)
+            putString(KEY_EMAIL, user.email)
+            putString(KEY_DISPLAY_NAME, user.displayName)
+            putString(KEY_TOKEN, token)
+            apply()
+        }
+    }
+
+    fun getSession(context: Context): UserAccount? {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        val id = prefs.getString(KEY_USER_ID, null) ?: return null
+        val email = prefs.getString(KEY_EMAIL, null) ?: return null
+        val displayName = prefs.getString(KEY_DISPLAY_NAME, null)
+        return UserAccount(id, email, displayName)
+    }
+
+    fun getToken(context: Context): String? {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        return prefs.getString(KEY_TOKEN, null)
+    }
+
+    fun clearSession(context: Context) {
+        val prefs = context.getSharedPreferences(PREF_NAME, Context.MODE_PRIVATE)
+        prefs.edit().clear().apply()
+    }
+}
+
 
 enum class AuthPage {
     SignIn,
@@ -68,7 +125,9 @@ enum class ChallengeScreen {
     ChallengeDetail,
     CreateChallenge,
     EditChallenge,
-    Notifications
+    Notifications,
+    UserSearch,
+    OtherProfile
 }
 
 class MainActivity : ComponentActivity() {
@@ -88,6 +147,9 @@ class MainActivity : ComponentActivity() {
 
         enableEdgeToEdge()
         super.onCreate(savedInstanceState)
+        
+        viewModel.initSession(this)
+
 
         // Handle Supabase OAuth/OTP deep links
         intent?.let { SupabaseClient.client.handleDeeplinks(it) }
@@ -128,23 +190,16 @@ class MainActivity : ComponentActivity() {
                 var currentChallengeScreen by remember { mutableStateOf(ChallengeScreen.None) }
                 var selectedChallengeId by remember { mutableStateOf<String?>(null) }
                 // Only reset to Home tab when the user FIRST logs in
-                var wasLoggedIn by remember { mutableStateOf(state.currentUser != null) }
+                var wasLoggedIn by remember { mutableStateOf(state.isLoggedIn) }
                 var realDisplayName by remember { mutableStateOf<String?>(null) }
+                var selectedOtherUserId by remember { mutableStateOf<String?>(null) }
                 
-                LaunchedEffect(state.currentUser) {
-                    val session = state.currentUser
-                    val userId = session?.user?.id
-                    val email = session?.user?.email
+                
+                LaunchedEffect(state.isLoggedIn, state.userId) {
+                    val userId = state.userId
+                    val email = state.email
                     
                     if (userId != null && email != null) {
-                        // Sync user with backend
-                        try {
-                            ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/auth/sync") {
-                                contentType(ContentType.Application.Json)
-                                setBody(mapOf("userId" to userId, "email" to email))
-                            }
-                        } catch(e: Exception) { /* ignore */ }
-
                         // Fetch real profile from DB
                         try {
                             val response: UserProfileResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/users/$userId/profile").body()
@@ -158,21 +213,21 @@ class MainActivity : ComponentActivity() {
                             currentChallengeScreen = ChallengeScreen.None
                             wasLoggedIn = true
                         }
-                    } else if (session == null) {
+                    } else if (!state.isLoggedIn) {
                         wasLoggedIn = false
                         realDisplayName = null
                     }
                 }
 
+
                 if (state.isInitializing) {
                     // Keep screen blank/background colored while native splash screen is showing
                     Box(modifier = Modifier.fillMaxSize().background(Charcoal))
-                } else if (state.currentUser != null) {
-                    val fallbackName = state.currentUser?.user?.userMetadata?.get("full_name")?.toString()?.replace("\"", "") 
-                        ?: state.currentUser?.user?.email?.substringBefore("@") 
-                        ?: "User"
+                } else if (state.isLoggedIn) {
+                    val fallbackName = state.email?.substringBefore("@") ?: "User"
                     val displayName = realDisplayName ?: fallbackName
-                    val userId = state.currentUser?.user?.id ?: ""
+                    val userId = state.userId ?: ""
+
                     
                     Box(modifier = Modifier.fillMaxSize()) {
                         // Handle system back gesture
@@ -239,7 +294,7 @@ class MainActivity : ComponentActivity() {
                                         }
                                     )
                                 }
-                                ChallengeScreen.EditChallenge -> {
+                                 ChallengeScreen.EditChallenge -> {
                                     EditChallengeScreen(
                                         userId = userId,
                                         challengeId = selectedChallengeId ?: "",
@@ -254,7 +309,25 @@ class MainActivity : ComponentActivity() {
                                         }
                                     )
                                 }
+                                ChallengeScreen.UserSearch -> {
+                                    SearchFriendsScreen(
+                                        currentUserId = userId,
+                                        onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                        onUserClick = { otherId ->
+                                            selectedOtherUserId = otherId
+                                            currentChallengeScreen = ChallengeScreen.OtherProfile
+                                        }
+                                    )
+                                }
+                                ChallengeScreen.OtherProfile -> {
+                                    OtherUserProfileScreen(
+                                        currentUserId = userId,
+                                        otherUserId = selectedOtherUserId ?: "",
+                                        onBack = { currentChallengeScreen = ChallengeScreen.UserSearch }
+                                    )
+                                }
                                 ChallengeScreen.None -> {
+
                                     // Animated tab content with horizontal sliding
                                     AnimatedContent(
                                         targetState = currentTab,
@@ -272,6 +345,9 @@ class MainActivity : ComponentActivity() {
                                                 onMarkComplete = { },
                                                 onNotificationClick = {
                                                     currentChallengeScreen = ChallengeScreen.Notifications
+                                                },
+                                                onSearchFriends = {
+                                                    currentChallengeScreen = ChallengeScreen.UserSearch
                                                 },
                                                 currentTab = currentTab,
                                                 onTabSelected = { selected -> currentTab = selected }
@@ -298,13 +374,16 @@ class MainActivity : ComponentActivity() {
                                                 onTabSelected = { selected -> currentTab = selected }
                                             )
 
-                                            MainTab.Profile -> ProfilePage(
-                                                userId = userId,
-                                                userName = displayName,
-                                                onSignOut = { viewModel.signOut() },
-                                                currentTab = currentTab,
-                                                onTabSelected = { selected -> currentTab = selected }
-                                            )
+                                            MainTab.Profile -> {
+                                                val context = LocalContext.current
+                                                ProfilePage(
+                                                    userId = userId,
+                                                    userName = displayName,
+                                                    onSignOut = { viewModel.signOut(context) },
+                                                    currentTab = currentTab,
+                                                    onTabSelected = { selected -> currentTab = selected }
+                                                )
+                                            }
                                         }
                                     }
                                 }
@@ -321,7 +400,7 @@ class MainActivity : ComponentActivity() {
                         )
                     }
                 } else {
-                    // Auth screens with slide animation
+                    val context = LocalContext.current
                     AnimatedContent(
                         targetState = page,
                         transitionSpec = {
@@ -339,11 +418,9 @@ class MainActivity : ComponentActivity() {
                             AuthPage.SignIn -> SignInScreen(
                                 state = state,
                                 onEmailPasswordLogin = { email, password ->
-                                    viewModel.loginWithEmailPassword(email, password)
+                                    viewModel.loginWithEmailPassword(context, email, password)
                                 },
-                                onSendOtp = { email ->
-                                    viewModel.sendOtp(email)
-                                },
+                                onSendOtp = { _ -> },
                                 onGoogleLogin = {
                                     viewModel.onAuthLoading()
                                     googleSignInLauncher.launch(googleSignInClient.signInIntent)
@@ -354,7 +431,7 @@ class MainActivity : ComponentActivity() {
                             AuthPage.SignUp -> SignUpScreen(
                                 state = state,
                                 onEmailPasswordSignup = { email, password ->
-                                    viewModel.signUpWithEmailPassword(email, password)
+                                    viewModel.signUpWithEmailPassword(context, email, password)
                                 },
                                 onGoToSignIn = { page = AuthPage.SignIn }
                             )
@@ -389,10 +466,15 @@ class MainActivity : ComponentActivity() {
 data class AuthUiState(
     val isInitializing: Boolean = true,
     val isLoading: Boolean = false,
-    val currentUser: UserSession? = null,
+    val currentAccount: UserAccount? = null,
+    val supabaseSession: UserSession? = null,
     val error: String? = null,
     val info: String? = null
-)
+) {
+    val isLoggedIn: Boolean get() = currentAccount != null || supabaseSession != null
+    val userId: String? get() = currentAccount?.id ?: supabaseSession?.user?.id
+    val email: String? get() = currentAccount?.email ?: supabaseSession?.user?.email
+}
 
 class AuthViewModel : ViewModel() {
 
@@ -401,28 +483,36 @@ class AuthViewModel : ViewModel() {
     var state by mutableStateOf(AuthUiState())
         private set
 
-    init {
+    fun initSession(context: Context) {
         viewModelScope.launch {
-            // Load session from storage on init
-            state = state.copy(currentUser = auth.currentSessionOrNull(), isInitializing = false)
+            // 1. Check Custom Backend Session
+            val savedAccount = SessionManager.getSession(context)
+            if (savedAccount != null) {
+                state = state.copy(currentAccount = savedAccount, isInitializing = false)
+            }
 
-            // Listen for auth state changes to keep session alive
+            // 2. Check Supabase Session (Google)
+            val session = auth.currentSessionOrNull()
+            if (session != null) {
+                state = state.copy(supabaseSession = session, isInitializing = false)
+            } else {
+                // If neither, we're not logged in
+                if (savedAccount == null) {
+                    state = state.copy(isInitializing = false)
+                }
+            }
+
+            // 3. Listen for Supabase Status
             auth.sessionStatus.collect { status ->
                 when (status) {
                     is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> {
-                        state = state.copy(currentUser = status.session, isInitializing = false)
+                        state = state.copy(supabaseSession = status.session, isInitializing = false)
                     }
                     is io.github.jan.supabase.auth.status.SessionStatus.NotAuthenticated -> {
-                        state = state.copy(currentUser = null, isInitializing = false)
+                        state = state.copy(supabaseSession = null)
+                        if (state.currentAccount == null) state = state.copy(isInitializing = false)
                     }
-                    is io.github.jan.supabase.auth.status.SessionStatus.RefreshFailure -> {
-                        // Token refresh failed, user needs to re-login
-                        state = state.copy(currentUser = null, error = "Session expired. Please sign in again.", isInitializing = false)
-                    }
-                    io.github.jan.supabase.auth.status.SessionStatus.Initializing -> {
-                        // Auth is initializing, keep current state
-                        state = state.copy(isInitializing = true)
-                    }
+                    else -> {}
                 }
             }
         }
@@ -436,43 +526,48 @@ class AuthViewModel : ViewModel() {
         state = state.copy(isLoading = false, error = message, info = null)
     }
 
-    fun loginWithEmailPassword(email: String, password: String) {
+    fun loginWithEmailPassword(context: Context, email: String, password: String) {
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null, info = null)
             try {
-                auth.signInWith(Email) {
-                    this.email = email
-                    this.password = password
+                val response: AuthResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/auth/login") {
+                    contentType(ContentType.Application.Json)
+                    setBody(mapOf("email" to email, "password" to password))
+                }.body()
+
+                if (response.success && response.user != null) {
+                    SessionManager.saveSession(context, response.user, response.token)
+                    state = state.copy(isLoading = false, currentAccount = response.user)
+                } else {
+                    state = state.copy(isLoading = false, error = response.error ?: "Login failed")
                 }
-                val session = auth.currentSessionOrNull()
-                if (session != null) syncPublicUserRow(session)
-                state = state.copy(isLoading = false, currentUser = session)
             } catch (e: Exception) {
-                state = state.copy(isLoading = false, error = e.message ?: "Login failed")
+                state = state.copy(isLoading = false, error = e.message ?: "Network error")
             }
         }
     }
 
-    fun signUpWithEmailPassword(email: String, password: String) {
+    fun signUpWithEmailPassword(context: Context, email: String, password: String) {
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null, info = null)
             try {
-                auth.signUpWith(Email) {
-                    this.email = email
-                    this.password = password
+                val response: AuthResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/auth/register") {
+                    contentType(ContentType.Application.Json)
+                    setBody(mapOf("email" to email, "password" to password, "displayName" to email.substringBefore("@")))
+                }.body()
+
+                if (response.success && response.user != null) {
+                    SessionManager.saveSession(context, response.user, response.token)
+                    state = state.copy(isLoading = false, currentAccount = response.user, info = "Account created!")
+                } else {
+                    state = state.copy(isLoading = false, error = response.error ?: "Signup failed")
                 }
-                val session = auth.currentSessionOrNull()
-                if (session != null) syncPublicUserRow(session)
-                state = state.copy(
-                    isLoading = false,
-                    currentUser = session,
-                    info = "Check your email to confirm your account."
-                )
             } catch (e: Exception) {
-                state = state.copy(isLoading = false, error = e.message ?: "Sign up failed")
+                state = state.copy(isLoading = false, error = e.message ?: "Network error")
             }
         }
     }
+
 
     fun sendOtp(email: String) {
         viewModelScope.launch {
@@ -500,10 +595,9 @@ class AuthViewModel : ViewModel() {
                     }
                 }
                 val session = auth.currentSessionOrNull()
-                if (session != null) syncPublicUserRow(session)
                 state = state.copy(
                     isLoading = false,
-                    currentUser = session,
+                    supabaseSession = session,
                     info = if (session != null) "Signed in with Google." else "Signed in (no session found)."
                 )
             } catch (e: Exception) {
@@ -515,15 +609,17 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    fun signOut() {
+    fun signOut(context: Context) {
         viewModelScope.launch {
             try {
+                SessionManager.clearSession(context)
                 auth.signOut()
             } finally {
-                state = AuthUiState(info = "Signed out.")
+                state = AuthUiState(isInitializing = false, info = "Signed out.")
             }
         }
     }
+
 
     fun sendPasswordResetEmail(email: String) {
         viewModelScope.launch {
@@ -567,9 +663,6 @@ class AuthViewModel : ViewModel() {
     }
 }
 
-val LemonYellow = Color(0xFFFFF44F)
-val Charcoal = Color(0xFF2E2E2E)
-val CharcoalLight = Color(0xFF3B3B3B)
 
 @Composable
 fun SignedInScreen(

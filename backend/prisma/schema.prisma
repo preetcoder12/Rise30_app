@@ -12,6 +12,8 @@ datasource db {
 model User {
   id           String      @id @default(uuid())
   email        String      @unique
+  password     String?     // For email/password auth
+  provider     String      @default("email") // "email" or "google"
   displayName  String?
   createdAt    DateTime    @default(now())
   challenges   Challenge[]
@@ -19,7 +21,24 @@ model User {
   dailyEntries  DailyEntry[]
   waterEntries WaterEntry[]
   dailyHabits  DailyHabit[]
+  friendships  Friendship[] @relation("UserFriendships")
+  friendedBy   Friendship[] @relation("FriendOfUser")
 }
+
+model Friendship {
+  id        String   @id @default(uuid())
+  userId    String
+  friendId  String
+  status    String   @default("pending") // "pending", "accepted", "declined"
+  createdAt DateTime @default(now())
+  updatedAt DateTime @updatedAt
+
+  user      User     @relation("UserFriendships", fields: [userId], references: [id])
+  friend    User     @relation("FriendOfUser", fields: [friendId], references: [id])
+
+  @@unique([userId, friendId])
+}
+
 
 model Challenge {
   id          String       @id @default(uuid())

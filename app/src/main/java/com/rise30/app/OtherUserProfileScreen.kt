@@ -1,0 +1,233 @@
+package com.rise30.app
+
+import androidx.compose.foundation.*
+import androidx.compose.foundation.layout.*
+import androidx.compose.foundation.lazy.LazyColumn
+import androidx.compose.foundation.shape.CircleShape
+import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.material.icons.Icons
+import androidx.compose.material.icons.filled.ArrowBack
+import androidx.compose.material.icons.filled.PersonAdd
+import androidx.compose.material.icons.filled.Check
+import androidx.compose.material3.*
+import androidx.compose.runtime.*
+import androidx.compose.ui.Alignment
+import androidx.compose.ui.Modifier
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.graphics.Brush
+import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.text.font.FontWeight
+import androidx.compose.ui.unit.dp
+import androidx.compose.ui.unit.sp
+import io.ktor.client.call.*
+import io.ktor.client.request.*
+import io.ktor.http.*
+import kotlinx.coroutines.launch
+import kotlinx.serialization.Serializable
+
+@Serializable
+data class FriendshipStatusResponse(
+    val success: Boolean,
+    val status: String
+)
+
+@Composable
+fun OtherUserProfileScreen(
+    currentUserId: String,
+    otherUserId: String,
+    onBack: () -> Unit
+) {
+    var profile by remember { mutableStateOf<UserProfile?>(null) }
+    var friendshipStatus by remember { mutableStateOf("none") }
+    var isLoading by remember { mutableStateOf(true) }
+    val scope = rememberCoroutineScope()
+
+    LaunchedEffect(otherUserId) {
+        isLoading = true
+        try {
+            // Fetch profile
+            val profResp: UserProfileResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/users/$otherUserId/profile").body()
+            if (profResp.success) {
+                profile = profResp.profile
+            }
+            
+            // Fetch friendship status
+            val statusResp: FriendshipStatusResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/friends/status/$currentUserId/$otherUserId").body()
+            if (statusResp.success) {
+                friendshipStatus = statusResp.status
+            }
+        } catch (e: Exception) {
+            // handle error
+        } finally {
+            isLoading = false
+        }
+    }
+
+    Scaffold(
+        containerColor = BackgroundDark,
+        topBar = {
+            Box(
+                modifier = Modifier
+                    .fillMaxWidth()
+                    .padding(top = 40.dp)
+                    .height(56.dp)
+            ) {
+                IconButton(onClick = onBack, modifier = Modifier.align(Alignment.CenterStart).padding(start = 16.dp)) {
+                    Icon(Icons.Default.ArrowBack, contentDescription = "Back", tint = Color.White)
+                }
+                Text(
+                    "Profile",
+                    color = Color.White,
+                    fontSize = 20.sp,
+                    fontWeight = FontWeight.Bold,
+                    modifier = Modifier.align(Alignment.Center)
+                )
+            }
+        }
+    ) { padding ->
+        if (isLoading) {
+            Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                CircularProgressIndicator(color = Accent)
+            }
+        } else {
+            profile?.let { user ->
+                Column(
+                    modifier = Modifier
+                        .fillMaxSize()
+                        .padding(padding)
+                        .verticalScroll(rememberScrollState())
+                        .padding(horizontal = 24.dp)
+                ) {
+                    Spacer(modifier = Modifier.height(24.dp))
+                    
+                    // User Header
+                    Column(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalAlignment = Alignment.CenterHorizontally
+                    ) {
+                        Box(
+                            modifier = Modifier
+                                .size(100.dp)
+                                .clip(CircleShape)
+                                .background(Accent.copy(alpha = 0.12f)),
+                            contentAlignment = Alignment.Center
+                        ) {
+                            Text(
+                                text = (user.displayName ?: user.email).take(1).uppercase(),
+                                color = Accent,
+                                fontSize = 42.sp,
+                                fontWeight = FontWeight.Bold
+                            )
+                        }
+                        
+                        Spacer(modifier = Modifier.height(16.dp))
+                        
+                        Text(
+                            text = user.displayName ?: "User",
+                            color = Color.White,
+                            fontSize = 24.sp,
+                            fontWeight = FontWeight.Bold
+                        )
+                        
+                        Text(
+                            text = user.email,
+                            color = Color.Gray,
+                            fontSize = 15.sp
+                        )
+                        
+                        Spacer(modifier = Modifier.height(24.dp))
+                        
+                        // Action Button
+                        Button(
+                            onClick = {
+                                if (friendshipStatus == "none") {
+                                    scope.launch {
+                                        try {
+                                            ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/friends/request") {
+                                                contentType(ContentType.Application.Json)
+                                                setBody(mapOf("userId" to currentUserId, "friendId" to otherUserId))
+                                            }
+                                            friendshipStatus = "pending"
+                                        } catch (e: Exception) {}
+                                    }
+                                }
+                            },
+                            modifier = Modifier
+                                .fillMaxWidth()
+                                .height(54.dp),
+                            shape = RoundedCornerShape(16.dp),
+                            colors = ButtonDefaults.buttonColors(
+                                containerColor = if (friendshipStatus == "accepted") Color(0xFF4CAF50).copy(alpha = 0.2f) else if (friendshipStatus == "pending") Color.Gray.copy(alpha = 0.2f) else Accent,
+                                contentColor = if (friendshipStatus == "accepted") Color(0xFF4CAF50) else Color.Black
+                            ),
+                            enabled = friendshipStatus == "none"
+                        ) {
+                            Icon(
+                                imageVector = if (friendshipStatus == "accepted") Icons.Default.Check else Icons.Default.PersonAdd,
+                                contentDescription = null,
+                                modifier = Modifier.size(18.dp)
+                            )
+                            Spacer(modifier = Modifier.width(8.dp))
+                            Text(
+                                text = when(friendshipStatus) {
+                                    "accepted" -> "Friends"
+                                    "pending" -> "Pending Request"
+                                    else -> "Add Friend"
+                                },
+                                fontWeight = FontWeight.Bold,
+                                fontSize = 16.sp
+                            )
+                        }
+                    }
+                    
+                    Spacer(modifier = Modifier.height(32.dp))
+                    
+                    // Stats Section
+                    Text(
+                        "Journey Stats",
+                        color = Color.White,
+                        fontSize = 18.sp,
+                        fontWeight = FontWeight.Bold
+                    )
+                    
+                    Spacer(modifier = Modifier.height(16.dp))
+                    
+                    Row(
+                        modifier = Modifier.fillMaxWidth(),
+                        horizontalArrangement = Arrangement.spacedBy(12.dp)
+                    ) {
+                        StatCard(
+                            label = "Longest Streak",
+                            value = "${user.stats.longestStreak} Days",
+                            modifier = Modifier.weight(1f)
+                        )
+                        StatCard(
+                            label = "Completed",
+                            value = "${user.stats.completedChallenges}",
+                            modifier = Modifier.weight(1f)
+                        )
+                    }
+                }
+            } ?: Box(modifier = Modifier.fillMaxSize(), contentAlignment = Alignment.Center) {
+                Text("User not found", color = Color.Gray)
+            }
+        }
+    }
+}
+
+@Composable
+fun StatCard(label: String, value: String, modifier: Modifier = Modifier) {
+    Box(
+        modifier = modifier
+            .clip(RoundedCornerShape(20.dp))
+            .background(CardDark)
+            .border(1.dp, Color.White.copy(alpha = 0.05f), RoundedCornerShape(20.dp))
+            .padding(16.dp)
+    ) {
+        Column {
+            Text(label, color = Color.Gray, fontSize = 13.sp)
+            Spacer(modifier = Modifier.height(4.dp))
+            Text(value, color = Color.White, fontSize = 20.sp, fontWeight = FontWeight.Bold)
+        }
+    }
+}

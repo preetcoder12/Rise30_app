@@ -10,6 +10,11 @@ import androidx.compose.ui.text.font.FontFamily
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.sp
 
+val Charcoal = Color(0xFF151515)
+val CharcoalLight = Color(0xFF1E1E1E)
+val LemonYellow = Color(0xFFFFD54F)
+
+
 // Central place to control the app font.
 // When you add real Poppins font files under res/font, you can
 // replace this with a FontFamily based on those resources.

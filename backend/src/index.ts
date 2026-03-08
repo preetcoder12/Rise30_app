@@ -10,6 +10,8 @@ import challengesRouter from "./routes/challenges";
 import waterChallengeRouter from "./routes/waterChallenge";
 import usersRouter from "./routes/users";
 import habitsRouter from "./routes/habits";
+import friendsRouter from "./routes/friends";
+import authRouter from "./routes/auth";
 
 dotenv.config();
 
@@ -31,6 +33,8 @@ app.use("/api/challenges", challengesRouter);
 app.use("/api/water-challenge", waterChallengeRouter);
 app.use("/api/users", usersRouter);
 app.use("/api/habits", habitsRouter);
+app.use("/api/friends", friendsRouter);
+app.use("/api/auth", authRouter);
 
 app.get("/api/motivation", (_req: Request, res: Response) => {
   const quotes = [
@@ -70,23 +74,7 @@ app.get("/api/deep-dive", (_req: Request, res: Response) => {
 });
 
 
-// User sync endpoint
-app.post("/api/auth/sync", async (req: Request, res: Response) => {
-  try {
-    const { userId, email } = req.body;
-    
-    const user = await prisma.user.upsert({
-      where: { email },
-      update: {},
-      create: { id: userId, email }
-    });
-    
-    res.json({ success: true, user });
-  } catch (error) {
-    console.error("Error syncing user:", error);
-    res.status(500).json({ success: false, error: "Failed to sync user" });
-  }
-});
+// Auth handled by authRouter
 
 const PORT = process.env.PORT || 4000;
 

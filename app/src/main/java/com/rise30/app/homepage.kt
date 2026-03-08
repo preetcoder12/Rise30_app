@@ -13,6 +13,7 @@ import androidx.compose.material.icons.Icons
 import androidx.compose.material.icons.filled.AcUnit
 import androidx.compose.material.icons.filled.LocalFireDepartment
 import androidx.compose.material.icons.filled.Notifications
+import androidx.compose.material.icons.filled.Search
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.*
@@ -770,6 +771,7 @@ fun HomePage(
     userName: String,
     onMarkComplete: () -> Unit,
     onNotificationClick: () -> Unit,
+    onSearchFriends: () -> Unit,
     currentTab: MainTab,
     onTabSelected: (MainTab) -> Unit
 ) {
@@ -940,7 +942,7 @@ fun HomePage(
 
             Spacer(modifier = Modifier.height(16.dp))
 
-            FriendsSection()
+            FriendsSection(onSearchFriends = onSearchFriends)
 
             Spacer(modifier = Modifier.height(16.dp))
 
@@ -1083,7 +1085,7 @@ private fun PowerMorningSection(userId: String) {
 ////////////////////////////////////////////////////////////
 
 @Composable
-private fun FriendsSection() {
+private fun FriendsSection(onSearchFriends: () -> Unit) {
     Column {
         Row(verticalAlignment = Alignment.CenterVertically) {
             Image(
@@ -1108,15 +1110,15 @@ private fun FriendsSection() {
                 .clip(RoundedCornerShape(20.dp))
                 .background(
                     Brush.linearGradient(
-                        colors = listOf(Color(0xFF1A1A28), Color(0xFF0E0E18))
+                        colors = listOf(Color(0xFF1E1E30), Color(0xFF14141E))
                     )
                 )
                 .border(
                     width = 1.dp,
                     brush = Brush.linearGradient(
                         colors = listOf(
-                            Color.White.copy(alpha = 0.10f),
-                            Color.White.copy(alpha = 0.02f)
+                            Color.White.copy(alpha = 0.12f),
+                            Color.White.copy(alpha = 0.04f)
                         )
                     ),
                     shape = RoundedCornerShape(20.dp)
@@ -1124,23 +1126,33 @@ private fun FriendsSection() {
                 .padding(20.dp)
         ) {
             Column(horizontalAlignment = Alignment.CenterHorizontally, modifier = Modifier.fillMaxWidth()) {
-                Icon(
-                    imageVector = Icons.Filled.AcUnit,
-                    contentDescription = null,
-                    tint = Color.Gray.copy(alpha = 0.5f),
-                    modifier = Modifier.size(32.dp)
-                )
-                Spacer(modifier = Modifier.height(8.dp))
                 Text(
-                    text = "Community features coming soon!",
-                    color = Color.Gray,
-                    fontSize = 13.sp,
+                    text = "Find other people on their Rise30 journey!",
+                    color = Color.White.copy(alpha = 0.7f),
+                    fontSize = 14.sp,
                     textAlign = androidx.compose.ui.text.style.TextAlign.Center
                 )
+                
+                Spacer(modifier = Modifier.height(16.dp))
+                
+                Button(
+                    onClick = onSearchFriends,
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = Accent.copy(alpha = 0.15f),
+                        contentColor = Accent
+                    ),
+                    shape = RoundedCornerShape(12.dp),
+                    modifier = Modifier.fillMaxWidth()
+                ) {
+                    Icon(Icons.Default.Search, contentDescription = null, modifier = Modifier.size(18.dp))
+                    Spacer(modifier = Modifier.width(8.dp))
+                    Text("Search Members", fontWeight = FontWeight.Bold)
+                }
             }
         }
     }
 }
+
 
 ////////////////////////////////////////////////////////////
 //////////////// STREAK SHIELD //////////////////////////////
