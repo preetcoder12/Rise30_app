@@ -187,6 +187,9 @@ fun ChallengesPage(
                             onClick = { onChallengeClick(challenge.id) },
                             onEdit = { onEditChallenge(challenge.id) },
                             onDelete = {
+                                // Optimistically remove the challenge from the UI for instant feedback
+                                challenges = challenges.filter { it.id != challenge.id }
+                                
                                 scope.launch {
                                     try {
                                         val response: HttpResponse = httpClient.delete("$BASE_URL/api/challenges/${challenge.id}") {
@@ -194,12 +197,14 @@ fun ChallengesPage(
                                                 parameters.append("userId", userId)
                                             }
                                         }
-                                        if (response.status == io.ktor.http.HttpStatusCode.OK) {
+                                        // If failed, restore the challenge by fetching again
+                                        if (response.status != io.ktor.http.HttpStatusCode.OK) {
                                             refreshTrigger++
-                                        } else {
                                             errorMessage = "Failed to delete challenge."
                                         }
                                     } catch (e: Exception) {
+                                        // On error, restore the challenge by fetching again
+                                        refreshTrigger++
                                         errorMessage = "Error deleting: ${e.message}"
                                     }
                                 }
