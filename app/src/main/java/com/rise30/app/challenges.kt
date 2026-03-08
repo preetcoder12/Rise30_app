@@ -53,7 +53,9 @@ data class ChallengeSummary(
     val progress: Int,
     val completedDays: Int,
     val currentStreak: Int,
-    val isActive: Boolean
+    val isActive: Boolean,
+    val isTodayCompleted: Boolean = false,
+    val currentDayNumber: Int = 1
 )
 
 @Composable
@@ -443,7 +445,9 @@ private suspend fun loadUserChallengesFromApi(
                     progress = c.progress.percentage,
                     completedDays = c.progress.completedDays,
                     currentStreak = c.progress.currentStreak,
-                    isActive = c.isActive
+                    isActive = c.isActive,
+                    isTodayCompleted = c.progress.isTodayCompleted,
+                    currentDayNumber = c.progress.currentDayNumber
                 )
             }
             CacheManager.saveChallenges(context, userId, challenges)

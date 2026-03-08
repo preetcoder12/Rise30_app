@@ -22,10 +22,14 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
 import io.ktor.client.call.*
 import io.ktor.client.request.*
+import io.ktor.client.statement.HttpResponse
+import io.ktor.http.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
 import kotlin.math.roundToInt
 import androidx.compose.ui.platform.LocalContext
+import io.ktor.client.request.post
+import io.ktor.client.request.setBody
 
 // 🌑 Premium Colors
 val BackgroundDark = Color(0xFF0D0D0F)
@@ -566,9 +570,10 @@ fun HomePage(
     // State for user's most recent challenge
     var recentChallenge by remember { mutableStateOf<ChallengeApiData?>(null) }
     var isLoadingChallenge by remember { mutableStateOf(true) }
+    var refreshTrigger by remember { mutableStateOf(0) }
     
     // Load user's challenges
-    LaunchedEffect(userId) {
+    LaunchedEffect(userId, refreshTrigger) {
         // Try Cache First
         val cached = CacheManager.getChallenges(context, userId)
         if (cached != null && cached.isNotEmpty()) {
@@ -590,8 +595,8 @@ fun HomePage(
                         totalDays = summary.duration,
                         percentage = summary.progress,
                         currentStreak = summary.currentStreak,
-                        isTodayCompleted = false,
-                        currentDayNumber = summary.completedDays + 1
+                        isTodayCompleted = summary.isTodayCompleted,
+                        currentDayNumber = summary.currentDayNumber
                     )
                 )
                 isLoadingChallenge = false
@@ -616,7 +621,9 @@ fun HomePage(
                             progress = c.progress.percentage,
                             completedDays = c.progress.completedDays,
                             currentStreak = c.progress.currentStreak,
-                            isActive = c.isActive
+                            isActive = c.isActive,
+                            isTodayCompleted = c.progress.isTodayCompleted,
+                            currentDayNumber = c.progress.currentDayNumber
                         )
                     }
                     CacheManager.saveChallenges(context, userId, challengesSummary)
@@ -654,7 +661,24 @@ fun HomePage(
 
                 MainChallengeCard(
                     challenge = recentChallenge,
-                    onMarkComplete = onMarkComplete
+                    onMarkComplete = {
+                        recentChallenge?.let { challenge ->
+                            scope.launch {
+                                try {
+                                    val response: HttpResponse = httpClient.post("$BASE_URL/api/challenges/${challenge.id}/mark-today") {
+                                        contentType(ContentType.Application.Json)
+                                        setBody(mapOf("userId" to userId))
+                                    }
+                                    if (response.status.isSuccess()) {
+                                        refreshTrigger++
+                                        onMarkComplete()
+                                    }
+                                } catch (e: Exception) {
+                                    // Silent catch
+                                }
+                            }
+                        }
+                    }
                 )
 
                 Spacer(modifier = Modifier.height(30.dp))
