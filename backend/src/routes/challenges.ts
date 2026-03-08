@@ -99,7 +99,7 @@ router.post('/', async (req, res) => {
       await prisma.user.create({
         data: {
           id: userId,
-          email: `user_${userId.substring(0, 8)}@rise30.app`
+          email: `user_${userId}@rise30.app`
         }
       })
     }
