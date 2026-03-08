@@ -20,17 +20,10 @@ import androidx.compose.ui.graphics.*
 import androidx.compose.ui.graphics.drawscope.Stroke
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.unit.*
-<<<<<<< HEAD
-import com.rise30.app.streak.StreakForgivenessState
-import com.rise30.app.streak.StreakRecoveryCard
-import com.rise30.app.streak.StreakBrokenCard
-import com.rise30.app.streak.StreakShieldBadge
-=======
 import io.ktor.client.call.*
 import io.ktor.client.request.*
 import kotlinx.coroutines.launch
 import kotlinx.serialization.Serializable
->>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
 import kotlin.math.roundToInt
 
 // 🌑 Premium Colors
@@ -116,14 +109,7 @@ private fun TopSection(
 
 @Composable
 private fun MainChallengeCard(
-<<<<<<< HEAD
-    currentDay: Int,
-    totalDays: Int,
-    streakLength: Int,
-    freezesRemaining: Int,
-=======
     challenge: ChallengeApiData?,
->>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
     onMarkComplete: () -> Unit
 ) {
     val currentDay = challenge?.progress?.completedDays ?: 0
@@ -213,6 +199,7 @@ private fun MainChallengeCard(
                 )
                 
                 // Streak info row
+                val streakLength = challenge?.progress?.currentStreak ?: 0
                 if (streakLength > 0) {
                     Spacer(modifier = Modifier.height(8.dp))
                     Row(
@@ -231,11 +218,6 @@ private fun MainChallengeCard(
                             fontSize = 12.sp,
                             fontWeight = FontWeight.Medium
                         )
-                        
-                        if (freezesRemaining > 0) {
-                            Spacer(modifier = Modifier.width(12.dp))
-                            StreakShieldBadge(freezesRemaining = freezesRemaining)
-                        }
                     }
                 }
                 
@@ -566,14 +548,7 @@ fun HomePage(
     onMarkComplete: () -> Unit,
     onSignOut: () -> Unit,
     currentTab: MainTab,
-    onTabSelected: (MainTab) -> Unit,
-    streakState: StreakForgivenessState = StreakForgivenessState(),
-    showRecoveryCard: Boolean = false,
-    showStreakBrokenCard: Boolean = false,
-    previousStreakLength: Int = 0,
-    onRecoverStreak: () -> Unit = {},
-    onDismissRecovery: () -> Unit = {},
-    onDismissStreakBroken: () -> Unit = {}
+    onTabSelected: (MainTab) -> Unit
 ) {
     val scrollState = rememberScrollState()
     val scope = rememberCoroutineScope()
@@ -617,34 +592,10 @@ fun HomePage(
 
                 Spacer(modifier = Modifier.height(30.dp))
 
-                // Show streak recovery card if needed
-                if (showRecoveryCard) {
-                    StreakRecoveryCard(
-                        state = streakState,
-                        onRecover = onRecoverStreak,
-                        onDismiss = onDismissRecovery
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
 
-                // Show streak broken card if needed
-                if (showStreakBrokenCard) {
-                    StreakBrokenCard(
-                        previousStreak = previousStreakLength,
-                        onContinue = onDismissStreakBroken
-                    )
-                    Spacer(modifier = Modifier.height(20.dp))
-                }
 
                 MainChallengeCard(
-<<<<<<< HEAD
-                    currentDay = 12,
-                    totalDays = 30,
-                    streakLength = streakState.streakLength,
-                    freezesRemaining = streakState.freezesRemaining,
-=======
                     challenge = recentChallenge,
->>>>>>> 5376e4c04b5b0e6f10f16eb23b1028ae8562da77
                     onMarkComplete = onMarkComplete
                 )
 
