@@ -193,6 +193,7 @@ fun WaterChallengeScreen(
                     // Daily Progress Grid
                     DailyProgressGrid(
                         currentDay = currentDay,
+                        totalDays = totalDays,
                         completedDays = completedDays
                     )
                     
@@ -429,11 +430,12 @@ private fun WaterAddButton(
 @Composable
 private fun DailyProgressGrid(
     currentDay: Int,
+    totalDays: Int,
     completedDays: Int
 ) {
     Column {
         Text(
-            text = "30-Day Progress",
+            text = "$totalDays-Day Progress",
             color = Color.White,
             fontSize = 18.sp,
             fontWeight = FontWeight.SemiBold
@@ -447,15 +449,15 @@ private fun DailyProgressGrid(
             shape = RoundedCornerShape(20.dp)
         ) {
             Column(modifier = Modifier.padding(16.dp)) {
-                // Show 10 days per row, 3 rows
-                for (row in 0..2) {
+                val rows = Math.ceil(totalDays / 10.0).toInt()
+                for (row in 0 until rows) {
                     Row(
                         modifier = Modifier.fillMaxWidth(),
                         horizontalArrangement = Arrangement.SpaceEvenly
                     ) {
                         for (col in 0..9) {
                             val day = row * 10 + col + 1
-                            if (day <= 30) {
+                            if (day <= totalDays) {
                                 val isCompleted = day <= completedDays
                                 val isCurrent = day == currentDay
                                 
@@ -467,7 +469,7 @@ private fun DailyProgressGrid(
                             }
                         }
                     }
-                    if (row < 2) {
+                    if (row < rows - 1) {
                         Spacer(modifier = Modifier.height(8.dp))
                     }
                 }
