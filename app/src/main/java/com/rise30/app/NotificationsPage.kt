@@ -25,8 +25,7 @@ import androidx.compose.ui.unit.sp
 @Composable
 fun NotificationsPage(
     userName: String,
-    currentTab: MainTab,
-    onTabSelected: (MainTab) -> Unit
+    onBack: () -> Unit
 ) {
     val scrollState = rememberScrollState()
     
@@ -43,6 +42,14 @@ fun NotificationsPage(
                 .padding(horizontal = 20.dp)
         ) {
             Spacer(modifier = Modifier.height(20.dp))
+            
+            // Back Button
+            TextButton(
+                onClick = onBack,
+                modifier = Modifier.padding(bottom = 16.dp)
+            ) {
+                Text("← Back", color = Accent)
+            }
             
             // Header
             Text(
@@ -64,11 +71,6 @@ fun NotificationsPage(
             
             Spacer(modifier = Modifier.height(96.dp))
         }
-        
-        HomeFloatingBottomBar(
-            currentTab = currentTab,
-            onTabSelected = onTabSelected
-        )
     }
 }
 

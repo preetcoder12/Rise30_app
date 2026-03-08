@@ -95,8 +95,7 @@ fun ProfilePage(
         modifier = Modifier.fillMaxSize(),
         color = BackgroundDark
     ) {
-        Box {
-            Column(
+        Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
@@ -348,14 +347,6 @@ fun ProfilePage(
                     Text(text = "Sign Out", color = Color.Red)
                 }
 
-                Spacer(modifier = Modifier.height(130.dp))
-            }
-
-            // Bottom Nav
-            HomeFloatingBottomBar(
-                currentTab = currentTab,
-                onTabSelected = onTabSelected
-            )
         }
     }
 }

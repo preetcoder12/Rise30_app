@@ -190,23 +190,22 @@ fun ChallengeDetailScreen(
         modifier = Modifier.fillMaxSize(),
         color = BackgroundDark
     ) {
-        Box {
-            if (isLoading) {
-                Box(
-                    modifier = Modifier.fillMaxSize(),
-                    contentAlignment = Alignment.Center
-                ) {
-                    CircularProgressIndicator(color = challengeColor)
-                }
-            } else {
-                Column(
-                    modifier = Modifier
-                        .fillMaxSize()
-                        .statusBarsPadding()
-                        .verticalScroll(scrollState)
-                        .padding(horizontal = 20.dp),
-                    horizontalAlignment = Alignment.CenterHorizontally
-                ) {
+        if (isLoading) {
+            Box(
+                modifier = Modifier.fillMaxSize(),
+                contentAlignment = Alignment.Center
+            ) {
+                CircularProgressIndicator(color = challengeColor)
+            }
+        } else {
+            Column(
+                modifier = Modifier
+                    .fillMaxSize()
+                    .statusBarsPadding()
+                    .verticalScroll(scrollState)
+                    .padding(horizontal = 20.dp),
+                horizontalAlignment = Alignment.CenterHorizontally
+            ) {
                     // Header
                     ChallengeDetailHeader(
                         challengeName = challenge?.name ?: "",
@@ -272,18 +271,9 @@ fun ChallengeDetailScreen(
                         }
                     }
                     
-                    Spacer(modifier = Modifier.height(106.dp))
                 }
             }
-            
-            HomeFloatingBottomBar(
-                currentTab = currentTab,
-                onTabSelected = { selected ->
-                    onTabSelected(selected)
-                }
-            )
         }
-    }
     
     // Day Detail Dialog
     if (showDayDialog && selectedDay != null) {

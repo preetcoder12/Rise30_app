@@ -85,8 +85,7 @@ fun CreateChallengeScreen(
         modifier = Modifier.fillMaxSize(),
         color = BackgroundDark
     ) {
-        Box {
-            Column(
+        Column(
                 modifier = Modifier
                     .fillMaxSize()
                     .statusBarsPadding()
@@ -406,13 +405,6 @@ fun CreateChallengeScreen(
                     }
                 }
                 
-                Spacer(modifier = Modifier.height(106.dp))
-            }
-            
-            HomeFloatingBottomBar(
-                currentTab = currentTab,
-                onTabSelected = onTabSelected
-            )
         }
     }
 }

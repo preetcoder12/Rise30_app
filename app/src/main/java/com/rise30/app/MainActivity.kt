@@ -9,6 +9,7 @@ import androidx.activity.result.ActivityResultLauncher
 import androidx.activity.result.contract.ActivityResultContracts
 import androidx.activity.viewModels
 import androidx.lifecycle.lifecycleScope
+import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
 import androidx.compose.foundation.background
@@ -54,7 +55,6 @@ enum class AuthPage {
 enum class MainTab {
     Home,
     Challenges,
-    Notifications,
     Profile
 }
 
@@ -63,7 +63,8 @@ enum class ChallengeScreen {
     WaterChallenge,
     ChallengeDetail,
     CreateChallenge,
-    EditChallenge
+    EditChallenge,
+    Notifications
 }
 
 class MainActivity : ComponentActivity() {
@@ -112,160 +113,179 @@ class MainActivity : ComponentActivity() {
 
         setContent {
             Rise30Theme {
+                val state = viewModel.state
                 var page by remember { mutableStateOf(AuthPage.SignIn) }
                 var currentTab by remember { mutableStateOf(MainTab.Home) }
                 var currentChallengeScreen by remember { mutableStateOf(ChallengeScreen.None) }
                 var selectedChallengeId by remember { mutableStateOf<String?>(null) }
-                var previousTab by remember { mutableStateOf(MainTab.Home) }
-                val state = viewModel.state
-
-                // Reset to Home tab whenever user successfully logs in or signs up
+                // Only reset to Home tab when the user FIRST logs in
+                var wasLoggedIn by remember { mutableStateOf(state.currentUser != null) }
                 LaunchedEffect(state.currentUser) {
-                    if (state.currentUser != null) {
+                    if (state.currentUser != null && !wasLoggedIn) {
                         currentTab = MainTab.Home
                         currentChallengeScreen = ChallengeScreen.None
+                        wasLoggedIn = true
+                    } else if (state.currentUser == null) {
+                        wasLoggedIn = false
                     }
                 }
 
-                // Track tab changes for animation direction
-                LaunchedEffect(currentTab) {
-                    previousTab = currentTab
-                }
-
                 if (state.currentUser != null) {
-                    val displayName = state.currentUser.user?.email ?: "User"
-                    val userId = state.currentUser.user?.id ?: ""
+                    val displayName = state.currentUser?.user?.userMetadata?.get("full_name")?.toString()?.replace("\"", "") ?: state.currentUser?.user?.email ?: "User"
+                    val userId = state.currentUser?.user?.id ?: ""
                     
-                    // Animated content with slide transitions
-                    AnimatedContent(
-                        targetState = currentChallengeScreen,
-                        transitionSpec = {
-                            val direction = if (targetState == ChallengeScreen.None) {
-                                AnimatedContentTransitionScope.SlideDirection.Right
-                            } else {
-                                AnimatedContentTransitionScope.SlideDirection.Left
-                            }
-                            slideIntoContainer(direction) + fadeIn() togetherWith
-                            slideOutOfContainer(direction) + fadeOut()
-                        },
-                        label = "challenge_screen"
-                    ) { screen ->
-                        when (screen) {
-                            ChallengeScreen.WaterChallenge -> {
-                                WaterChallengeScreen(
-                                    userId = userId,
-                                    onBack = { currentChallengeScreen = ChallengeScreen.None },
-                                    currentTab = currentTab,
-                                    onTabSelected = { selected -> 
-                                        currentTab = selected
-                                        currentChallengeScreen = ChallengeScreen.None
-                                    }
-                                )
-                            }
-                            ChallengeScreen.ChallengeDetail -> {
-                                ChallengeDetailScreen(
-                                    userId = userId,
-                                    challengeId = selectedChallengeId ?: "",
-                                    onBack = { currentChallengeScreen = ChallengeScreen.None },
-                                    currentTab = currentTab,
-                                    onTabSelected = { selected -> 
-                                        currentTab = selected
-                                        currentChallengeScreen = ChallengeScreen.None
-                                    }
-                                )
-                            }
-                            ChallengeScreen.CreateChallenge -> {
-                                CreateChallengeScreen(
-                                    userId = userId,
-                                    onBack = { currentChallengeScreen = ChallengeScreen.None },
-                                    onChallengeCreated = { 
-                                        currentChallengeScreen = ChallengeScreen.None
-                                    },
-                                    currentTab = currentTab,
-                                    onTabSelected = { selected -> 
-                                        currentTab = selected
-                                        currentChallengeScreen = ChallengeScreen.None
-                                    }
-                                )
-                            }
-                            ChallengeScreen.EditChallenge -> {
-                                EditChallengeScreen(
-                                    userId = userId,
-                                    challengeId = selectedChallengeId ?: "",
-                                    onBack = { currentChallengeScreen = ChallengeScreen.None },
-                                    onChallengeUpdated = { 
-                                        currentChallengeScreen = ChallengeScreen.None
-                                    },
-                                    currentTab = currentTab,
-                                    onTabSelected = { selected -> 
-                                        currentTab = selected
-                                        currentChallengeScreen = ChallengeScreen.None
-                                    }
-                                )
-                            }
-                            ChallengeScreen.None -> {
-                                // Animated tab content with horizontal sliding
-                                AnimatedContent(
-                                    targetState = currentTab,
-                                    transitionSpec = {
-                                        val direction = if (
-                                            targetState.ordinal > initialState.ordinal
-                                        ) {
-                                            AnimatedContentTransitionScope.SlideDirection.Left
-                                        } else {
-                                            AnimatedContentTransitionScope.SlideDirection.Right
+                    Box(modifier = Modifier.fillMaxSize()) {
+                        // Handle system back gesture
+                        BackHandler(enabled = currentChallengeScreen != ChallengeScreen.None) {
+                            currentChallengeScreen = ChallengeScreen.None
+                        }
+
+                        // Animated content with slide transitions
+                        AnimatedContent(
+                            targetState = currentChallengeScreen,
+                            modifier = Modifier.fillMaxSize(),
+                            transitionSpec = {
+                                val direction = if (targetState == ChallengeScreen.None) {
+                                    AnimatedContentTransitionScope.SlideDirection.Right
+                                } else {
+                                    AnimatedContentTransitionScope.SlideDirection.Left
+                                }
+                                slideIntoContainer(direction) + fadeIn() togetherWith
+                                slideOutOfContainer(direction) + fadeOut()
+                            },
+                            label = "challenge_screen"
+                        ) { screen ->
+                            when (screen) {
+                                ChallengeScreen.Notifications -> {
+                                    NotificationsPage(
+                                        userName = displayName.substringBefore("@"),
+                                        onBack = { currentChallengeScreen = ChallengeScreen.None }
+                                    )
+                                }
+                                ChallengeScreen.WaterChallenge -> {
+                                    WaterChallengeScreen(
+                                        userId = userId,
+                                        onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                        currentTab = currentTab,
+                                        onTabSelected = { selected -> 
+                                            currentTab = selected
+                                            currentChallengeScreen = ChallengeScreen.None
                                         }
-                                        slideIntoContainer(direction) + fadeIn() togetherWith
-                                        slideOutOfContainer(direction) + fadeOut()
-                                    },
-                                    label = "main_tab"
-                                ) { tab ->
-                                    when (tab) {
-                                        MainTab.Home -> HomePage(
-                                            userId = userId,
-                                            userName = displayName.substringBefore("@"),
-                                            onMarkComplete = { },
-                                            onSignOut = { viewModel.signOut() },
-                                            currentTab = currentTab,
-                                            onTabSelected = { selected -> currentTab = selected }
-                                        )
-                                        MainTab.Challenges -> ChallengesPage(
-                                            userName = displayName.substringBefore("@"),
-                                            userId = userId,
-                                            onStartChallenge = { },
-                                            onStartWaterChallenge = { 
-                                                currentChallengeScreen = ChallengeScreen.WaterChallenge 
-                                            },
-                                            onChallengeClick = { challengeId ->
-                                                selectedChallengeId = challengeId
-                                                currentChallengeScreen = ChallengeScreen.ChallengeDetail
-                                            },
-                                            onCreateChallenge = {
-                                                currentChallengeScreen = ChallengeScreen.CreateChallenge
-                                            },
-                                            onEditChallenge = { challengeId ->
-                                                selectedChallengeId = challengeId
-                                                currentChallengeScreen = ChallengeScreen.EditChallenge
-                                            },
-                                            currentTab = currentTab,
-                                            onTabSelected = { selected -> currentTab = selected }
-                                        )
-                                        MainTab.Notifications -> NotificationsPage(
-                                            userName = displayName.substringBefore("@"),
-                                            currentTab = currentTab,
-                                            onTabSelected = { selected -> currentTab = selected }
-                                        )
-                                        MainTab.Profile -> ProfilePage(
-                                            userId = userId,
-                                            userName = displayName.substringBefore("@"),
-                                            onSignOut = { viewModel.signOut() },
-                                            currentTab = currentTab,
-                                            onTabSelected = { selected -> currentTab = selected }
-                                        )
+                                    )
+                                }
+                                ChallengeScreen.ChallengeDetail -> {
+                                    ChallengeDetailScreen(
+                                        userId = userId,
+                                        challengeId = selectedChallengeId ?: "",
+                                        onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                        currentTab = currentTab,
+                                        onTabSelected = { selected -> 
+                                            currentTab = selected
+                                            currentChallengeScreen = ChallengeScreen.None
+                                        }
+                                    )
+                                }
+                                ChallengeScreen.CreateChallenge -> {
+                                    CreateChallengeScreen(
+                                        userId = userId,
+                                        onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                        onChallengeCreated = { 
+                                            currentChallengeScreen = ChallengeScreen.None
+                                        },
+                                        currentTab = currentTab,
+                                        onTabSelected = { selected -> 
+                                            currentTab = selected
+                                            currentChallengeScreen = ChallengeScreen.None
+                                        }
+                                    )
+                                }
+                                ChallengeScreen.EditChallenge -> {
+                                    EditChallengeScreen(
+                                        userId = userId,
+                                        challengeId = selectedChallengeId ?: "",
+                                        onBack = { currentChallengeScreen = ChallengeScreen.None },
+                                        onChallengeUpdated = { 
+                                            currentChallengeScreen = ChallengeScreen.None
+                                        },
+                                        currentTab = currentTab,
+                                        onTabSelected = { selected -> 
+                                            currentTab = selected
+                                            currentChallengeScreen = ChallengeScreen.None
+                                        }
+                                    )
+                                }
+                                ChallengeScreen.None -> {
+                                    // Animated tab content with horizontal sliding
+                                    AnimatedContent(
+                                        targetState = currentTab,
+                                        modifier = Modifier.fillMaxSize(),
+                                        transitionSpec = {
+                                            val direction = if (
+                                                targetState.ordinal > initialState.ordinal
+                                            ) {
+                                                AnimatedContentTransitionScope.SlideDirection.Left
+                                            } else {
+                                                AnimatedContentTransitionScope.SlideDirection.Right
+                                            }
+                                            slideIntoContainer(direction) + fadeIn() togetherWith
+                                            slideOutOfContainer(direction) + fadeOut()
+                                        },
+                                        label = "main_tab"
+                                    ) { tab ->
+                                        when (tab) {
+                                            MainTab.Home -> HomePage(
+                                                userId = userId,
+                                                userName = displayName.substringBefore("@"),
+                                                onMarkComplete = { },
+                                                onNotificationClick = {
+                                                    currentChallengeScreen = ChallengeScreen.Notifications
+                                                },
+                                                currentTab = currentTab,
+                                                onTabSelected = { selected -> currentTab = selected }
+                                            )
+                                            MainTab.Challenges -> ChallengesPage(
+                                                userName = displayName.substringBefore("@"),
+                                                userId = userId,
+                                                onStartChallenge = { },
+                                                onStartWaterChallenge = { 
+                                                    currentChallengeScreen = ChallengeScreen.WaterChallenge 
+                                                },
+                                                onChallengeClick = { challengeId ->
+                                                    selectedChallengeId = challengeId
+                                                    currentChallengeScreen = ChallengeScreen.ChallengeDetail
+                                                },
+                                                onCreateChallenge = {
+                                                    currentChallengeScreen = ChallengeScreen.CreateChallenge
+                                                },
+                                                onEditChallenge = { challengeId ->
+                                                    selectedChallengeId = challengeId
+                                                    currentChallengeScreen = ChallengeScreen.EditChallenge
+                                                },
+                                                currentTab = currentTab,
+                                                onTabSelected = { selected -> currentTab = selected }
+                                            )
+
+                                            MainTab.Profile -> ProfilePage(
+                                                userId = userId,
+                                                userName = displayName.substringBefore("@"),
+                                                onSignOut = { viewModel.signOut() },
+                                                currentTab = currentTab,
+                                                onTabSelected = { selected -> currentTab = selected }
+                                            )
+                                        }
                                     }
                                 }
                             }
                         }
+
+                        // Persistent Bottom Bar
+                        HomeFloatingBottomBar(
+                            currentTab = currentTab,
+                            onTabSelected = { selected ->
+                                currentTab = selected
+                                currentChallengeScreen = ChallengeScreen.None
+                            }
+                        )
                     }
                 } else {
                     // Auth screens with slide animation

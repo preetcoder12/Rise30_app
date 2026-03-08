@@ -233,7 +233,8 @@ fun ChallengesPage(
                 onClick = onCreateChallenge,
                 modifier = Modifier
                     .align(Alignment.BottomEnd)
-                    .padding(end = 20.dp, bottom = 140.dp),
+                    .navigationBarsPadding()
+                    .padding(end = 20.dp, bottom = 85.dp),
                 containerColor = Accent,
                 contentColor = Color.Black,
                 shape = RoundedCornerShape(16.dp)
@@ -243,13 +244,6 @@ fun ChallengesPage(
                     contentDescription = "Create Challenge"
                 )
             }
-
-            // Bottom Navigation
-            HomeFloatingBottomBar(
-                currentTab = currentTab,
-                onTabSelected = onTabSelected
-            )
-            
 
         }
     }
