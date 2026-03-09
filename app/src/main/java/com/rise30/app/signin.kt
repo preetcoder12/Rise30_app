@@ -4,6 +4,7 @@ import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.res.painterResource
+import androidx.compose.ui.draw.clip
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
 import androidx.compose.foundation.shape.RoundedCornerShape
@@ -65,9 +66,17 @@ fun SignInScreen(
         ) {
             
             // --- HEADER ---
+            Image(
+                painter = painterResource(id = R.drawable.app_logo),
+                contentDescription = "Rise30 Logo",
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(24.dp))
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Rise30",
-                fontSize = 40.sp, // Slightly larger for impact
+                fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = LemonYellow,
                 textAlign = TextAlign.Center,

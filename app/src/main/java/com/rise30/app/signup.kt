@@ -1,5 +1,6 @@
 package com.rise30.app
 
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.Arrangement
 import androidx.compose.foundation.layout.Column
@@ -12,6 +13,8 @@ import androidx.compose.foundation.layout.navigationBarsPadding
 import androidx.compose.foundation.layout.padding
 import androidx.compose.foundation.layout.size
 import androidx.compose.foundation.layout.statusBarsPadding
+import androidx.compose.ui.draw.clip
+import androidx.compose.ui.res.painterResource
 import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.foundation.text.KeyboardOptions
 import androidx.compose.material3.Button
@@ -66,9 +69,17 @@ fun SignUpScreen(
         ) {
             
             // --- HEADER ---
+            Image(
+                painter = painterResource(id = R.drawable.app_logo),
+                contentDescription = "Rise30 Logo",
+                modifier = Modifier
+                    .size(100.dp)
+                    .clip(RoundedCornerShape(24.dp))
+            )
+            Spacer(modifier = Modifier.height(16.dp))
             Text(
                 text = "Create Account",
-                fontSize = 36.sp, // Matched visual weight of SignIn
+                fontSize = 32.sp,
                 fontWeight = FontWeight.ExtraBold,
                 color = LemonYellow,
                 textAlign = TextAlign.Center,

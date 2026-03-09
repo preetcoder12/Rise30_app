@@ -133,21 +133,33 @@ private fun TopSection(
         horizontalArrangement = Arrangement.SpaceBetween,
         verticalAlignment = Alignment.CenterVertically
     ) {
-        Column(
-            verticalArrangement = Arrangement.Center
+        Row(
+            verticalAlignment = Alignment.CenterVertically
         ) {
-            Text(
-                text = "Welcome back,",
-                color = Color.Gray,
-                fontSize = 16.sp
+            Image(
+                painter = painterResource(id = R.drawable.app_logo),
+                contentDescription = "Rise30 Logo",
+                modifier = Modifier
+                    .size(48.dp)
+                    .clip(RoundedCornerShape(12.dp))
             )
-            Spacer(modifier = Modifier.height(4.dp))
-            Text(
-                text = userName,
-                color = Color.White,
-                fontSize = 20.sp,
-                fontWeight = FontWeight.Bold
-            )
+            Spacer(modifier = Modifier.width(12.dp))
+            Column(
+                verticalArrangement = Arrangement.Center
+            ) {
+                Text(
+                    text = "Welcome back,",
+                    color = Color.Gray,
+                    fontSize = 14.sp
+                )
+                Spacer(modifier = Modifier.height(2.dp))
+                Text(
+                    text = userName,
+                    color = Color.White,
+                    fontSize = 18.sp,
+                    fontWeight = FontWeight.Bold
+                )
+            }
         }
 
         IconButton(
