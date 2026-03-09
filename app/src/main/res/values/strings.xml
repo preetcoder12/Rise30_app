@@ -6,5 +6,5 @@
       Google OAuth "Web client ID" (server client ID), e.g. 1234567890-abcdefg.apps.googleusercontent.com
       Used to request an ID token via GoogleSignInOptions.requestIdToken().
     -->
-    <string name="google_server_client_id">831401774383-4sook7ujjjmt8a5liovdqrukq2lf8b49.apps.googleusercontent.com</string>
+    <string name="google_server_client_id">933238775079-r21o9qugd3k73mnd22183hgc60ti063v.apps.googleusercontent.com</string>
 </resources>

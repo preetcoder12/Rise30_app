@@ -3,6 +3,7 @@ plugins {
     id("org.jetbrains.kotlin.android")
     id("org.jetbrains.kotlin.plugin.compose")
     kotlin("plugin.serialization") version "2.3.0"
+    id("com.google.gms.google-services")
 }
 
 android {
@@ -90,11 +91,26 @@ dependencies {
     
     // Kotlinx Serialization
     implementation("org.jetbrains.kotlinx:kotlinx-serialization-json:1.6.3")
+    implementation("org.jetbrains.kotlinx:kotlinx-coroutines-play-services:1.8.1")
 
     // Android 12+ splash screen compatibility
     implementation("androidx.core:core-splashscreen:1.0.1")
 
     // Native Google Sign-In (ID token)
     implementation("com.google.android.gms:play-services-auth:21.5.1")
+
+    // Import the Firebase BoM
+    implementation(platform("com.google.firebase:firebase-bom:34.10.0"))
+
+    // Firebase Analytics
+    implementation("com.google.firebase:firebase-analytics")
+
+    // Firebase Authentication
+    implementation("com.google.firebase:firebase-auth")
+
+    // Add other Firebase products as needed
+    // For example:
+    // implementation("com.google.firebase:firebase-firestore")
+    // implementation("com.google.firebase:firebase-storage")
 }
 

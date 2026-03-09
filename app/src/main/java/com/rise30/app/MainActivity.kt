@@ -23,6 +23,7 @@ import androidx.compose.foundation.shape.RoundedCornerShape
 import androidx.compose.ui.graphics.graphicsLayer
 import androidx.compose.ui.res.painterResource
 import kotlinx.coroutines.delay
+import kotlinx.coroutines.tasks.await
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -40,25 +41,19 @@ import com.google.android.gms.auth.api.signin.GoogleSignIn
 import com.google.android.gms.auth.api.signin.GoogleSignInClient
 import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
+import com.google.firebase.auth.FirebaseAuth
+import com.google.firebase.auth.GoogleAuthProvider
+import com.google.firebase.auth.FirebaseUser
 import com.rise30.app.streak.StreakViewModel
 import com.rise30.app.LemonYellow
 import com.rise30.app.util.NotificationHelper
 import com.rise30.app.util.NotificationScheduler
-import io.github.jan.supabase.auth.Auth
-import io.github.jan.supabase.auth.auth
-import io.github.jan.supabase.auth.providers.Google
-import io.github.jan.supabase.auth.handleDeeplinks
-import io.github.jan.supabase.auth.providers.builtin.Email
-import io.github.jan.supabase.auth.providers.builtin.IDToken
 import io.ktor.client.call.body
 import io.ktor.client.request.*
 import io.ktor.http.ContentType
 import io.ktor.http.contentType
-import io.github.jan.supabase.auth.providers.builtin.OTP
-import io.github.jan.supabase.auth.user.UserSession
-import io.github.jan.supabase.postgrest.from
 import kotlinx.coroutines.launch
-import kotlinx.coroutines.withTimeout
+import kotlinx.coroutines.tasks.await
 import kotlinx.serialization.Serializable
 import kotlinx.serialization.json.buildJsonObject
 import kotlinx.serialization.json.put
@@ -172,8 +167,7 @@ class MainActivity : ComponentActivity() {
         viewModel.initSession(this)
 
 
-        // Handle Supabase OAuth/OTP deep links
-        intent?.let { SupabaseClient.client.handleDeeplinks(it) }
+        // Supabase Auth deep links removed as we are Firebase-only
 
         googleSignInClient = GoogleSignIn.getClient(
             this,
@@ -190,16 +184,23 @@ class MainActivity : ComponentActivity() {
                     return@registerForActivityResult
                 }
                 try {
-                    val account = GoogleSignIn.getSignedInAccountFromIntent(data)
-                        .getResult(ApiException::class.java)
+                    val task = GoogleSignIn.getSignedInAccountFromIntent(result.data)
+                    val account = task.getResult(ApiException::class.java)
                     val idToken = account.idToken
                     if (idToken.isNullOrBlank()) {
-                        viewModel.onAuthError("No Google ID token returned")
+                        viewModel.onAuthError("No Google ID token returned from account")
                     } else {
-                        viewModel.loginWithGoogleIdToken(idToken)
+                        viewModel.loginWithGoogleIdToken(this@MainActivity, idToken)
                     }
+                } catch (e: ApiException) {
+                    val message = when (e.statusCode) {
+                        10 -> "Developer Error (Code 10): Ensure SHA-1 is in Firebase Console and Web Client ID is correct."
+                        12500 -> "Sign-in failed (Code 12500): Check Google Play Services and fingerprints."
+                        else -> "Google error (${e.statusCode}): ${e.message}"
+                    }
+                    viewModel.onAuthError(message)
                 } catch (e: Exception) {
-                    viewModel.onAuthError(e.message ?: "Google sign-in failed")
+                    viewModel.onAuthError("Unexpected error: ${e.message}")
                 }
             }
 
@@ -498,15 +499,10 @@ class MainActivity : ComponentActivity() {
 
     override fun onNewIntent(intent: Intent) {
         super.onNewIntent(intent)
-        SupabaseClient.client.handleDeeplinks(intent)
     }
 
     override fun onResume() {
         super.onResume()
-        // Refresh session when app comes back to foreground
-        lifecycleScope.launch {
-            SupabaseClient.refreshSessionIfNeeded()
-        }
     }
     
     /**
@@ -534,46 +530,36 @@ data class AuthUiState(
     val isInitializing: Boolean = true,
     val isLoading: Boolean = false,
     val currentAccount: UserAccount? = null,
-    val supabaseSession: UserSession? = null,
+    val firebaseUser: FirebaseUser? = null,
     val error: String? = null,
     val info: String? = null
 ) {
-    val isLoggedIn: Boolean get() = currentAccount != null || supabaseSession != null
-    val userId: String? get() = currentAccount?.id ?: supabaseSession?.user?.id
-    val email: String? get() = currentAccount?.email ?: supabaseSession?.user?.email
+    val isLoggedIn: Boolean get() = currentAccount != null || firebaseUser != null
+    val userId: String? get() = currentAccount?.id ?: firebaseUser?.uid
+    val email: String? get() = currentAccount?.email ?: firebaseUser?.email
 }
 
 class AuthViewModel : ViewModel() {
 
-    private val auth: Auth = SupabaseClient.client.auth
+    private val firebaseAuth: FirebaseAuth = FirebaseAuth.getInstance()
 
     var state by mutableStateOf(AuthUiState())
         private set
 
     fun initSession(context: Context) {
         viewModelScope.launch {
-            // 1. Check Custom Backend Session (Email/Pass)
+            // 1. Check Custom Backend Session (for local profile info)
             val savedAccount = SessionManager.getSession(context)
             if (savedAccount != null) {
-                state = state.copy(currentAccount = savedAccount, isInitializing = false)
+                state = state.copy(currentAccount = savedAccount)
             }
 
-            // 2. Listen for Supabase Status (Google/OAuth)
-            auth.sessionStatus.collect { status ->
-                when (status) {
-                    is io.github.jan.supabase.auth.status.SessionStatus.Authenticated -> {
-                        state = state.copy(supabaseSession = status.session, isInitializing = false)
-                    }
-                    is io.github.jan.supabase.auth.status.SessionStatus.NotAuthenticated -> {
-                        state = state.copy(supabaseSession = null)
-                        if (state.currentAccount == null) {
-                            state = state.copy(isInitializing = false)
-                        }
-                    }
-                    else -> {
-                        // E.g., Initializing. Keep isInitializing = true if no savedAccount exists yet.
-                    }
-                }
+            // 2. Check Firebase Auth (The main authority)
+            val currentFirebaseUser = firebaseAuth.currentUser
+            if (currentFirebaseUser != null) {
+                state = state.copy(firebaseUser = currentFirebaseUser, isInitializing = false)
+            } else {
+                state = state.copy(isInitializing = false)
             }
         }
     }
@@ -590,19 +576,16 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null, info = null)
             try {
-                val response: AuthResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/auth/login") {
-                    contentType(ContentType.Application.Json)
-                    setBody(mapOf("email" to email, "password" to password))
-                }.body()
-
-                if (response.success && response.user != null) {
-                    SessionManager.saveSession(context, response.user, response.token)
-                    state = state.copy(isLoading = false, currentAccount = response.user)
+                val result = firebaseAuth.signInWithEmailAndPassword(email, password).await()
+                val user = result.user
+                if (user != null) {
+                    syncFirebaseUserWithBackend(context, user)
+                    state = state.copy(isLoading = false, firebaseUser = user)
                 } else {
-                    state = state.copy(isLoading = false, error = response.error ?: "Login failed")
+                    state = state.copy(isLoading = false, error = "Login failed: No user returned")
                 }
             } catch (e: Exception) {
-                state = state.copy(isLoading = false, error = e.message ?: "Network error")
+                state = state.copy(isLoading = false, error = e.message ?: "Login error")
             }
         }
     }
@@ -611,77 +594,89 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null, info = null)
             try {
-                val response: AuthResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/auth/register") {
-                    contentType(ContentType.Application.Json)
-                    setBody(mapOf("email" to email, "password" to password, "displayName" to email.substringBefore("@")))
-                }.body()
-
-                if (response.success && response.user != null) {
-                    SessionManager.saveSession(context, response.user, response.token)
-                    state = state.copy(isLoading = false, currentAccount = response.user, info = "Account created!")
+                val result = firebaseAuth.createUserWithEmailAndPassword(email, password).await()
+                val user = result.user
+                if (user != null) {
+                    syncFirebaseUserWithBackend(context, user)
+                    state = state.copy(isLoading = false, firebaseUser = user, info = "Account created!")
                     
                     // Send warm welcome notification!
                     val userName = email.substringBefore("@")
                     NotificationHelper.showWelcomeNotification(context, userName)
                     NotificationScheduler.scheduleMorningRitual(context, dayNumber = 1)
                 } else {
-                    state = state.copy(isLoading = false, error = response.error ?: "Signup failed")
+                    state = state.copy(isLoading = false, error = "Signup failed")
                 }
             } catch (e: Exception) {
-                state = state.copy(isLoading = false, error = e.message ?: "Network error")
+                state = state.copy(isLoading = false, error = e.message ?: "Signup error")
             }
         }
     }
 
 
     fun sendOtp(email: String) {
+        // Kept for UI signature, but OTP not yet implemented via Firebase here
+        state = state.copy(error = "OTP not implemented via Firebase in this version")
+    }
+
+    fun loginWithGoogleFirebase(context: Context, idToken: String) {
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null, info = null)
             try {
-                auth.signInWith(OTP) { this.email = email }
+                val credential = GoogleAuthProvider.getCredential(idToken, null)
+                val result = firebaseAuth.signInWithCredential(credential).await()
+                val user = result.user
+                
+                if (user != null) {
+                    syncFirebaseUserWithBackend(context, user)
+                    state = state.copy(
+                        isLoading = false,
+                        firebaseUser = user,
+                        info = "Signed in with Google (Firebase)."
+                    )
+                } else {
+                    state = state.copy(isLoading = false, error = "Firebase sign-in failed: No user")
+                }
+            } catch (e: Exception) {
                 state = state.copy(
                     isLoading = false,
-                    info = "OTP sent. Check your email."
+                    error = e.message ?: "Google Firebase login failed"
                 )
-            } catch (e: Exception) {
-                state = state.copy(isLoading = false, error = e.message ?: "OTP failed")
             }
         }
     }
 
-    fun loginWithGoogleIdToken(idToken: String) {
-        viewModelScope.launch {
-            state = state.copy(isLoading = true, error = null, info = null)
-            try {
-                withTimeout(20_000) {
-                    auth.signInWith(IDToken) {
-                        this.idToken = idToken
-                        provider = Google
-                    }
-                }
-                val session = auth.currentSessionOrNull()
-                if (session != null) {
-                    syncPublicUserRow(session)
-                }
-                state = state.copy(
-                    isLoading = false,
-                    supabaseSession = session,
-                    info = if (session != null) "Signed in with Google." else "Signed in (no session found)."
-                )
-            } catch (e: Exception) {
-                state = state.copy(
-                    isLoading = false,
-                    error = e.message ?: "Google login failed"
-                )
+    private suspend fun syncFirebaseUserWithBackend(context: Context, user: FirebaseUser) {
+        val userId = user.uid
+        val email = user.email ?: return
+        val displayName = user.displayName ?: email.substringBefore("@")
+
+        try {
+            val response: AuthResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/auth/sync") {
+                contentType(ContentType.Application.Json)
+                setBody(mapOf("userId" to userId, "email" to email, "displayName" to displayName))
+            }.body()
+
+            if (response.success && response.user != null) {
+                SessionManager.saveSession(context, response.user, response.token)
+                state = state.copy(currentAccount = response.user, info = "Profile synced.")
+            } else {
+                state = state.copy(error = response.error ?: "Failed to sync profile.")
             }
+        } catch (e: Exception) {
+            state = state.copy(info = "Signed in (API sync failed): ${e.message}")
         }
+    }
+
+    fun loginWithGoogleIdToken(context: Context, idToken: String) {
+        loginWithGoogleFirebase(context, idToken)
     }
 
     fun signOut(context: Context) {
         viewModelScope.launch {
             try {
                 SessionManager.clearSession(context)
-                auth.signOut()
+                firebaseAuth.signOut()
             } finally {
                 state = AuthUiState(isInitializing = false, info = "Signed out.")
             }
@@ -693,10 +688,7 @@ class AuthViewModel : ViewModel() {
         viewModelScope.launch {
             state = state.copy(isLoading = true, error = null, info = null)
             try {
-                auth.resetPasswordForEmail(
-                    email = email,
-                    redirectUrl = "rise30://auth"
-                )
+                firebaseAuth.sendPasswordResetEmail(email).await()
                 state = state.copy(
                     isLoading = false,
                     info = "Password reset email sent. Check your inbox."
@@ -710,100 +702,11 @@ class AuthViewModel : ViewModel() {
         }
     }
 
-    private suspend fun syncPublicUserRow(session: UserSession) {
-        val user = session.user ?: return
-        val userId = user.id
-        val email = user.email ?: return
-        val displayName = email.substringBefore("@")
-
-        try {
-            val response: AuthResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/auth/sync") {
-                contentType(ContentType.Application.Json)
-                setBody(mapOf("userId" to userId, "email" to email, "displayName" to displayName))
-            }.body()
-
-            if (response.success) {
-                state = state.copy(info = "Google profile synced.")
-            } else {
-                state = state.copy(error = response.error ?: "Failed to sync Google profile.")
-            }
-        } catch (e: Exception) {
-            state = state.copy(info = "Signed in locally (API sync failed): ${e.message}")
-        }
-    }
+    // Supabase sync row removed as we are Firebase-only now
 }
 
 
-@Composable
-fun SignedInScreen(
-    session: UserSession,
-    info: String?,
-    onSignOut: () -> Unit
-) {
-    val userId = session.user?.id ?: "(no id)"
-    val email = session.user?.email ?: "(no email)"
 
-    Surface(
-        modifier = Modifier
-            .fillMaxSize()
-            .background(Charcoal),
-        color = Charcoal
-    ) {
-        Column(
-            modifier = Modifier
-                .fillMaxSize()
-                .padding(24.dp),
-            verticalArrangement = Arrangement.Center,
-            horizontalAlignment = Alignment.CenterHorizontally
-        ) {
-            Text(
-                text = "Signed in",
-                fontSize = 28.sp,
-                fontWeight = FontWeight.Bold,
-                color = LemonYellow,
-                textAlign = TextAlign.Center
-            )
-
-            Spacer(modifier = Modifier.height(12.dp))
-
-            Text(
-                text = "Email: $email",
-                color = Color.White,
-                fontSize = 14.sp
-            )
-            Text(
-                text = "User ID: $userId",
-                color = Color.White,
-                fontSize = 12.sp
-            )
-
-            if (!info.isNullOrBlank()) {
-                Spacer(modifier = Modifier.height(12.dp))
-                Text(
-                    text = info,
-                    color = LemonYellow,
-                    fontSize = 14.sp,
-                    textAlign = TextAlign.Center,
-                    modifier = Modifier.fillMaxWidth()
-                )
-            }
-
-            Spacer(modifier = Modifier.height(24.dp))
-
-            Button(
-                onClick = onSignOut,
-                modifier = Modifier.fillMaxWidth(),
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = CharcoalLight,
-                    contentColor = LemonYellow
-                ),
-                shape = RoundedCornerShape(12.dp)
-            ) {
-                Text("Sign out")
-            }
-        }
-    }
-}
 
 @Composable
 fun AnimatedSplashScreen() {

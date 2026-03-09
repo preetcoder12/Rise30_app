@@ -1,0 +1,47 @@
+{
+  "project_info": {
+    "project_number": "933238775079",
+    "project_id": "rise30-632a0",
+    "storage_bucket": "rise30-632a0.firebasestorage.app"
+  },
+  "client": [
+    {
+      "client_info": {
+        "mobilesdk_app_id": "1:933238775079:android:67392bba6e6a59d30b5d02",
+        "android_client_info": {
+          "package_name": "com.rise30.app"
+        }
+      },
+      "oauth_client": [
+        {
+          "client_id": "933238775079-0r7mlvgmpkjgtr05l5uoofca9rjff0nq.apps.googleusercontent.com",
+          "client_type": 1,
+          "android_info": {
+            "package_name": "com.rise30.app",
+            "certificate_hash": "e22eef21b2a93ee74f22dd86d4dd30411c95b061"
+          }
+        },
+        {
+          "client_id": "933238775079-r21o9qugd3k73mnd22183hgc60ti063v.apps.googleusercontent.com",
+          "client_type": 3
+        }
+      ],
+      "api_key": [
+        {
+          "current_key": "AIzaSyCHfj1OyPZHvnJ_eW-JzzkMb31DOu76cuA"
+        }
+      ],
+      "services": {
+        "appinvite_service": {
+          "other_platform_oauth_client": [
+            {
+              "client_id": "933238775079-r21o9qugd3k73mnd22183hgc60ti063v.apps.googleusercontent.com",
+              "client_type": 3
+            }
+          ]
+        }
+      }
+    }
+  ],
+  "configuration_version": "1"
+}
