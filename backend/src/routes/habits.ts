@@ -12,37 +12,35 @@ function parseTimezoneOffset(offset: string): number {
   return sign * (hours * 60 + minutes) * 60 * 1000
 }
 
-// Get daily habits for a user on a specific date (default today)
+// Get daily habits for a user - returns habits completed within last 24 hours
 router.get('/:userId', async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId as string
-    // Get timezone offset from query (e.g., "+05:30" for India)
-    const tzOffset = req.query.tz as string || '+00:00'
-    const dateStr = req.query.date as string
     
-    // Calculate today's date based on timezone offset
-    const now = new Date()
-    const offsetMs = parseTimezoneOffset(tzOffset)
-    const localNow = new Date(now.getTime() + offsetMs)
-    const effectiveDateStr = dateStr || localNow.toISOString().split('T')[0]
+    // Get all completed habits for this user from last 48 hours
+    const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000)
     
-    // Create date range for the day in UTC (compensating for timezone)
-    const start = new Date(effectiveDateStr + 'T00:00:00.000Z')
-    start.setTime(start.getTime() - offsetMs)
-    const end = new Date(effectiveDateStr + 'T23:59:59.999Z')
-    end.setTime(end.getTime() - offsetMs)
-
     const habits = await prisma.dailyHabit.findMany({
       where: {
         userId,
-        date: {
-          gte: start,
-          lte: end
+        completed: true,
+        completedAt: {
+          gte: cutoff
         }
+      },
+      orderBy: {
+        completedAt: 'desc'
       }
     })
 
-    res.json({ success: true, habits })
+    // Filter to only return habits completed within last 24 hours
+    const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000
+    const activeHabits = habits.filter(h => {
+      const completedTime = new Date(h.completedAt!).getTime()
+      return completedTime >= twentyFourHoursAgo
+    })
+
+    res.json({ success: true, habits: activeHabits })
   } catch (error) {
     console.error('Error fetching habits:', error)
     res.status(500).json({ success: false, error: 'Failed to fetch habits' })
@@ -65,12 +63,14 @@ router.post('/toggle', async (req: Request, res: Response) => {
         }
       },
       update: {
-        completed
+        completed,
+        completedAt: completed ? new Date() : null
       },
       create: {
         userId,
         name,
         completed,
+        completedAt: completed ? new Date() : null,
         date: today
       }
     })

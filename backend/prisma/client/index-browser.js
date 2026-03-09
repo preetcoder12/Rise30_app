@@ -201,7 +201,10 @@ exports.Prisma.DailyHabitScalarFieldEnum = {
   userId: 'userId',
   name: 'name',
   completed: 'completed',
-  date: 'date'
+  date: 'date',
+  completedAt: 'completedAt',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
 };
 
 exports.Prisma.SortOrder = {

@@ -1,4 +1,4 @@
-package com.rise30.app
+    package com.rise30.app
 
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
@@ -137,7 +137,7 @@ private fun TopSection(
             verticalAlignment = Alignment.CenterVertically
         ) {
             Image(
-                painter = painterResource(id = R.drawable.app_logo),
+                painter = painterResource(id = R.drawable.bg_removed_applogo),
                 contentDescription = "Rise30 Logo",
                 modifier = Modifier
                     .size(48.dp)
@@ -1076,51 +1076,19 @@ private fun PowerMorningSection(userId: String) {
     )
     
     val scope = rememberCoroutineScope()
-    val context = androidx.compose.ui.platform.LocalContext.current
     // SnapshotStateMap: individual key writes trigger recomposition immediately
     val doneState = remember { androidx.compose.runtime.snapshots.SnapshotStateMap<String, Boolean>() }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
-    
-    // Track when all 3 rituals were completed for 24-hour reset logic
-    val prefs = remember { context.getSharedPreferences("ritual_prefs", android.content.Context.MODE_PRIVATE) }
-    var allCompletedTime by remember { mutableStateOf(prefs.getLong("all_completed_time", 0L)) }
 
+    // Load rituals from backend - backend handles 24-hour window logic
     LaunchedEffect(userId) {
         try {
-            // Get timezone offset (e.g., "+05:30" for India)
-            val tz = java.util.TimeZone.getDefault()
-            val offsetMs = tz.rawOffset + tz.dstSavings
-            val offsetHours = kotlin.math.abs(offsetMs) / (1000 * 60 * 60)
-            val offsetMinutes = (kotlin.math.abs(offsetMs) / (1000 * 60)) % 60
-            val offsetSign = if (offsetMs >= 0) "+" else "-"
-            val tzOffset = "${offsetSign}${String.format("%02d:%02d", offsetHours, offsetMinutes)}"
-            
-            val response: HabitResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/habits/$userId?tz=${tzOffset}").body()
+            val response: HabitResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/habits/$userId").body()
             if (response.success) {
                 response.habits.forEach { habit -> doneState[habit.name] = habit.completed }
             }
-        } catch (e: Exception) { /* use default false */ }
-    }
-
-    // Auto-reset 24 hours after all 3 rituals are completed
-    LaunchedEffect(allCompletedTime) {
-        if (allCompletedTime > 0) {
-            val now = System.currentTimeMillis()
-            val timeSinceCompletion = now - allCompletedTime
-            val twentyFourHoursMs = 24 * 60 * 60 * 1000L
-            
-            if (timeSinceCompletion >= twentyFourHoursMs) {
-                // 24 hours passed, reset now
-                doneState.clear()
-                prefs.edit().remove("all_completed_time").apply()
-                allCompletedTime = 0L
-            } else {
-                // Wait for remaining time
-                delay(twentyFourHoursMs - timeSinceCompletion)
-                doneState.clear()
-                prefs.edit().remove("all_completed_time").apply()
-                allCompletedTime = 0L
-            }
+        } catch (e: Exception) { 
+            // Silent fail - rituals will show as not completed
         }
     }
 
@@ -1151,20 +1119,12 @@ private fun PowerMorningSection(userId: String) {
                     if (!isDone) {
                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
                         doneState[habitName] = true
+                        
                         scope.launch {
                             try {
                                 ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/habits/toggle") {
                                     contentType(ContentType.Application.Json)
                                     setBody(mapOf("userId" to userId, "name" to habitName, "completed" to true))
-                                }
-                                
-                                // Check if all 3 rituals are now completed
-                                val allCompleted = ritualHabitNames.all { doneState[it] == true }
-                                if (allCompleted && allCompletedTime == 0L) {
-                                    // Save the time when all 3 were completed
-                                    val completionTime = System.currentTimeMillis()
-                                    prefs.edit().putLong("all_completed_time", completionTime).apply()
-                                    allCompletedTime = completionTime
                                 }
                             } catch (e: Exception) { /* silent */ }
                         }

@@ -247,7 +247,7 @@ fun ProfilePage(
                 ) {
                     Row(verticalAlignment = Alignment.CenterVertically) {
                         Image(
-                            painter = painterResource(id = R.drawable.app_logo),
+                            painter = painterResource(id = R.drawable.bg_removed_applogo),
                             contentDescription = "Rise30 Logo",
                             modifier = Modifier
                                 .size(36.dp)

@@ -7835,6 +7835,9 @@ export namespace Prisma {
     name: string | null
     completed: boolean | null
     date: Date | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type DailyHabitMaxAggregateOutputType = {
@@ -7843,6 +7846,9 @@ export namespace Prisma {
     name: string | null
     completed: boolean | null
     date: Date | null
+    completedAt: Date | null
+    createdAt: Date | null
+    updatedAt: Date | null
   }
 
   export type DailyHabitCountAggregateOutputType = {
@@ -7851,6 +7857,9 @@ export namespace Prisma {
     name: number
     completed: number
     date: number
+    completedAt: number
+    createdAt: number
+    updatedAt: number
     _all: number
   }
 
@@ -7861,6 +7870,9 @@ export namespace Prisma {
     name?: true
     completed?: true
     date?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
   }
 
   export type DailyHabitMaxAggregateInputType = {
@@ -7869,6 +7881,9 @@ export namespace Prisma {
     name?: true
     completed?: true
     date?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
   }
 
   export type DailyHabitCountAggregateInputType = {
@@ -7877,6 +7892,9 @@ export namespace Prisma {
     name?: true
     completed?: true
     date?: true
+    completedAt?: true
+    createdAt?: true
+    updatedAt?: true
     _all?: true
   }
 
@@ -7958,6 +7976,9 @@ export namespace Prisma {
     name: string
     completed: boolean
     date: Date
+    completedAt: Date | null
+    createdAt: Date
+    updatedAt: Date
     _count: DailyHabitCountAggregateOutputType | null
     _min: DailyHabitMinAggregateOutputType | null
     _max: DailyHabitMaxAggregateOutputType | null
@@ -7983,6 +8004,9 @@ export namespace Prisma {
     name?: boolean
     completed?: boolean
     date?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["dailyHabit"]>
 
@@ -7992,6 +8016,9 @@ export namespace Prisma {
     name?: boolean
     completed?: boolean
     date?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
     user?: boolean | UserDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["dailyHabit"]>
 
@@ -8001,6 +8028,9 @@ export namespace Prisma {
     name?: boolean
     completed?: boolean
     date?: boolean
+    completedAt?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
   }
 
   export type DailyHabitInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
@@ -8021,6 +8051,9 @@ export namespace Prisma {
       name: string
       completed: boolean
       date: Date
+      completedAt: Date | null
+      createdAt: Date
+      updatedAt: Date
     }, ExtArgs["result"]["dailyHabit"]>
     composites: {}
   }
@@ -8420,6 +8453,9 @@ export namespace Prisma {
     readonly name: FieldRef<"DailyHabit", 'String'>
     readonly completed: FieldRef<"DailyHabit", 'Boolean'>
     readonly date: FieldRef<"DailyHabit", 'DateTime'>
+    readonly completedAt: FieldRef<"DailyHabit", 'DateTime'>
+    readonly createdAt: FieldRef<"DailyHabit", 'DateTime'>
+    readonly updatedAt: FieldRef<"DailyHabit", 'DateTime'>
   }
     
 
@@ -8863,7 +8899,10 @@ export namespace Prisma {
     userId: 'userId',
     name: 'name',
     completed: 'completed',
-    date: 'date'
+    date: 'date',
+    completedAt: 'completedAt',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
   };
 
   export type DailyHabitScalarFieldEnum = (typeof DailyHabitScalarFieldEnum)[keyof typeof DailyHabitScalarFieldEnum]
@@ -9485,6 +9524,9 @@ export namespace Prisma {
     name?: StringFilter<"DailyHabit"> | string
     completed?: BoolFilter<"DailyHabit"> | boolean
     date?: DateTimeFilter<"DailyHabit"> | Date | string
+    completedAt?: DateTimeNullableFilter<"DailyHabit"> | Date | string | null
+    createdAt?: DateTimeFilter<"DailyHabit"> | Date | string
+    updatedAt?: DateTimeFilter<"DailyHabit"> | Date | string
     user?: XOR<UserRelationFilter, UserWhereInput>
   }
 
@@ -9494,6 +9536,9 @@ export namespace Prisma {
     name?: SortOrder
     completed?: SortOrder
     date?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     user?: UserOrderByWithRelationInput
   }
 
@@ -9507,6 +9552,9 @@ export namespace Prisma {
     name?: StringFilter<"DailyHabit"> | string
     completed?: BoolFilter<"DailyHabit"> | boolean
     date?: DateTimeFilter<"DailyHabit"> | Date | string
+    completedAt?: DateTimeNullableFilter<"DailyHabit"> | Date | string | null
+    createdAt?: DateTimeFilter<"DailyHabit"> | Date | string
+    updatedAt?: DateTimeFilter<"DailyHabit"> | Date | string
     user?: XOR<UserRelationFilter, UserWhereInput>
   }, "id" | "userId_name_date">
 
@@ -9516,6 +9564,9 @@ export namespace Prisma {
     name?: SortOrder
     completed?: SortOrder
     date?: SortOrder
+    completedAt?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
     _count?: DailyHabitCountOrderByAggregateInput
     _max?: DailyHabitMaxOrderByAggregateInput
     _min?: DailyHabitMinOrderByAggregateInput
@@ -9530,6 +9581,9 @@ export namespace Prisma {
     name?: StringWithAggregatesFilter<"DailyHabit"> | string
     completed?: BoolWithAggregatesFilter<"DailyHabit"> | boolean
     date?: DateTimeWithAggregatesFilter<"DailyHabit"> | Date | string
+    completedAt?: DateTimeNullableWithAggregatesFilter<"DailyHabit"> | Date | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"DailyHabit"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"DailyHabit"> | Date | string
   }
 
   export type UserCreateInput = {
@@ -10086,6 +10140,9 @@ export namespace Prisma {
     name: string
     completed?: boolean
     date?: Date | string
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
     user: UserCreateNestedOneWithoutDailyHabitsInput
   }
 
@@ -10095,6 +10152,9 @@ export namespace Prisma {
     name: string
     completed?: boolean
     date?: Date | string
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type DailyHabitUpdateInput = {
@@ -10102,6 +10162,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     completed?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
     user?: UserUpdateOneRequiredWithoutDailyHabitsNestedInput
   }
 
@@ -10111,6 +10174,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     completed?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DailyHabitCreateManyInput = {
@@ -10119,6 +10185,9 @@ export namespace Prisma {
     name: string
     completed?: boolean
     date?: Date | string
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type DailyHabitUpdateManyMutationInput = {
@@ -10126,6 +10195,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     completed?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DailyHabitUncheckedUpdateManyInput = {
@@ -10134,6 +10206,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     completed?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type StringFilter<$PrismaModel = never> = {
@@ -10727,6 +10802,9 @@ export namespace Prisma {
     name?: SortOrder
     completed?: SortOrder
     date?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type DailyHabitMaxOrderByAggregateInput = {
@@ -10735,6 +10813,9 @@ export namespace Prisma {
     name?: SortOrder
     completed?: SortOrder
     date?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type DailyHabitMinOrderByAggregateInput = {
@@ -10743,6 +10824,9 @@ export namespace Prisma {
     name?: SortOrder
     completed?: SortOrder
     date?: SortOrder
+    completedAt?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
   }
 
   export type ChallengeCreateNestedManyWithoutUserInput = {
@@ -11719,6 +11803,9 @@ export namespace Prisma {
     name: string
     completed?: boolean
     date?: Date | string
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type DailyHabitUncheckedCreateWithoutUserInput = {
@@ -11726,6 +11813,9 @@ export namespace Prisma {
     name: string
     completed?: boolean
     date?: Date | string
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type DailyHabitCreateOrConnectWithoutUserInput = {
@@ -11946,6 +12036,9 @@ export namespace Prisma {
     name?: StringFilter<"DailyHabit"> | string
     completed?: BoolFilter<"DailyHabit"> | boolean
     date?: DateTimeFilter<"DailyHabit"> | Date | string
+    completedAt?: DateTimeNullableFilter<"DailyHabit"> | Date | string | null
+    createdAt?: DateTimeFilter<"DailyHabit"> | Date | string
+    updatedAt?: DateTimeFilter<"DailyHabit"> | Date | string
   }
 
   export type FriendshipUpsertWithWhereUniqueWithoutUserInput = {
@@ -13052,6 +13145,9 @@ export namespace Prisma {
     name: string
     completed?: boolean
     date?: Date | string
+    completedAt?: Date | string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
   }
 
   export type FriendshipCreateManyUserInput = {
@@ -13234,6 +13330,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     completed?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DailyHabitUncheckedUpdateWithoutUserInput = {
@@ -13241,6 +13340,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     completed?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type DailyHabitUncheckedUpdateManyWithoutUserInput = {
@@ -13248,6 +13350,9 @@ export namespace Prisma {
     name?: StringFieldUpdateOperationsInput | string
     completed?: BoolFieldUpdateOperationsInput | boolean
     date?: DateTimeFieldUpdateOperationsInput | Date | string
+    completedAt?: NullableDateTimeFieldUpdateOperationsInput | Date | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
   export type FriendshipUpdateWithoutUserInput = {
