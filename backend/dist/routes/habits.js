@@ -15,27 +15,26 @@ function parseTimezoneOffset(offset) {
 router.get('/:userId', async (req, res) => {
     try {
         const userId = req.params.userId;
-        // Get all completed habits for this user from last 48 hours
-        const cutoff = new Date(Date.now() - 48 * 60 * 60 * 1000);
+        // Calculate 24 hours ago
+        const twentyFourHoursAgo = new Date(Date.now() - 24 * 60 * 60 * 1000);
+        console.log(`[Habits GET] userId=${userId}, 24h ago=${twentyFourHoursAgo.toISOString()}`);
+        // Get all habits for this user that were completed within last 24 hours
+        // Use updatedAt as fallback if completedAt is not set (for backwards compatibility)
         const habits = await supabaseClient_1.prisma.dailyHabit.findMany({
             where: {
                 userId,
                 completed: true,
-                completedAt: {
-                    gte: cutoff
-                }
+                OR: [
+                    { completedAt: { gte: twentyFourHoursAgo } },
+                    { completedAt: null, updatedAt: { gte: twentyFourHoursAgo } }
+                ]
             },
             orderBy: {
                 completedAt: 'desc'
             }
         });
-        // Filter to only return habits completed within last 24 hours
-        const twentyFourHoursAgo = Date.now() - 24 * 60 * 60 * 1000;
-        const activeHabits = habits.filter(h => {
-            const completedTime = new Date(h.completedAt).getTime();
-            return completedTime >= twentyFourHoursAgo;
-        });
-        res.json({ success: true, habits: activeHabits });
+        console.log(`[Habits GET] Found ${habits.length} habits:`, habits.map(h => ({ name: h.name, completedAt: h.completedAt, updatedAt: h.updatedAt })));
+        res.json({ success: true, habits });
     }
     catch (error) {
         console.error('Error fetching habits:', error);
@@ -48,6 +47,7 @@ router.post('/toggle', async (req, res) => {
         const { userId, name, completed } = req.body;
         const today = new Date();
         today.setHours(0, 0, 0, 0);
+        console.log(`[Habits TOGGLE] userId=${userId}, name=${name}, completed=${completed}`);
         const habit = await supabaseClient_1.prisma.dailyHabit.upsert({
             where: {
                 userId_name_date: {
@@ -68,6 +68,7 @@ router.post('/toggle', async (req, res) => {
                 date: today
             }
         });
+        console.log(`[Habits TOGGLE] Saved habit:`, { id: habit.id, name: habit.name, completed: habit.completed, completedAt: habit.completedAt });
         res.json({ success: true, habit });
     }
     catch (error) {
