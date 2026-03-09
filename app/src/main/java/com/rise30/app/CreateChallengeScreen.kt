@@ -93,7 +93,8 @@ fun CreateChallengeScreen(
         "drop" to R.drawable.drop
     )
     
-    val isFormValid = name.isNotBlank() && duration.isNotBlank() && duration.toIntOrNull() != null
+    val durationInt = duration.toIntOrNull()
+    val isFormValid = name.isNotBlank() && durationInt != null && durationInt >= 7 && durationInt <= 30
     
     Surface(
         modifier = Modifier.fillMaxSize(),
@@ -213,7 +214,13 @@ fun CreateChallengeScreen(
                             unfocusedTextColor = Color.White,
                             cursorColor = Accent
                         ),
-                        shape = RoundedCornerShape(14.dp)
+                        shape = RoundedCornerShape(14.dp),
+                        supportingText = { 
+                            Text(
+                                text = if (durationInt != null && (durationInt < 7 || durationInt > 30)) "Must be 7-30 days" else "7-30 days",
+                                color = if (durationInt != null && (durationInt < 7 || durationInt > 30)) Color.Red else Color.Gray
+                            )
+                        }
                     )
                 }
             }

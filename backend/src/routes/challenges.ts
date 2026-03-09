@@ -91,6 +91,11 @@ router.post('/', async (req, res) => {
     if (isNaN(durationInt)) {
       return res.status(400).json({ success: false, error: 'Invalid duration provided' })
     }
+    
+    // Validate duration range (min 7 days, max 30 days)
+    if (durationInt < 7 || durationInt > 30) {
+      return res.status(400).json({ success: false, error: 'Duration must be between 7 and 30 days' })
+    }
 
     // Ensure user exists in database
     const user = await prisma.user.findUnique({ where: { id: userId } })

@@ -26,6 +26,11 @@ router.post("/create", async (req, res) => {
     if (isNaN(durationInt)) {
       return res.status(400).json({ error: "Invalid duration provided" });
     }
+    
+    // Validate duration range (min 7 days, max 30 days)
+    if (durationInt < 7 || durationInt > 30) {
+      return res.status(400).json({ error: "Duration must be between 7 and 30 days" });
+    }
 
     const start = startDate ? new Date(startDate) : new Date();
     const end = new Date(start);
