@@ -30,3 +30,7 @@ local.properties
 # Note: Debug keystore is committed intentionally for consistent SHA-1
 *.jks
 release.keystore
+
+# Firebase config
+google-services.json
+**/google-services.json
