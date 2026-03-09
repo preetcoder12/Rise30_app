@@ -1005,9 +1005,17 @@ fun HomePage(
                     recentChallenge?.let { challenge ->
                         scope.launch {
                             try {
+                                // Get timezone offset (e.g., "+05:30" for India)
+                                val tz = java.util.TimeZone.getDefault()
+                                val offsetMs = tz.rawOffset + tz.dstSavings
+                                val offsetHours = kotlin.math.abs(offsetMs) / (1000 * 60 * 60)
+                                val offsetMinutes = (kotlin.math.abs(offsetMs) / (1000 * 60)) % 60
+                                val offsetSign = if (offsetMs >= 0) "+" else "-"
+                                val tzOffset = "${offsetSign}${String.format("%02d:%02d", offsetHours, offsetMinutes)}"
+                                
                                 val response: HttpResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/challenges/${challenge.id}/mark-today") {
                                     contentType(ContentType.Application.Json)
-                                    setBody(mapOf("userId" to userId))
+                                    setBody(mapOf("userId" to userId, "tzOffset" to tzOffset))
                                 }
                                 if (response.status.isSuccess()) {
                                     refreshTrigger++

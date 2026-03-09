@@ -275,7 +275,7 @@ router.post('/:challengeId/day/:dayNumber/toggle', async (req, res) => {
 router.post('/:challengeId/mark-today', async (req, res) => {
   try {
     const { challengeId } = req.params
-    const { userId } = req.body
+    const { userId, tzOffset } = req.body
 
     // Verify challenge belongs to user
     const challenge = await prisma.challenge.findFirst({
@@ -286,8 +286,29 @@ router.post('/:challengeId/mark-today', async (req, res) => {
       return res.status(404).json({ success: false, error: 'Challenge not found or access denied' })
     }
 
+    // Parse timezone offset (e.g., "+05:30" for India)
+    const parseOffset = (offset: string): number => {
+      const sign = offset.startsWith('-') ? -1 : 1
+      const parts = offset.replace(/^[+-]/, '').split(':')
+      const hours = parseInt(parts[0]) || 0
+      const minutes = parseInt(parts[1]) || 0
+      return sign * (hours * 60 + minutes) * 60 * 1000
+    }
+    
+    const offsetMs = tzOffset ? parseOffset(tzOffset as string) : 0
+    
+    // Calculate current day based on local timezone
+    const now = new Date()
+    const localNow = new Date(now.getTime() + offsetMs)
+    const startDate = new Date(challenge.startDate)
+    const localStart = new Date(startDate.getTime() + offsetMs)
+    
+    // Reset both to midnight for accurate day calculation
+    localNow.setHours(0, 0, 0, 0)
+    localStart.setHours(0, 0, 0, 0)
+    
     const currentDay = Math.min(
-      Math.floor((Date.now() - new Date(challenge.startDate).getTime()) / (1000 * 60 * 60 * 24)) + 1,
+      Math.floor((localNow.getTime() - localStart.getTime()) / (1000 * 60 * 60 * 24)) + 1,
       challenge.duration
     )
 
