@@ -12,10 +12,14 @@ import androidx.lifecycle.lifecycleScope
 import androidx.activity.compose.BackHandler
 import androidx.compose.animation.*
 import androidx.compose.animation.core.*
+import androidx.compose.foundation.Image
 import androidx.compose.foundation.background
 import androidx.compose.foundation.layout.*
 import androidx.compose.ui.platform.LocalContext
 import androidx.compose.foundation.shape.RoundedCornerShape
+import androidx.compose.ui.graphics.graphicsLayer
+import androidx.compose.ui.res.painterResource
+import kotlinx.coroutines.delay
 import androidx.compose.material3.*
 import androidx.compose.runtime.*
 import androidx.compose.ui.Alignment
@@ -222,8 +226,8 @@ class MainActivity : ComponentActivity() {
 
 
                 if (state.isInitializing) {
-                    // Keep screen blank/background colored while native splash screen is showing
-                    Box(modifier = Modifier.fillMaxSize().background(Charcoal))
+                    // Show animated splash screen with logo and Rise30 text
+                    AnimatedSplashScreen()
                 } else if (state.isLoggedIn) {
                     val fallbackName = state.email?.substringBefore("@") ?: "User"
                     val displayName = realDisplayName ?: fallbackName
@@ -749,4 +753,76 @@ fun SignedInScreen(
         }
     }
 }
+
+@Composable
+fun AnimatedSplashScreen() {
+    // Animation states
+    val logoAlpha = remember { Animatable(0f) }
+    val textAlpha = remember { Animatable(0f) }
+    val logoScale = remember { Animatable(0.8f) }
+    
+    LaunchedEffect(Unit) {
+        // Animate logo fade in with scale
+        launch {
+            logoAlpha.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(800, easing = EaseOutCubic)
+            )
+        }
+        launch {
+            logoScale.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(800, easing = EaseOutCubic)
+            )
+        }
+        // Delay then animate text fade in
+        delay(400)
+        textAlpha.animateTo(
+            targetValue = 1f,
+            animationSpec = tween(600, easing = EaseOutCubic)
+        )
+    }
+    
+    Box(
+        modifier = Modifier
+            .fillMaxSize()
+            .background(Color.Black),
+        contentAlignment = Alignment.Center
+    ) {
+        Column(
+            horizontalAlignment = Alignment.CenterHorizontally,
+            verticalArrangement = Arrangement.Center
+        ) {
+            // App Logo
+            androidx.compose.foundation.Image(
+                painter = painterResource(id = R.mipmap.ic_launcher_foreground),
+                contentDescription = "Rise30 Logo",
+                modifier = Modifier
+                    .size(120.dp)
+                    .graphicsLayer {
+                        alpha = logoAlpha.value
+                        scaleX = logoScale.value
+                        scaleY = logoScale.value
+                    }
+            )
+            
+            Spacer(modifier = Modifier.height(24.dp))
+            
+            // Rise30 Text with Poppins font style
+            Text(
+                text = "Rise30",
+                fontSize = 42.sp,
+                fontWeight = FontWeight.SemiBold,
+                color = LemonYellow,
+                modifier = Modifier.graphicsLayer {
+                    alpha = textAlpha.value
+                },
+                letterSpacing = 2.sp
+            )
+        }
+    }
+}
+
+// Easing for smooth premium animation
+private val EaseOutCubic = CubicBezierEasing(0.33f, 1f, 0.68f, 1f)
 
