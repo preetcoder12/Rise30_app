@@ -1083,12 +1083,17 @@ private fun PowerMorningSection(userId: String) {
     // Load rituals from backend - backend handles 24-hour window logic
     LaunchedEffect(userId) {
         try {
+            android.util.Log.d("Rise30", "Loading habits for user: $userId")
             val response: HabitResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/habits/$userId").body()
+            android.util.Log.d("Rise30", "Habits loaded: ${response.habits.size} habits")
             if (response.success) {
-                response.habits.forEach { habit -> doneState[habit.name] = habit.completed }
+                response.habits.forEach { habit -> 
+                    android.util.Log.d("Rise30", "Habit: ${habit.name} = ${habit.completed}")
+                    doneState[habit.name] = habit.completed 
+                }
             }
         } catch (e: Exception) { 
-            // Silent fail - rituals will show as not completed
+            android.util.Log.e("Rise30", "Error loading habits: ${e.message}", e)
         }
     }
 
@@ -1122,11 +1127,15 @@ private fun PowerMorningSection(userId: String) {
                         
                         scope.launch {
                             try {
-                                ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/habits/toggle") {
+                                android.util.Log.d("Rise30", "Sending habit toggle: userId=$userId, name=$habitName")
+                                val response = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/habits/toggle") {
                                     contentType(ContentType.Application.Json)
                                     setBody(mapOf("userId" to userId, "name" to habitName, "completed" to true))
                                 }
-                            } catch (e: Exception) { /* silent */ }
+                                android.util.Log.d("Rise30", "Habit toggle response: ${response.status}")
+                            } catch (e: Exception) { 
+                                android.util.Log.e("Rise30", "Habit toggle error: ${e.message}", e)
+                            }
                         }
                     }
                 }

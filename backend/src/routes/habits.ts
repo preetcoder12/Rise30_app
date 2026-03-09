@@ -80,9 +80,11 @@ router.post('/toggle', async (req: Request, res: Response) => {
     console.log(`[Habits TOGGLE] Saved habit:`, { id: habit.id, name: habit.name, completed: habit.completed, completedAt: habit.completedAt })
 
     res.json({ success: true, habit })
-  } catch (error) {
+  } catch (error: any) {
     console.error('Error toggling habit:', error)
-    res.status(500).json({ success: false, error: 'Failed to toggle habit' })
+    console.error('Error code:', error.code)
+    console.error('Error meta:', error.meta)
+    res.status(500).json({ success: false, error: 'Failed to toggle habit', details: error.message })
   }
 })
 
