@@ -759,28 +759,37 @@ fun AnimatedSplashScreen() {
     // Animation states
     val logoAlpha = remember { Animatable(0f) }
     val textAlpha = remember { Animatable(0f) }
-    val logoScale = remember { Animatable(0.8f) }
+    val logoScale = remember { Animatable(0.85f) }
+    val textOffset = remember { Animatable(20f) }
     
     LaunchedEffect(Unit) {
         // Animate logo fade in with scale
         launch {
             logoAlpha.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(800, easing = EaseOutCubic)
+                animationSpec = tween(1000, easing = EaseOutQuart)
             )
         }
         launch {
             logoScale.animateTo(
                 targetValue = 1f,
-                animationSpec = tween(800, easing = EaseOutCubic)
+                animationSpec = tween(1000, easing = EaseOutQuart)
             )
         }
-        // Delay then animate text fade in
-        delay(400)
-        textAlpha.animateTo(
-            targetValue = 1f,
-            animationSpec = tween(600, easing = EaseOutCubic)
-        )
+        // Delay then animate text fade in with slide up
+        delay(500)
+        launch {
+            textAlpha.animateTo(
+                targetValue = 1f,
+                animationSpec = tween(900, easing = EaseOutQuart)
+            )
+        }
+        launch {
+            textOffset.animateTo(
+                targetValue = 0f,
+                animationSpec = tween(900, easing = EaseOutQuart)
+            )
+        }
     }
     
     Box(
@@ -808,7 +817,7 @@ fun AnimatedSplashScreen() {
             
             Spacer(modifier = Modifier.height(24.dp))
             
-            // Rise30 Text with Poppins font style
+            // Rise30 Text with Poppins font style - smooth fade in
             Text(
                 text = "Rise30",
                 fontSize = 42.sp,
@@ -816,6 +825,7 @@ fun AnimatedSplashScreen() {
                 color = LemonYellow,
                 modifier = Modifier.graphicsLayer {
                     alpha = textAlpha.value
+                    translationY = textOffset.value
                 },
                 letterSpacing = 2.sp
             )
@@ -824,5 +834,5 @@ fun AnimatedSplashScreen() {
 }
 
 // Easing for smooth premium animation
-private val EaseOutCubic = CubicBezierEasing(0.33f, 1f, 0.68f, 1f)
+private val EaseOutQuart = CubicBezierEasing(0.25f, 1f, 0.5f, 1f)
 
