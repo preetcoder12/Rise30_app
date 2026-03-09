@@ -3,17 +3,34 @@ import { prisma } from '../supabaseClient'
 
 const router = Router()
 
+// Helper to parse timezone offset string (e.g., "+05:30" or "-08:00")
+function parseTimezoneOffset(offset: string): number {
+  const sign = offset.startsWith('-') ? -1 : 1
+  const parts = offset.replace(/^[+-]/, '').split(':')
+  const hours = parseInt(parts[0]) || 0
+  const minutes = parseInt(parts[1]) || 0
+  return sign * (hours * 60 + minutes) * 60 * 1000
+}
+
 // Get daily habits for a user on a specific date (default today)
 router.get('/:userId', async (req: Request, res: Response) => {
   try {
     const userId = req.params.userId as string
-    const dateStr = req.query.date as string || new Date().toISOString().split('T')[0]
+    // Get timezone offset from query (e.g., "+05:30" for India)
+    const tzOffset = req.query.tz as string || '+00:00'
+    const dateStr = req.query.date as string
     
-    // Create date range for the day
-    const start = new Date(dateStr)
-    start.setHours(0, 0, 0, 0)
-    const end = new Date(dateStr)
-    end.setHours(23, 59, 59, 999)
+    // Calculate today's date based on timezone offset
+    const now = new Date()
+    const offsetMs = parseTimezoneOffset(tzOffset)
+    const localNow = new Date(now.getTime() + offsetMs)
+    const effectiveDateStr = dateStr || localNow.toISOString().split('T')[0]
+    
+    // Create date range for the day in UTC (compensating for timezone)
+    const start = new Date(effectiveDateStr + 'T00:00:00.000Z')
+    start.setTime(start.getTime() - offsetMs)
+    const end = new Date(effectiveDateStr + 'T23:59:59.999Z')
+    end.setTime(end.getTime() - offsetMs)
 
     const habits = await prisma.dailyHabit.findMany({
       where: {

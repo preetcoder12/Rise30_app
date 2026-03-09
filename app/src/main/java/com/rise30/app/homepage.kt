@@ -1074,7 +1074,15 @@ private fun PowerMorningSection(userId: String) {
 
     LaunchedEffect(userId) {
         try {
-            val response: HabitResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/habits/$userId").body()
+            // Get timezone offset (e.g., "+05:30" for India)
+            val tz = java.util.TimeZone.getDefault()
+            val offsetMs = tz.rawOffset + tz.dstSavings
+            val offsetHours = kotlin.math.abs(offsetMs) / (1000 * 60 * 60)
+            val offsetMinutes = (kotlin.math.abs(offsetMs) / (1000 * 60)) % 60
+            val offsetSign = if (offsetMs >= 0) "+" else "-"
+            val tzOffset = "${offsetSign}${String.format("%02d:%02d", offsetHours, offsetMinutes)}"
+            
+            val response: HabitResponse = ApiConfig.httpClient.get("${ApiConfig.BASE_URL}/api/habits/$userId?tz=${tzOffset}").body()
             if (response.success) {
                 response.habits.forEach { habit -> doneState[habit.name] = habit.completed }
             }
