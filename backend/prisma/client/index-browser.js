@@ -207,6 +207,21 @@ exports.Prisma.DailyHabitScalarFieldEnum = {
   updatedAt: 'updatedAt'
 };
 
+exports.Prisma.OnboardingDataScalarFieldEnum = {
+  id: 'id',
+  userId: 'userId',
+  goal: 'goal',
+  challengeType: 'challengeType',
+  motivation: 'motivation',
+  difficulty: 'difficulty',
+  challengeName: 'challengeName',
+  dailyTarget: 'dailyTarget',
+  reminderTime: 'reminderTime',
+  startDate: 'startDate',
+  createdAt: 'createdAt',
+  updatedAt: 'updatedAt'
+};
+
 exports.Prisma.SortOrder = {
   asc: 'asc',
   desc: 'desc'
@@ -230,7 +245,8 @@ exports.Prisma.ModelName = {
   WaterEntry: 'WaterEntry',
   DailyEntry: 'DailyEntry',
   Streak: 'Streak',
-  DailyHabit: 'DailyHabit'
+  DailyHabit: 'DailyHabit',
+  OnboardingData: 'OnboardingData'
 };
 
 /**

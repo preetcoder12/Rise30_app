@@ -420,6 +420,13 @@ fun CreateChallengeScreen(
                             unit = unit.ifBlank { null },
                             onSuccess = { challengeId ->
                                 isLoading = false
+                                
+                                // Log analytics event
+                                val challengeBundle = android.os.Bundle()
+                                challengeBundle.putString("category", selectedCategory)
+                                challengeBundle.putLong("duration", duration.toLong())
+                                Rise30App.analytics.logEvent("challenge_created", challengeBundle)
+                                
                                 onChallengeCreated()
                             },
                             onError = { error ->

@@ -17,6 +17,7 @@ const users_1 = __importDefault(require("./routes/users"));
 const habits_1 = __importDefault(require("./routes/habits"));
 const friends_1 = __importDefault(require("./routes/friends"));
 const auth_1 = __importDefault(require("./routes/auth"));
+const onboardingRoutes_1 = __importDefault(require("./routes/onboardingRoutes"));
 dotenv_1.default.config();
 const app = (0, express_1.default)();
 app.use((0, helmet_1.default)());
@@ -35,6 +36,7 @@ app.use("/api/users", users_1.default);
 app.use("/api/habits", habits_1.default);
 app.use("/api/friends", friends_1.default);
 app.use("/api/auth", auth_1.default);
+app.use("/api/onboarding", onboardingRoutes_1.default);
 app.get("/api/motivation", (_req, res) => {
     const quotes = [
         { text: "The crossroad is where you find your true strength.", author: "Rise30" },

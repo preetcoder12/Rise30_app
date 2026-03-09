@@ -12,6 +12,7 @@ import usersRouter from "./routes/users";
 import habitsRouter from "./routes/habits";
 import friendsRouter from "./routes/friends";
 import authRouter from "./routes/auth";
+import onboardingRouter from "./routes/onboardingRoutes";
 
 dotenv.config();
 
@@ -35,6 +36,7 @@ app.use("/api/users", usersRouter);
 app.use("/api/habits", habitsRouter);
 app.use("/api/friends", friendsRouter);
 app.use("/api/auth", authRouter);
+app.use("/api/onboarding", onboardingRouter);
 
 app.get("/api/motivation", (_req: Request, res: Response) => {
   const quotes = [

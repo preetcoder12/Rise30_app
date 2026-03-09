@@ -44,6 +44,7 @@ import com.google.android.gms.common.api.ApiException
 import com.google.firebase.auth.FirebaseAuth
 import com.google.firebase.auth.GoogleAuthProvider
 import com.google.firebase.auth.FirebaseUser
+import com.google.firebase.analytics.FirebaseAnalytics
 import com.rise30.app.streak.StreakViewModel
 import com.rise30.app.LemonYellow
 import com.rise30.app.util.NotificationHelper
@@ -216,6 +217,18 @@ class MainActivity : ComponentActivity() {
                 var realDisplayName by remember { mutableStateOf<String?>(null) }
                 var selectedOtherUserId by remember { mutableStateOf<String?>(null) }
                 
+                // Track screen views
+                LaunchedEffect(currentTab) {
+                    val screenName = when(currentTab) {
+                        MainTab.Home -> "home_screen"
+                        MainTab.Challenges -> "challenges_screen"
+                        MainTab.Profile -> "profile_screen"
+                    }
+                    val bundle = Bundle()
+                    bundle.putString(FirebaseAnalytics.Param.SCREEN_NAME, screenName)
+                    bundle.putString(FirebaseAnalytics.Param.SCREEN_CLASS, "MainActivity")
+                    Rise30App.analytics.logEvent(FirebaseAnalytics.Event.SCREEN_VIEW, bundle)
+                }
                 
                 LaunchedEffect(state.isLoggedIn, state.userId, state.info) {
                     val userId = state.userId
@@ -234,6 +247,35 @@ class MainActivity : ComponentActivity() {
                             currentTab = MainTab.Home
                             currentChallengeScreen = ChallengeScreen.None
                             wasLoggedIn = true
+                            
+                            // Log login event
+                            val loginBundle = Bundle()
+                            loginBundle.putString(FirebaseAnalytics.Param.METHOD, "email_google")
+                            Rise30App.analytics.logEvent(FirebaseAnalytics.Event.LOGIN, loginBundle)
+                            
+                            // Sync onboarding data to backend if available
+                            val onboardingPrefs = this@MainActivity.getSharedPreferences("onboarding_data", android.content.Context.MODE_PRIVATE)
+                            val goal = onboardingPrefs.getString("goal", null)
+                            if (goal != null && userId != null) {
+                                try {
+                                    val onboardingData = mapOf(
+                                        "goal" to goal,
+                                        "challengeType" to onboardingPrefs.getString("challengeType", ""),
+                                        "motivation" to onboardingPrefs.getString("motivation", ""),
+                                        "difficulty" to onboardingPrefs.getString("difficulty", "")
+                                    )
+                                    lifecycleScope.launch {
+                                        ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/onboarding/$userId") {
+                                            contentType(io.ktor.http.ContentType.Application.Json)
+                                            setBody(onboardingData)
+                                        }
+                                        // Clear local onboarding data after successful sync
+                                        onboardingPrefs.edit().clear().apply()
+                                    }
+                                } catch (e: Exception) {
+                                    android.util.Log.e("Rise30", "Failed to sync onboarding data: ${e.message}")
+                                }
+                            }
                             
                             // Request notification permission for new login
                             requestNotificationPermission()
@@ -449,48 +491,81 @@ class MainActivity : ComponentActivity() {
                     }
                 } else {
                     val context = LocalContext.current
-                    AnimatedContent(
-                        targetState = page,
-                        transitionSpec = {
-                            val direction = when (targetState) {
-                                AuthPage.SignIn -> AnimatedContentTransitionScope.SlideDirection.Right
-                                AuthPage.SignUp -> AnimatedContentTransitionScope.SlideDirection.Left
-                                AuthPage.ForgotPassword -> AnimatedContentTransitionScope.SlideDirection.Up
+                    
+                    // Check if onboarding is completed
+                    var hasCompletedOnboarding by remember { 
+                        mutableStateOf(
+                            context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                                .getBoolean("onboarding_completed", false)
+                        )
+                    }
+                    
+                    if (!hasCompletedOnboarding) {
+                        // Show Onboarding
+                        OnboardingScreen(
+                            onComplete = { onboardingData ->
+                                // Save onboarding data and mark as completed
+                                context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                                    .edit()
+                                    .putBoolean("onboarding_completed", true)
+                                    .apply()
+                                hasCompletedOnboarding = true
+                                
+                                // Log analytics
+                                val bundle = Bundle()
+                                bundle.putString("goal", onboardingData.goal)
+                                bundle.putString("difficulty", onboardingData.difficulty)
+                                Rise30App.analytics.logEvent("onboarding_completed", bundle)
+                                
+                                // Save to backend for recommendations (will be linked to user after login)
+                                // Store temporarily until user logs in
+                                context.getSharedPreferences("onboarding_data", android.content.Context.MODE_PRIVATE)
+                                    .edit()
+                                    .putString("goal", onboardingData.goal)
+                                    .putString("challengeType", onboardingData.challengeType)
+                                    .putString("motivation", onboardingData.motivation)
+                                    .putString("difficulty", onboardingData.difficulty)
+                                    .apply()
+                            },
+                            onSkip = {
+                                // Skip onboarding
+                                context.getSharedPreferences("app_prefs", android.content.Context.MODE_PRIVATE)
+                                    .edit()
+                                    .putBoolean("onboarding_completed", true)
+                                    .apply()
+                                hasCompletedOnboarding = true
                             }
-                            slideIntoContainer(direction) + fadeIn() togetherWith
-                            slideOutOfContainer(direction) + fadeOut()
+                        )
+                    } else {
+                        // Unified Auth Screen with sliding tabs
+                        val isLoginSelected = page == AuthPage.SignIn || page == AuthPage.ForgotPassword
+                        val isForgotPassword = page == AuthPage.ForgotPassword
+                        AuthScreen(
+                        state = state,
+                        isLoginSelected = isLoginSelected,
+                        isForgotPassword = isForgotPassword,
+                        onSelectLogin = { page = AuthPage.SignIn },
+                        onSelectSignUp = { page = AuthPage.SignUp },
+                        onEmailPasswordLogin = { email, password ->
+                            viewModel.loginWithEmailPassword(context, email, password)
                         },
-                        label = "auth_page"
-                    ) { authPage ->
-                        when (authPage) {
-                            AuthPage.SignIn -> SignInScreen(
-                                state = state,
-                                onEmailPasswordLogin = { email, password ->
-                                    viewModel.loginWithEmailPassword(context, email, password)
-                                },
-                                onSendOtp = { _ -> },
-                                onGoogleLogin = {
-                                    viewModel.onAuthLoading()
-                                    googleSignInLauncher.launch(googleSignInClient.signInIntent)
-                                },
-                                onGoToSignUp = { page = AuthPage.SignUp },
-                                onGoToForgotPassword = { page = AuthPage.ForgotPassword }
-                            )
-                            AuthPage.SignUp -> SignUpScreen(
-                                state = state,
-                                onEmailPasswordSignup = { email, password ->
-                                    viewModel.signUpWithEmailPassword(context, email, password)
-                                },
-                                onGoToSignIn = { page = AuthPage.SignIn }
-                            )
-                            AuthPage.ForgotPassword -> ForgotPasswordScreen(
-                                state = state,
-                                onSendReset = { email ->
-                                    viewModel.sendPasswordResetEmail(email)
-                                },
-                                onBackToSignIn = { page = AuthPage.SignIn }
-                            )
+                        onEmailPasswordSignup = { email, password ->
+                            viewModel.signUpWithEmailPassword(context, email, password)
+                        },
+                        onGoogleLogin = {
+                            viewModel.onAuthLoading()
+                            googleSignInLauncher.launch(googleSignInClient.signInIntent)
+                        },
+                        onGoToForgotPassword = { page = AuthPage.ForgotPassword },
+                        onSendReset = { email ->
+                            viewModel.sendPasswordResetEmail(email)
+                        },
+                        onBack = { 
+                            if (page == AuthPage.ForgotPassword) {
+                                page = AuthPage.SignIn
+                            }
                         }
+                        )
                     }
                 }
             }

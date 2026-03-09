@@ -10,20 +10,21 @@ datasource db {
 }
 
 model User {
-  id           String       @id @default(uuid())
-  email        String       @unique
+  id           String          @id @default(uuid())
+  email        String          @unique
   password     String? // For email/password auth
-  provider     String       @default("email") // "email" or "google"
+  provider     String          @default("email") // "email" or "google"
   displayName  String?
   avatarUrl    String?
-  createdAt    DateTime     @default(now())
+  createdAt    DateTime        @default(now())
   challenges   Challenge[]
   streaks      Streak[]
   dailyEntries DailyEntry[]
   waterEntries WaterEntry[]
   dailyHabits  DailyHabit[]
-  friendships  Friendship[] @relation("UserFriendships")
-  friendedBy   Friendship[] @relation("FriendOfUser")
+  friendships  Friendship[]    @relation("UserFriendships")
+  friendedBy   Friendship[]    @relation("FriendOfUser")
+  onboarding   OnboardingData?
 }
 
 model Friendship {
@@ -128,4 +129,21 @@ model DailyHabit {
   user        User      @relation(fields: [userId], references: [id])
 
   @@unique([userId, name, date])
+}
+
+model OnboardingData {
+  id            String   @id @default(uuid())
+  userId        String   @unique
+  goal          String // e.g., "Fitness", "Study", "Mental Health"
+  challengeType String // e.g., "Build a Habit", "Break a Bad Habit"
+  motivation    String // e.g., "Become disciplined"
+  difficulty    String // e.g., "Beginner", "Intermediate", "Advanced"
+  challengeName String? // Optional: custom challenge name
+  dailyTarget   Int? // Optional: daily target value
+  reminderTime  String? // Optional: preferred reminder time
+  startDate     String? // Optional: when to start
+  createdAt     DateTime @default(now())
+  updatedAt     DateTime @updatedAt
+
+  user User @relation(fields: [userId], references: [id], onDelete: Cascade)
 }

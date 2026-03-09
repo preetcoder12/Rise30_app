@@ -52,6 +52,13 @@ val GlassStroke = Color(0x26FFFFFF) // 15% white
 
 // Data classes for API
 @Serializable
+data class HabitToggleRequest(
+    val userId: String,
+    val name: String,
+    val completed: Boolean
+)
+
+@Serializable
 data class AnalyticsResponse(
     val success: Boolean,
     val analytics: AnalyticsData
@@ -1076,9 +1083,26 @@ private fun PowerMorningSection(userId: String) {
     )
     
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
     // SnapshotStateMap: individual key writes trigger recomposition immediately
     val doneState = remember { androidx.compose.runtime.snapshots.SnapshotStateMap<String, Boolean>() }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    
+    // Local cache for ritual completion
+    val prefs = remember { context.getSharedPreferences("ritual_cache", android.content.Context.MODE_PRIVATE) }
+
+    // Load from local cache first (for instant UI), then fetch from backend
+    LaunchedEffect(userId) {
+        // Load from local cache
+        ritualHabitNames.forEach { habitName ->
+            val cachedTime = prefs.getLong("${habitName}_time", 0L)
+            val isWithin24Hours = cachedTime > 0 && (System.currentTimeMillis() - cachedTime) < 24 * 60 * 60 * 1000L
+            if (isWithin24Hours) {
+                doneState[habitName] = true
+                android.util.Log.d("Rise30", "Loaded from cache: $habitName")
+            }
+        }
+    }
 
     // Load rituals from backend - backend handles 24-hour window logic
     LaunchedEffect(userId) {
@@ -1123,18 +1147,37 @@ private fun PowerMorningSection(userId: String) {
                 onMarkDone = {
                     if (!isDone) {
                         haptic.performHapticFeedback(androidx.compose.ui.hapticfeedback.HapticFeedbackType.LongPress)
+                        
+                        // Update UI instantly
                         doneState[habitName] = true
                         
-                        scope.launch {
-                            try {
-                                android.util.Log.d("Rise30", "Sending habit toggle: userId=$userId, name=$habitName")
-                                val response = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/habits/toggle") {
-                                    contentType(ContentType.Application.Json)
-                                    setBody(mapOf("userId" to userId, "name" to habitName, "completed" to true))
+                        // Save to local cache immediately
+                        prefs.edit()
+                            .putLong("${habitName}_time", System.currentTimeMillis())
+                            .apply()
+                        
+                        // Log analytics event
+                        val ritualBundle = android.os.Bundle()
+                        ritualBundle.putString("ritual_name", habitName)
+                        Rise30App.analytics.logEvent("ritual_completed", ritualBundle)
+                        
+                        android.util.Log.d("Rise30", "onMarkDone clicked: userId='$userId', habit='$habitName'")
+                        
+                        // Sync to backend in background
+                        if (!userId.isBlank()) {
+                            scope.launch {
+                                try {
+                                    android.util.Log.d("Rise30", "Syncing to backend: userId=$userId, name=$habitName")
+                                    val request = HabitToggleRequest(userId = userId, name = habitName, completed = true)
+                                    ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/habits/toggle") {
+                                        contentType(ContentType.Application.Json)
+                                        setBody(request)
+                                    }
+                                    android.util.Log.d("Rise30", "Synced to backend: $habitName")
+                                } catch (e: Exception) { 
+                                    android.util.Log.e("Rise30", "Backend sync error: ${e.message}")
+                                    // UI already updated, will sync on next app open
                                 }
-                                android.util.Log.d("Rise30", "Habit toggle response: ${response.status}")
-                            } catch (e: Exception) { 
-                                android.util.Log.e("Rise30", "Habit toggle error: ${e.message}", e)
                             }
                         }
                     }
@@ -1146,6 +1189,8 @@ private fun PowerMorningSection(userId: String) {
 
 @Composable
 private fun RitualItem(name: String, done: Boolean, onMarkDone: () -> Unit) {
+    android.util.Log.d("Rise30", "RitualItem rendered: name=$name, done=$done")
+    
     // Sparkle animation state
     var sparkleVisible by remember { mutableStateOf(false) }
     val sparkleProgress = remember { Animatable(0f) }
@@ -1196,7 +1241,10 @@ private fun RitualItem(name: String, done: Boolean, onMarkDone: () -> Unit) {
                     if (done) Accent.copy(alpha = 0.25f) else Color.White.copy(alpha = 0.06f),
                     RoundedCornerShape(20.dp)
                 )
-                .clickable(enabled = !done, onClick = onMarkDone)
+                .clickable(enabled = !done, onClick = {
+                    android.util.Log.d("Rise30", "RitualItem clicked: name=$name, done=$done")
+                    onMarkDone()
+                })
                 .padding(16.dp),
             verticalAlignment = Alignment.CenterVertically
         ) {

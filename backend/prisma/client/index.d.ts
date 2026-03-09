@@ -48,6 +48,11 @@ export type Streak = $Result.DefaultSelection<Prisma.$StreakPayload>
  * 
  */
 export type DailyHabit = $Result.DefaultSelection<Prisma.$DailyHabitPayload>
+/**
+ * Model OnboardingData
+ * 
+ */
+export type OnboardingData = $Result.DefaultSelection<Prisma.$OnboardingDataPayload>
 
 /**
  * ##  Prisma Client ʲˢ
@@ -241,6 +246,16 @@ export class PrismaClient<
     * ```
     */
   get dailyHabit(): Prisma.DailyHabitDelegate<ExtArgs>;
+
+  /**
+   * `prisma.onboardingData`: Exposes CRUD operations for the **OnboardingData** model.
+    * Example usage:
+    * ```ts
+    * // Fetch zero or more OnboardingData
+    * const onboardingData = await prisma.onboardingData.findMany()
+    * ```
+    */
+  get onboardingData(): Prisma.OnboardingDataDelegate<ExtArgs>;
 }
 
 export namespace Prisma {
@@ -688,7 +703,8 @@ export namespace Prisma {
     WaterEntry: 'WaterEntry',
     DailyEntry: 'DailyEntry',
     Streak: 'Streak',
-    DailyHabit: 'DailyHabit'
+    DailyHabit: 'DailyHabit',
+    OnboardingData: 'OnboardingData'
   };
 
   export type ModelName = (typeof ModelName)[keyof typeof ModelName]
@@ -704,7 +720,7 @@ export namespace Prisma {
 
   export type TypeMap<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs, ClientOptions = {}> = {
     meta: {
-      modelProps: "user" | "friendship" | "challenge" | "waterEntry" | "dailyEntry" | "streak" | "dailyHabit"
+      modelProps: "user" | "friendship" | "challenge" | "waterEntry" | "dailyEntry" | "streak" | "dailyHabit" | "onboardingData"
       txIsolationLevel: Prisma.TransactionIsolationLevel
     }
     model: {
@@ -1198,6 +1214,76 @@ export namespace Prisma {
           }
         }
       }
+      OnboardingData: {
+        payload: Prisma.$OnboardingDataPayload<ExtArgs>
+        fields: Prisma.OnboardingDataFieldRefs
+        operations: {
+          findUnique: {
+            args: Prisma.OnboardingDataFindUniqueArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload> | null
+          }
+          findUniqueOrThrow: {
+            args: Prisma.OnboardingDataFindUniqueOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload>
+          }
+          findFirst: {
+            args: Prisma.OnboardingDataFindFirstArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload> | null
+          }
+          findFirstOrThrow: {
+            args: Prisma.OnboardingDataFindFirstOrThrowArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload>
+          }
+          findMany: {
+            args: Prisma.OnboardingDataFindManyArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload>[]
+          }
+          create: {
+            args: Prisma.OnboardingDataCreateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload>
+          }
+          createMany: {
+            args: Prisma.OnboardingDataCreateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          createManyAndReturn: {
+            args: Prisma.OnboardingDataCreateManyAndReturnArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload>[]
+          }
+          delete: {
+            args: Prisma.OnboardingDataDeleteArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload>
+          }
+          update: {
+            args: Prisma.OnboardingDataUpdateArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload>
+          }
+          deleteMany: {
+            args: Prisma.OnboardingDataDeleteManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          updateMany: {
+            args: Prisma.OnboardingDataUpdateManyArgs<ExtArgs>
+            result: BatchPayload
+          }
+          upsert: {
+            args: Prisma.OnboardingDataUpsertArgs<ExtArgs>
+            result: $Utils.PayloadToResult<Prisma.$OnboardingDataPayload>
+          }
+          aggregate: {
+            args: Prisma.OnboardingDataAggregateArgs<ExtArgs>
+            result: $Utils.Optional<AggregateOnboardingData>
+          }
+          groupBy: {
+            args: Prisma.OnboardingDataGroupByArgs<ExtArgs>
+            result: $Utils.Optional<OnboardingDataGroupByOutputType>[]
+          }
+          count: {
+            args: Prisma.OnboardingDataCountArgs<ExtArgs>
+            result: $Utils.Optional<OnboardingDataCountAggregateOutputType> | number
+          }
+        }
+      }
     }
   } & {
     other: {
@@ -1679,6 +1765,7 @@ export namespace Prisma {
     dailyHabits?: boolean | User$dailyHabitsArgs<ExtArgs>
     friendships?: boolean | User$friendshipsArgs<ExtArgs>
     friendedBy?: boolean | User$friendedByArgs<ExtArgs>
+    onboarding?: boolean | User$onboardingArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }, ExtArgs["result"]["user"]>
 
@@ -1710,6 +1797,7 @@ export namespace Prisma {
     dailyHabits?: boolean | User$dailyHabitsArgs<ExtArgs>
     friendships?: boolean | User$friendshipsArgs<ExtArgs>
     friendedBy?: boolean | User$friendedByArgs<ExtArgs>
+    onboarding?: boolean | User$onboardingArgs<ExtArgs>
     _count?: boolean | UserCountOutputTypeDefaultArgs<ExtArgs>
   }
   export type UserIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {}
@@ -1724,6 +1812,7 @@ export namespace Prisma {
       dailyHabits: Prisma.$DailyHabitPayload<ExtArgs>[]
       friendships: Prisma.$FriendshipPayload<ExtArgs>[]
       friendedBy: Prisma.$FriendshipPayload<ExtArgs>[]
+      onboarding: Prisma.$OnboardingDataPayload<ExtArgs> | null
     }
     scalars: $Extensions.GetPayloadResult<{
       id: string
@@ -2104,6 +2193,7 @@ export namespace Prisma {
     dailyHabits<T extends User$dailyHabitsArgs<ExtArgs> = {}>(args?: Subset<T, User$dailyHabitsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$DailyHabitPayload<ExtArgs>, T, "findMany"> | Null>
     friendships<T extends User$friendshipsArgs<ExtArgs> = {}>(args?: Subset<T, User$friendshipsArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FriendshipPayload<ExtArgs>, T, "findMany"> | Null>
     friendedBy<T extends User$friendedByArgs<ExtArgs> = {}>(args?: Subset<T, User$friendedByArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$FriendshipPayload<ExtArgs>, T, "findMany"> | Null>
+    onboarding<T extends User$onboardingArgs<ExtArgs> = {}>(args?: Subset<T, User$onboardingArgs<ExtArgs>>): Prisma__OnboardingDataClient<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "findUniqueOrThrow"> | null, null, ExtArgs>
     /**
      * Attaches callbacks for the resolution and/or rejection of the Promise.
      * @param onfulfilled The callback to execute when the Promise is resolved.
@@ -2591,6 +2681,21 @@ export namespace Prisma {
     take?: number
     skip?: number
     distinct?: FriendshipScalarFieldEnum | FriendshipScalarFieldEnum[]
+  }
+
+  /**
+   * User.onboarding
+   */
+  export type User$onboardingArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    where?: OnboardingDataWhereInput
   }
 
   /**
@@ -8789,6 +8894,1057 @@ export namespace Prisma {
 
 
   /**
+   * Model OnboardingData
+   */
+
+  export type AggregateOnboardingData = {
+    _count: OnboardingDataCountAggregateOutputType | null
+    _avg: OnboardingDataAvgAggregateOutputType | null
+    _sum: OnboardingDataSumAggregateOutputType | null
+    _min: OnboardingDataMinAggregateOutputType | null
+    _max: OnboardingDataMaxAggregateOutputType | null
+  }
+
+  export type OnboardingDataAvgAggregateOutputType = {
+    dailyTarget: number | null
+  }
+
+  export type OnboardingDataSumAggregateOutputType = {
+    dailyTarget: number | null
+  }
+
+  export type OnboardingDataMinAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    goal: string | null
+    challengeType: string | null
+    motivation: string | null
+    difficulty: string | null
+    challengeName: string | null
+    dailyTarget: number | null
+    reminderTime: string | null
+    startDate: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type OnboardingDataMaxAggregateOutputType = {
+    id: string | null
+    userId: string | null
+    goal: string | null
+    challengeType: string | null
+    motivation: string | null
+    difficulty: string | null
+    challengeName: string | null
+    dailyTarget: number | null
+    reminderTime: string | null
+    startDate: string | null
+    createdAt: Date | null
+    updatedAt: Date | null
+  }
+
+  export type OnboardingDataCountAggregateOutputType = {
+    id: number
+    userId: number
+    goal: number
+    challengeType: number
+    motivation: number
+    difficulty: number
+    challengeName: number
+    dailyTarget: number
+    reminderTime: number
+    startDate: number
+    createdAt: number
+    updatedAt: number
+    _all: number
+  }
+
+
+  export type OnboardingDataAvgAggregateInputType = {
+    dailyTarget?: true
+  }
+
+  export type OnboardingDataSumAggregateInputType = {
+    dailyTarget?: true
+  }
+
+  export type OnboardingDataMinAggregateInputType = {
+    id?: true
+    userId?: true
+    goal?: true
+    challengeType?: true
+    motivation?: true
+    difficulty?: true
+    challengeName?: true
+    dailyTarget?: true
+    reminderTime?: true
+    startDate?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type OnboardingDataMaxAggregateInputType = {
+    id?: true
+    userId?: true
+    goal?: true
+    challengeType?: true
+    motivation?: true
+    difficulty?: true
+    challengeName?: true
+    dailyTarget?: true
+    reminderTime?: true
+    startDate?: true
+    createdAt?: true
+    updatedAt?: true
+  }
+
+  export type OnboardingDataCountAggregateInputType = {
+    id?: true
+    userId?: true
+    goal?: true
+    challengeType?: true
+    motivation?: true
+    difficulty?: true
+    challengeName?: true
+    dailyTarget?: true
+    reminderTime?: true
+    startDate?: true
+    createdAt?: true
+    updatedAt?: true
+    _all?: true
+  }
+
+  export type OnboardingDataAggregateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OnboardingData to aggregate.
+     */
+    where?: OnboardingDataWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OnboardingData to fetch.
+     */
+    orderBy?: OnboardingDataOrderByWithRelationInput | OnboardingDataOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the start position
+     */
+    cursor?: OnboardingDataWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OnboardingData from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OnboardingData.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Count returned OnboardingData
+    **/
+    _count?: true | OnboardingDataCountAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to average
+    **/
+    _avg?: OnboardingDataAvgAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to sum
+    **/
+    _sum?: OnboardingDataSumAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the minimum value
+    **/
+    _min?: OnboardingDataMinAggregateInputType
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/aggregations Aggregation Docs}
+     * 
+     * Select which fields to find the maximum value
+    **/
+    _max?: OnboardingDataMaxAggregateInputType
+  }
+
+  export type GetOnboardingDataAggregateType<T extends OnboardingDataAggregateArgs> = {
+        [P in keyof T & keyof AggregateOnboardingData]: P extends '_count' | 'count'
+      ? T[P] extends true
+        ? number
+        : GetScalarType<T[P], AggregateOnboardingData[P]>
+      : GetScalarType<T[P], AggregateOnboardingData[P]>
+  }
+
+
+
+
+  export type OnboardingDataGroupByArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    where?: OnboardingDataWhereInput
+    orderBy?: OnboardingDataOrderByWithAggregationInput | OnboardingDataOrderByWithAggregationInput[]
+    by: OnboardingDataScalarFieldEnum[] | OnboardingDataScalarFieldEnum
+    having?: OnboardingDataScalarWhereWithAggregatesInput
+    take?: number
+    skip?: number
+    _count?: OnboardingDataCountAggregateInputType | true
+    _avg?: OnboardingDataAvgAggregateInputType
+    _sum?: OnboardingDataSumAggregateInputType
+    _min?: OnboardingDataMinAggregateInputType
+    _max?: OnboardingDataMaxAggregateInputType
+  }
+
+  export type OnboardingDataGroupByOutputType = {
+    id: string
+    userId: string
+    goal: string
+    challengeType: string
+    motivation: string
+    difficulty: string
+    challengeName: string | null
+    dailyTarget: number | null
+    reminderTime: string | null
+    startDate: string | null
+    createdAt: Date
+    updatedAt: Date
+    _count: OnboardingDataCountAggregateOutputType | null
+    _avg: OnboardingDataAvgAggregateOutputType | null
+    _sum: OnboardingDataSumAggregateOutputType | null
+    _min: OnboardingDataMinAggregateOutputType | null
+    _max: OnboardingDataMaxAggregateOutputType | null
+  }
+
+  type GetOnboardingDataGroupByPayload<T extends OnboardingDataGroupByArgs> = Prisma.PrismaPromise<
+    Array<
+      PickEnumerable<OnboardingDataGroupByOutputType, T['by']> &
+        {
+          [P in ((keyof T) & (keyof OnboardingDataGroupByOutputType))]: P extends '_count'
+            ? T[P] extends boolean
+              ? number
+              : GetScalarType<T[P], OnboardingDataGroupByOutputType[P]>
+            : GetScalarType<T[P], OnboardingDataGroupByOutputType[P]>
+        }
+      >
+    >
+
+
+  export type OnboardingDataSelect<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    goal?: boolean
+    challengeType?: boolean
+    motivation?: boolean
+    difficulty?: boolean
+    challengeName?: boolean
+    dailyTarget?: boolean
+    reminderTime?: boolean
+    startDate?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["onboardingData"]>
+
+  export type OnboardingDataSelectCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = $Extensions.GetSelect<{
+    id?: boolean
+    userId?: boolean
+    goal?: boolean
+    challengeType?: boolean
+    motivation?: boolean
+    difficulty?: boolean
+    challengeName?: boolean
+    dailyTarget?: boolean
+    reminderTime?: boolean
+    startDate?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }, ExtArgs["result"]["onboardingData"]>
+
+  export type OnboardingDataSelectScalar = {
+    id?: boolean
+    userId?: boolean
+    goal?: boolean
+    challengeType?: boolean
+    motivation?: boolean
+    difficulty?: boolean
+    challengeName?: boolean
+    dailyTarget?: boolean
+    reminderTime?: boolean
+    startDate?: boolean
+    createdAt?: boolean
+    updatedAt?: boolean
+  }
+
+  export type OnboardingDataInclude<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+  export type OnboardingDataIncludeCreateManyAndReturn<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    user?: boolean | UserDefaultArgs<ExtArgs>
+  }
+
+  export type $OnboardingDataPayload<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    name: "OnboardingData"
+    objects: {
+      user: Prisma.$UserPayload<ExtArgs>
+    }
+    scalars: $Extensions.GetPayloadResult<{
+      id: string
+      userId: string
+      goal: string
+      challengeType: string
+      motivation: string
+      difficulty: string
+      challengeName: string | null
+      dailyTarget: number | null
+      reminderTime: string | null
+      startDate: string | null
+      createdAt: Date
+      updatedAt: Date
+    }, ExtArgs["result"]["onboardingData"]>
+    composites: {}
+  }
+
+  type OnboardingDataGetPayload<S extends boolean | null | undefined | OnboardingDataDefaultArgs> = $Result.GetResult<Prisma.$OnboardingDataPayload, S>
+
+  type OnboardingDataCountArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = 
+    Omit<OnboardingDataFindManyArgs, 'select' | 'include' | 'distinct'> & {
+      select?: OnboardingDataCountAggregateInputType | true
+    }
+
+  export interface OnboardingDataDelegate<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> {
+    [K: symbol]: { types: Prisma.TypeMap<ExtArgs>['model']['OnboardingData'], meta: { name: 'OnboardingData' } }
+    /**
+     * Find zero or one OnboardingData that matches the filter.
+     * @param {OnboardingDataFindUniqueArgs} args - Arguments to find a OnboardingData
+     * @example
+     * // Get one OnboardingData
+     * const onboardingData = await prisma.onboardingData.findUnique({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUnique<T extends OnboardingDataFindUniqueArgs>(args: SelectSubset<T, OnboardingDataFindUniqueArgs<ExtArgs>>): Prisma__OnboardingDataClient<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "findUnique"> | null, null, ExtArgs>
+
+    /**
+     * Find one OnboardingData that matches the filter or throw an error with `error.code='P2025'` 
+     * if no matches were found.
+     * @param {OnboardingDataFindUniqueOrThrowArgs} args - Arguments to find a OnboardingData
+     * @example
+     * // Get one OnboardingData
+     * const onboardingData = await prisma.onboardingData.findUniqueOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findUniqueOrThrow<T extends OnboardingDataFindUniqueOrThrowArgs>(args: SelectSubset<T, OnboardingDataFindUniqueOrThrowArgs<ExtArgs>>): Prisma__OnboardingDataClient<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "findUniqueOrThrow">, never, ExtArgs>
+
+    /**
+     * Find the first OnboardingData that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OnboardingDataFindFirstArgs} args - Arguments to find a OnboardingData
+     * @example
+     * // Get one OnboardingData
+     * const onboardingData = await prisma.onboardingData.findFirst({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirst<T extends OnboardingDataFindFirstArgs>(args?: SelectSubset<T, OnboardingDataFindFirstArgs<ExtArgs>>): Prisma__OnboardingDataClient<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "findFirst"> | null, null, ExtArgs>
+
+    /**
+     * Find the first OnboardingData that matches the filter or
+     * throw `PrismaKnownClientError` with `P2025` code if no matches were found.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OnboardingDataFindFirstOrThrowArgs} args - Arguments to find a OnboardingData
+     * @example
+     * // Get one OnboardingData
+     * const onboardingData = await prisma.onboardingData.findFirstOrThrow({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     */
+    findFirstOrThrow<T extends OnboardingDataFindFirstOrThrowArgs>(args?: SelectSubset<T, OnboardingDataFindFirstOrThrowArgs<ExtArgs>>): Prisma__OnboardingDataClient<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "findFirstOrThrow">, never, ExtArgs>
+
+    /**
+     * Find zero or more OnboardingData that matches the filter.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OnboardingDataFindManyArgs} args - Arguments to filter and select certain fields only.
+     * @example
+     * // Get all OnboardingData
+     * const onboardingData = await prisma.onboardingData.findMany()
+     * 
+     * // Get first 10 OnboardingData
+     * const onboardingData = await prisma.onboardingData.findMany({ take: 10 })
+     * 
+     * // Only select the `id`
+     * const onboardingDataWithIdOnly = await prisma.onboardingData.findMany({ select: { id: true } })
+     * 
+     */
+    findMany<T extends OnboardingDataFindManyArgs>(args?: SelectSubset<T, OnboardingDataFindManyArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "findMany">>
+
+    /**
+     * Create a OnboardingData.
+     * @param {OnboardingDataCreateArgs} args - Arguments to create a OnboardingData.
+     * @example
+     * // Create one OnboardingData
+     * const OnboardingData = await prisma.onboardingData.create({
+     *   data: {
+     *     // ... data to create a OnboardingData
+     *   }
+     * })
+     * 
+     */
+    create<T extends OnboardingDataCreateArgs>(args: SelectSubset<T, OnboardingDataCreateArgs<ExtArgs>>): Prisma__OnboardingDataClient<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "create">, never, ExtArgs>
+
+    /**
+     * Create many OnboardingData.
+     * @param {OnboardingDataCreateManyArgs} args - Arguments to create many OnboardingData.
+     * @example
+     * // Create many OnboardingData
+     * const onboardingData = await prisma.onboardingData.createMany({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     *     
+     */
+    createMany<T extends OnboardingDataCreateManyArgs>(args?: SelectSubset<T, OnboardingDataCreateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create many OnboardingData and returns the data saved in the database.
+     * @param {OnboardingDataCreateManyAndReturnArgs} args - Arguments to create many OnboardingData.
+     * @example
+     * // Create many OnboardingData
+     * const onboardingData = await prisma.onboardingData.createManyAndReturn({
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * 
+     * // Create many OnboardingData and only return the `id`
+     * const onboardingDataWithIdOnly = await prisma.onboardingData.createManyAndReturn({ 
+     *   select: { id: true },
+     *   data: [
+     *     // ... provide data here
+     *   ]
+     * })
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * 
+     */
+    createManyAndReturn<T extends OnboardingDataCreateManyAndReturnArgs>(args?: SelectSubset<T, OnboardingDataCreateManyAndReturnArgs<ExtArgs>>): Prisma.PrismaPromise<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "createManyAndReturn">>
+
+    /**
+     * Delete a OnboardingData.
+     * @param {OnboardingDataDeleteArgs} args - Arguments to delete one OnboardingData.
+     * @example
+     * // Delete one OnboardingData
+     * const OnboardingData = await prisma.onboardingData.delete({
+     *   where: {
+     *     // ... filter to delete one OnboardingData
+     *   }
+     * })
+     * 
+     */
+    delete<T extends OnboardingDataDeleteArgs>(args: SelectSubset<T, OnboardingDataDeleteArgs<ExtArgs>>): Prisma__OnboardingDataClient<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "delete">, never, ExtArgs>
+
+    /**
+     * Update one OnboardingData.
+     * @param {OnboardingDataUpdateArgs} args - Arguments to update one OnboardingData.
+     * @example
+     * // Update one OnboardingData
+     * const onboardingData = await prisma.onboardingData.update({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    update<T extends OnboardingDataUpdateArgs>(args: SelectSubset<T, OnboardingDataUpdateArgs<ExtArgs>>): Prisma__OnboardingDataClient<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "update">, never, ExtArgs>
+
+    /**
+     * Delete zero or more OnboardingData.
+     * @param {OnboardingDataDeleteManyArgs} args - Arguments to filter OnboardingData to delete.
+     * @example
+     * // Delete a few OnboardingData
+     * const { count } = await prisma.onboardingData.deleteMany({
+     *   where: {
+     *     // ... provide filter here
+     *   }
+     * })
+     * 
+     */
+    deleteMany<T extends OnboardingDataDeleteManyArgs>(args?: SelectSubset<T, OnboardingDataDeleteManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Update zero or more OnboardingData.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OnboardingDataUpdateManyArgs} args - Arguments to update one or more rows.
+     * @example
+     * // Update many OnboardingData
+     * const onboardingData = await prisma.onboardingData.updateMany({
+     *   where: {
+     *     // ... provide filter here
+     *   },
+     *   data: {
+     *     // ... provide data here
+     *   }
+     * })
+     * 
+     */
+    updateMany<T extends OnboardingDataUpdateManyArgs>(args: SelectSubset<T, OnboardingDataUpdateManyArgs<ExtArgs>>): Prisma.PrismaPromise<BatchPayload>
+
+    /**
+     * Create or update one OnboardingData.
+     * @param {OnboardingDataUpsertArgs} args - Arguments to update or create a OnboardingData.
+     * @example
+     * // Update or create a OnboardingData
+     * const onboardingData = await prisma.onboardingData.upsert({
+     *   create: {
+     *     // ... data to create a OnboardingData
+     *   },
+     *   update: {
+     *     // ... in case it already exists, update
+     *   },
+     *   where: {
+     *     // ... the filter for the OnboardingData we want to update
+     *   }
+     * })
+     */
+    upsert<T extends OnboardingDataUpsertArgs>(args: SelectSubset<T, OnboardingDataUpsertArgs<ExtArgs>>): Prisma__OnboardingDataClient<$Result.GetResult<Prisma.$OnboardingDataPayload<ExtArgs>, T, "upsert">, never, ExtArgs>
+
+
+    /**
+     * Count the number of OnboardingData.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OnboardingDataCountArgs} args - Arguments to filter OnboardingData to count.
+     * @example
+     * // Count the number of OnboardingData
+     * const count = await prisma.onboardingData.count({
+     *   where: {
+     *     // ... the filter for the OnboardingData we want to count
+     *   }
+     * })
+    **/
+    count<T extends OnboardingDataCountArgs>(
+      args?: Subset<T, OnboardingDataCountArgs>,
+    ): Prisma.PrismaPromise<
+      T extends $Utils.Record<'select', any>
+        ? T['select'] extends true
+          ? number
+          : GetScalarType<T['select'], OnboardingDataCountAggregateOutputType>
+        : number
+    >
+
+    /**
+     * Allows you to perform aggregations operations on a OnboardingData.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OnboardingDataAggregateArgs} args - Select which aggregations you would like to apply and on what fields.
+     * @example
+     * // Ordered by age ascending
+     * // Where email contains prisma.io
+     * // Limited to the 10 users
+     * const aggregations = await prisma.user.aggregate({
+     *   _avg: {
+     *     age: true,
+     *   },
+     *   where: {
+     *     email: {
+     *       contains: "prisma.io",
+     *     },
+     *   },
+     *   orderBy: {
+     *     age: "asc",
+     *   },
+     *   take: 10,
+     * })
+    **/
+    aggregate<T extends OnboardingDataAggregateArgs>(args: Subset<T, OnboardingDataAggregateArgs>): Prisma.PrismaPromise<GetOnboardingDataAggregateType<T>>
+
+    /**
+     * Group by OnboardingData.
+     * Note, that providing `undefined` is treated as the value not being there.
+     * Read more here: https://pris.ly/d/null-undefined
+     * @param {OnboardingDataGroupByArgs} args - Group by arguments.
+     * @example
+     * // Group by city, order by createdAt, get count
+     * const result = await prisma.user.groupBy({
+     *   by: ['city', 'createdAt'],
+     *   orderBy: {
+     *     createdAt: true
+     *   },
+     *   _count: {
+     *     _all: true
+     *   },
+     * })
+     * 
+    **/
+    groupBy<
+      T extends OnboardingDataGroupByArgs,
+      HasSelectOrTake extends Or<
+        Extends<'skip', Keys<T>>,
+        Extends<'take', Keys<T>>
+      >,
+      OrderByArg extends True extends HasSelectOrTake
+        ? { orderBy: OnboardingDataGroupByArgs['orderBy'] }
+        : { orderBy?: OnboardingDataGroupByArgs['orderBy'] },
+      OrderFields extends ExcludeUnderscoreKeys<Keys<MaybeTupleToUnion<T['orderBy']>>>,
+      ByFields extends MaybeTupleToUnion<T['by']>,
+      ByValid extends Has<ByFields, OrderFields>,
+      HavingFields extends GetHavingFields<T['having']>,
+      HavingValid extends Has<ByFields, HavingFields>,
+      ByEmpty extends T['by'] extends never[] ? True : False,
+      InputErrors extends ByEmpty extends True
+      ? `Error: "by" must not be empty.`
+      : HavingValid extends False
+      ? {
+          [P in HavingFields]: P extends ByFields
+            ? never
+            : P extends string
+            ? `Error: Field "${P}" used in "having" needs to be provided in "by".`
+            : [
+                Error,
+                'Field ',
+                P,
+                ` in "having" needs to be provided in "by"`,
+              ]
+        }[HavingFields]
+      : 'take' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "take", you also need to provide "orderBy"'
+      : 'skip' extends Keys<T>
+      ? 'orderBy' extends Keys<T>
+        ? ByValid extends True
+          ? {}
+          : {
+              [P in OrderFields]: P extends ByFields
+                ? never
+                : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+            }[OrderFields]
+        : 'Error: If you provide "skip", you also need to provide "orderBy"'
+      : ByValid extends True
+      ? {}
+      : {
+          [P in OrderFields]: P extends ByFields
+            ? never
+            : `Error: Field "${P}" in "orderBy" needs to be provided in "by"`
+        }[OrderFields]
+    >(args: SubsetIntersection<T, OnboardingDataGroupByArgs, OrderByArg> & InputErrors): {} extends InputErrors ? GetOnboardingDataGroupByPayload<T> : Prisma.PrismaPromise<InputErrors>
+  /**
+   * Fields of the OnboardingData model
+   */
+  readonly fields: OnboardingDataFieldRefs;
+  }
+
+  /**
+   * The delegate class that acts as a "Promise-like" for OnboardingData.
+   * Why is this prefixed with `Prisma__`?
+   * Because we want to prevent naming conflicts as mentioned in
+   * https://github.com/prisma/prisma-client-js/issues/707
+   */
+  export interface Prisma__OnboardingDataClient<T, Null = never, ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> extends Prisma.PrismaPromise<T> {
+    readonly [Symbol.toStringTag]: "PrismaPromise"
+    user<T extends UserDefaultArgs<ExtArgs> = {}>(args?: Subset<T, UserDefaultArgs<ExtArgs>>): Prisma__UserClient<$Result.GetResult<Prisma.$UserPayload<ExtArgs>, T, "findUniqueOrThrow"> | Null, Null, ExtArgs>
+    /**
+     * Attaches callbacks for the resolution and/or rejection of the Promise.
+     * @param onfulfilled The callback to execute when the Promise is resolved.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of which ever callback is executed.
+     */
+    then<TResult1 = T, TResult2 = never>(onfulfilled?: ((value: T) => TResult1 | PromiseLike<TResult1>) | undefined | null, onrejected?: ((reason: any) => TResult2 | PromiseLike<TResult2>) | undefined | null): $Utils.JsPromise<TResult1 | TResult2>
+    /**
+     * Attaches a callback for only the rejection of the Promise.
+     * @param onrejected The callback to execute when the Promise is rejected.
+     * @returns A Promise for the completion of the callback.
+     */
+    catch<TResult = never>(onrejected?: ((reason: any) => TResult | PromiseLike<TResult>) | undefined | null): $Utils.JsPromise<T | TResult>
+    /**
+     * Attaches a callback that is invoked when the Promise is settled (fulfilled or rejected). The
+     * resolved value cannot be modified from the callback.
+     * @param onfinally The callback to execute when the Promise is settled (fulfilled or rejected).
+     * @returns A Promise for the completion of the callback.
+     */
+    finally(onfinally?: (() => void) | undefined | null): $Utils.JsPromise<T>
+  }
+
+
+
+
+  /**
+   * Fields of the OnboardingData model
+   */ 
+  interface OnboardingDataFieldRefs {
+    readonly id: FieldRef<"OnboardingData", 'String'>
+    readonly userId: FieldRef<"OnboardingData", 'String'>
+    readonly goal: FieldRef<"OnboardingData", 'String'>
+    readonly challengeType: FieldRef<"OnboardingData", 'String'>
+    readonly motivation: FieldRef<"OnboardingData", 'String'>
+    readonly difficulty: FieldRef<"OnboardingData", 'String'>
+    readonly challengeName: FieldRef<"OnboardingData", 'String'>
+    readonly dailyTarget: FieldRef<"OnboardingData", 'Int'>
+    readonly reminderTime: FieldRef<"OnboardingData", 'String'>
+    readonly startDate: FieldRef<"OnboardingData", 'String'>
+    readonly createdAt: FieldRef<"OnboardingData", 'DateTime'>
+    readonly updatedAt: FieldRef<"OnboardingData", 'DateTime'>
+  }
+    
+
+  // Custom InputTypes
+  /**
+   * OnboardingData findUnique
+   */
+  export type OnboardingDataFindUniqueArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    /**
+     * Filter, which OnboardingData to fetch.
+     */
+    where: OnboardingDataWhereUniqueInput
+  }
+
+  /**
+   * OnboardingData findUniqueOrThrow
+   */
+  export type OnboardingDataFindUniqueOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    /**
+     * Filter, which OnboardingData to fetch.
+     */
+    where: OnboardingDataWhereUniqueInput
+  }
+
+  /**
+   * OnboardingData findFirst
+   */
+  export type OnboardingDataFindFirstArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    /**
+     * Filter, which OnboardingData to fetch.
+     */
+    where?: OnboardingDataWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OnboardingData to fetch.
+     */
+    orderBy?: OnboardingDataOrderByWithRelationInput | OnboardingDataOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OnboardingData.
+     */
+    cursor?: OnboardingDataWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OnboardingData from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OnboardingData.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OnboardingData.
+     */
+    distinct?: OnboardingDataScalarFieldEnum | OnboardingDataScalarFieldEnum[]
+  }
+
+  /**
+   * OnboardingData findFirstOrThrow
+   */
+  export type OnboardingDataFindFirstOrThrowArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    /**
+     * Filter, which OnboardingData to fetch.
+     */
+    where?: OnboardingDataWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OnboardingData to fetch.
+     */
+    orderBy?: OnboardingDataOrderByWithRelationInput | OnboardingDataOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for searching for OnboardingData.
+     */
+    cursor?: OnboardingDataWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OnboardingData from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OnboardingData.
+     */
+    skip?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/distinct Distinct Docs}
+     * 
+     * Filter by unique combinations of OnboardingData.
+     */
+    distinct?: OnboardingDataScalarFieldEnum | OnboardingDataScalarFieldEnum[]
+  }
+
+  /**
+   * OnboardingData findMany
+   */
+  export type OnboardingDataFindManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    /**
+     * Filter, which OnboardingData to fetch.
+     */
+    where?: OnboardingDataWhereInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/sorting Sorting Docs}
+     * 
+     * Determine the order of OnboardingData to fetch.
+     */
+    orderBy?: OnboardingDataOrderByWithRelationInput | OnboardingDataOrderByWithRelationInput[]
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination#cursor-based-pagination Cursor Docs}
+     * 
+     * Sets the position for listing OnboardingData.
+     */
+    cursor?: OnboardingDataWhereUniqueInput
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Take `±n` OnboardingData from the position of the cursor.
+     */
+    take?: number
+    /**
+     * {@link https://www.prisma.io/docs/concepts/components/prisma-client/pagination Pagination Docs}
+     * 
+     * Skip the first `n` OnboardingData.
+     */
+    skip?: number
+    distinct?: OnboardingDataScalarFieldEnum | OnboardingDataScalarFieldEnum[]
+  }
+
+  /**
+   * OnboardingData create
+   */
+  export type OnboardingDataCreateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    /**
+     * The data needed to create a OnboardingData.
+     */
+    data: XOR<OnboardingDataCreateInput, OnboardingDataUncheckedCreateInput>
+  }
+
+  /**
+   * OnboardingData createMany
+   */
+  export type OnboardingDataCreateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to create many OnboardingData.
+     */
+    data: OnboardingDataCreateManyInput | OnboardingDataCreateManyInput[]
+    skipDuplicates?: boolean
+  }
+
+  /**
+   * OnboardingData createManyAndReturn
+   */
+  export type OnboardingDataCreateManyAndReturnArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelectCreateManyAndReturn<ExtArgs> | null
+    /**
+     * The data used to create many OnboardingData.
+     */
+    data: OnboardingDataCreateManyInput | OnboardingDataCreateManyInput[]
+    skipDuplicates?: boolean
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataIncludeCreateManyAndReturn<ExtArgs> | null
+  }
+
+  /**
+   * OnboardingData update
+   */
+  export type OnboardingDataUpdateArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    /**
+     * The data needed to update a OnboardingData.
+     */
+    data: XOR<OnboardingDataUpdateInput, OnboardingDataUncheckedUpdateInput>
+    /**
+     * Choose, which OnboardingData to update.
+     */
+    where: OnboardingDataWhereUniqueInput
+  }
+
+  /**
+   * OnboardingData updateMany
+   */
+  export type OnboardingDataUpdateManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * The data used to update OnboardingData.
+     */
+    data: XOR<OnboardingDataUpdateManyMutationInput, OnboardingDataUncheckedUpdateManyInput>
+    /**
+     * Filter which OnboardingData to update
+     */
+    where?: OnboardingDataWhereInput
+  }
+
+  /**
+   * OnboardingData upsert
+   */
+  export type OnboardingDataUpsertArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    /**
+     * The filter to search for the OnboardingData to update in case it exists.
+     */
+    where: OnboardingDataWhereUniqueInput
+    /**
+     * In case the OnboardingData found by the `where` argument doesn't exist, create a new OnboardingData with this data.
+     */
+    create: XOR<OnboardingDataCreateInput, OnboardingDataUncheckedCreateInput>
+    /**
+     * In case the OnboardingData was found with the provided `where` argument, update it with this data.
+     */
+    update: XOR<OnboardingDataUpdateInput, OnboardingDataUncheckedUpdateInput>
+  }
+
+  /**
+   * OnboardingData delete
+   */
+  export type OnboardingDataDeleteArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+    /**
+     * Filter which OnboardingData to delete.
+     */
+    where: OnboardingDataWhereUniqueInput
+  }
+
+  /**
+   * OnboardingData deleteMany
+   */
+  export type OnboardingDataDeleteManyArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Filter which OnboardingData to delete
+     */
+    where?: OnboardingDataWhereInput
+  }
+
+  /**
+   * OnboardingData without action
+   */
+  export type OnboardingDataDefaultArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = {
+    /**
+     * Select specific fields to fetch from the OnboardingData
+     */
+    select?: OnboardingDataSelect<ExtArgs> | null
+    /**
+     * Choose, which related nodes to fetch as well
+     */
+    include?: OnboardingDataInclude<ExtArgs> | null
+  }
+
+
+  /**
    * Enums
    */
 
@@ -8908,6 +10064,24 @@ export namespace Prisma {
   export type DailyHabitScalarFieldEnum = (typeof DailyHabitScalarFieldEnum)[keyof typeof DailyHabitScalarFieldEnum]
 
 
+  export const OnboardingDataScalarFieldEnum: {
+    id: 'id',
+    userId: 'userId',
+    goal: 'goal',
+    challengeType: 'challengeType',
+    motivation: 'motivation',
+    difficulty: 'difficulty',
+    challengeName: 'challengeName',
+    dailyTarget: 'dailyTarget',
+    reminderTime: 'reminderTime',
+    startDate: 'startDate',
+    createdAt: 'createdAt',
+    updatedAt: 'updatedAt'
+  };
+
+  export type OnboardingDataScalarFieldEnum = (typeof OnboardingDataScalarFieldEnum)[keyof typeof OnboardingDataScalarFieldEnum]
+
+
   export const SortOrder: {
     asc: 'asc',
     desc: 'desc'
@@ -9021,6 +10195,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitListRelationFilter
     friendships?: FriendshipListRelationFilter
     friendedBy?: FriendshipListRelationFilter
+    onboarding?: XOR<OnboardingDataNullableRelationFilter, OnboardingDataWhereInput> | null
   }
 
   export type UserOrderByWithRelationInput = {
@@ -9038,6 +10213,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitOrderByRelationAggregateInput
     friendships?: FriendshipOrderByRelationAggregateInput
     friendedBy?: FriendshipOrderByRelationAggregateInput
+    onboarding?: OnboardingDataOrderByWithRelationInput
   }
 
   export type UserWhereUniqueInput = Prisma.AtLeast<{
@@ -9058,6 +10234,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitListRelationFilter
     friendships?: FriendshipListRelationFilter
     friendedBy?: FriendshipListRelationFilter
+    onboarding?: XOR<OnboardingDataNullableRelationFilter, OnboardingDataWhereInput> | null
   }, "id" | "email">
 
   export type UserOrderByWithAggregationInput = {
@@ -9586,6 +10763,98 @@ export namespace Prisma {
     updatedAt?: DateTimeWithAggregatesFilter<"DailyHabit"> | Date | string
   }
 
+  export type OnboardingDataWhereInput = {
+    AND?: OnboardingDataWhereInput | OnboardingDataWhereInput[]
+    OR?: OnboardingDataWhereInput[]
+    NOT?: OnboardingDataWhereInput | OnboardingDataWhereInput[]
+    id?: StringFilter<"OnboardingData"> | string
+    userId?: StringFilter<"OnboardingData"> | string
+    goal?: StringFilter<"OnboardingData"> | string
+    challengeType?: StringFilter<"OnboardingData"> | string
+    motivation?: StringFilter<"OnboardingData"> | string
+    difficulty?: StringFilter<"OnboardingData"> | string
+    challengeName?: StringNullableFilter<"OnboardingData"> | string | null
+    dailyTarget?: IntNullableFilter<"OnboardingData"> | number | null
+    reminderTime?: StringNullableFilter<"OnboardingData"> | string | null
+    startDate?: StringNullableFilter<"OnboardingData"> | string | null
+    createdAt?: DateTimeFilter<"OnboardingData"> | Date | string
+    updatedAt?: DateTimeFilter<"OnboardingData"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }
+
+  export type OnboardingDataOrderByWithRelationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    goal?: SortOrder
+    challengeType?: SortOrder
+    motivation?: SortOrder
+    difficulty?: SortOrder
+    challengeName?: SortOrderInput | SortOrder
+    dailyTarget?: SortOrderInput | SortOrder
+    reminderTime?: SortOrderInput | SortOrder
+    startDate?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    user?: UserOrderByWithRelationInput
+  }
+
+  export type OnboardingDataWhereUniqueInput = Prisma.AtLeast<{
+    id?: string
+    userId?: string
+    AND?: OnboardingDataWhereInput | OnboardingDataWhereInput[]
+    OR?: OnboardingDataWhereInput[]
+    NOT?: OnboardingDataWhereInput | OnboardingDataWhereInput[]
+    goal?: StringFilter<"OnboardingData"> | string
+    challengeType?: StringFilter<"OnboardingData"> | string
+    motivation?: StringFilter<"OnboardingData"> | string
+    difficulty?: StringFilter<"OnboardingData"> | string
+    challengeName?: StringNullableFilter<"OnboardingData"> | string | null
+    dailyTarget?: IntNullableFilter<"OnboardingData"> | number | null
+    reminderTime?: StringNullableFilter<"OnboardingData"> | string | null
+    startDate?: StringNullableFilter<"OnboardingData"> | string | null
+    createdAt?: DateTimeFilter<"OnboardingData"> | Date | string
+    updatedAt?: DateTimeFilter<"OnboardingData"> | Date | string
+    user?: XOR<UserRelationFilter, UserWhereInput>
+  }, "id" | "userId">
+
+  export type OnboardingDataOrderByWithAggregationInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    goal?: SortOrder
+    challengeType?: SortOrder
+    motivation?: SortOrder
+    difficulty?: SortOrder
+    challengeName?: SortOrderInput | SortOrder
+    dailyTarget?: SortOrderInput | SortOrder
+    reminderTime?: SortOrderInput | SortOrder
+    startDate?: SortOrderInput | SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+    _count?: OnboardingDataCountOrderByAggregateInput
+    _avg?: OnboardingDataAvgOrderByAggregateInput
+    _max?: OnboardingDataMaxOrderByAggregateInput
+    _min?: OnboardingDataMinOrderByAggregateInput
+    _sum?: OnboardingDataSumOrderByAggregateInput
+  }
+
+  export type OnboardingDataScalarWhereWithAggregatesInput = {
+    AND?: OnboardingDataScalarWhereWithAggregatesInput | OnboardingDataScalarWhereWithAggregatesInput[]
+    OR?: OnboardingDataScalarWhereWithAggregatesInput[]
+    NOT?: OnboardingDataScalarWhereWithAggregatesInput | OnboardingDataScalarWhereWithAggregatesInput[]
+    id?: StringWithAggregatesFilter<"OnboardingData"> | string
+    userId?: StringWithAggregatesFilter<"OnboardingData"> | string
+    goal?: StringWithAggregatesFilter<"OnboardingData"> | string
+    challengeType?: StringWithAggregatesFilter<"OnboardingData"> | string
+    motivation?: StringWithAggregatesFilter<"OnboardingData"> | string
+    difficulty?: StringWithAggregatesFilter<"OnboardingData"> | string
+    challengeName?: StringNullableWithAggregatesFilter<"OnboardingData"> | string | null
+    dailyTarget?: IntNullableWithAggregatesFilter<"OnboardingData"> | number | null
+    reminderTime?: StringNullableWithAggregatesFilter<"OnboardingData"> | string | null
+    startDate?: StringNullableWithAggregatesFilter<"OnboardingData"> | string | null
+    createdAt?: DateTimeWithAggregatesFilter<"OnboardingData"> | Date | string
+    updatedAt?: DateTimeWithAggregatesFilter<"OnboardingData"> | Date | string
+  }
+
   export type UserCreateInput = {
     id?: string
     email: string
@@ -9601,6 +10870,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
     friendships?: FriendshipCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateInput = {
@@ -9618,6 +10888,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
     friendships?: FriendshipUncheckedCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipUncheckedCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataUncheckedCreateNestedOneWithoutUserInput
   }
 
   export type UserUpdateInput = {
@@ -9635,6 +10906,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUpdateOneWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateInput = {
@@ -9652,6 +10924,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUncheckedUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUncheckedUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUncheckedUpdateOneWithoutUserNestedInput
   }
 
   export type UserCreateManyInput = {
@@ -10211,6 +11484,110 @@ export namespace Prisma {
     updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
   }
 
+  export type OnboardingDataCreateInput = {
+    id?: string
+    goal: string
+    challengeType: string
+    motivation: string
+    difficulty: string
+    challengeName?: string | null
+    dailyTarget?: number | null
+    reminderTime?: string | null
+    startDate?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+    user: UserCreateNestedOneWithoutOnboardingInput
+  }
+
+  export type OnboardingDataUncheckedCreateInput = {
+    id?: string
+    userId: string
+    goal: string
+    challengeType: string
+    motivation: string
+    difficulty: string
+    challengeName?: string | null
+    dailyTarget?: number | null
+    reminderTime?: string | null
+    startDate?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OnboardingDataUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    goal?: StringFieldUpdateOperationsInput | string
+    challengeType?: StringFieldUpdateOperationsInput | string
+    motivation?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    challengeName?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyTarget?: NullableIntFieldUpdateOperationsInput | number | null
+    reminderTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    user?: UserUpdateOneRequiredWithoutOnboardingNestedInput
+  }
+
+  export type OnboardingDataUncheckedUpdateInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    goal?: StringFieldUpdateOperationsInput | string
+    challengeType?: StringFieldUpdateOperationsInput | string
+    motivation?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    challengeName?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyTarget?: NullableIntFieldUpdateOperationsInput | number | null
+    reminderTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OnboardingDataCreateManyInput = {
+    id?: string
+    userId: string
+    goal: string
+    challengeType: string
+    motivation: string
+    difficulty: string
+    challengeName?: string | null
+    dailyTarget?: number | null
+    reminderTime?: string | null
+    startDate?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OnboardingDataUpdateManyMutationInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    goal?: StringFieldUpdateOperationsInput | string
+    challengeType?: StringFieldUpdateOperationsInput | string
+    motivation?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    challengeName?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyTarget?: NullableIntFieldUpdateOperationsInput | number | null
+    reminderTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OnboardingDataUncheckedUpdateManyInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    userId?: StringFieldUpdateOperationsInput | string
+    goal?: StringFieldUpdateOperationsInput | string
+    challengeType?: StringFieldUpdateOperationsInput | string
+    motivation?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    challengeName?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyTarget?: NullableIntFieldUpdateOperationsInput | number | null
+    reminderTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type StringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -10286,6 +11663,11 @@ export namespace Prisma {
     every?: FriendshipWhereInput
     some?: FriendshipWhereInput
     none?: FriendshipWhereInput
+  }
+
+  export type OnboardingDataNullableRelationFilter = {
+    is?: OnboardingDataWhereInput | null
+    isNot?: OnboardingDataWhereInput | null
   }
 
   export type SortOrderInput = {
@@ -10829,6 +12211,86 @@ export namespace Prisma {
     updatedAt?: SortOrder
   }
 
+  export type IntNullableFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableFilter<$PrismaModel> | number | null
+  }
+
+  export type OnboardingDataCountOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    goal?: SortOrder
+    challengeType?: SortOrder
+    motivation?: SortOrder
+    difficulty?: SortOrder
+    challengeName?: SortOrder
+    dailyTarget?: SortOrder
+    reminderTime?: SortOrder
+    startDate?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OnboardingDataAvgOrderByAggregateInput = {
+    dailyTarget?: SortOrder
+  }
+
+  export type OnboardingDataMaxOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    goal?: SortOrder
+    challengeType?: SortOrder
+    motivation?: SortOrder
+    difficulty?: SortOrder
+    challengeName?: SortOrder
+    dailyTarget?: SortOrder
+    reminderTime?: SortOrder
+    startDate?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OnboardingDataMinOrderByAggregateInput = {
+    id?: SortOrder
+    userId?: SortOrder
+    goal?: SortOrder
+    challengeType?: SortOrder
+    motivation?: SortOrder
+    difficulty?: SortOrder
+    challengeName?: SortOrder
+    dailyTarget?: SortOrder
+    reminderTime?: SortOrder
+    startDate?: SortOrder
+    createdAt?: SortOrder
+    updatedAt?: SortOrder
+  }
+
+  export type OnboardingDataSumOrderByAggregateInput = {
+    dailyTarget?: SortOrder
+  }
+
+  export type IntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
+  }
+
   export type ChallengeCreateNestedManyWithoutUserInput = {
     create?: XOR<ChallengeCreateWithoutUserInput, ChallengeUncheckedCreateWithoutUserInput> | ChallengeCreateWithoutUserInput[] | ChallengeUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ChallengeCreateOrConnectWithoutUserInput | ChallengeCreateOrConnectWithoutUserInput[]
@@ -10878,6 +12340,12 @@ export namespace Prisma {
     connect?: FriendshipWhereUniqueInput | FriendshipWhereUniqueInput[]
   }
 
+  export type OnboardingDataCreateNestedOneWithoutUserInput = {
+    create?: XOR<OnboardingDataCreateWithoutUserInput, OnboardingDataUncheckedCreateWithoutUserInput>
+    connectOrCreate?: OnboardingDataCreateOrConnectWithoutUserInput
+    connect?: OnboardingDataWhereUniqueInput
+  }
+
   export type ChallengeUncheckedCreateNestedManyWithoutUserInput = {
     create?: XOR<ChallengeCreateWithoutUserInput, ChallengeUncheckedCreateWithoutUserInput> | ChallengeCreateWithoutUserInput[] | ChallengeUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ChallengeCreateOrConnectWithoutUserInput | ChallengeCreateOrConnectWithoutUserInput[]
@@ -10925,6 +12393,12 @@ export namespace Prisma {
     connectOrCreate?: FriendshipCreateOrConnectWithoutFriendInput | FriendshipCreateOrConnectWithoutFriendInput[]
     createMany?: FriendshipCreateManyFriendInputEnvelope
     connect?: FriendshipWhereUniqueInput | FriendshipWhereUniqueInput[]
+  }
+
+  export type OnboardingDataUncheckedCreateNestedOneWithoutUserInput = {
+    create?: XOR<OnboardingDataCreateWithoutUserInput, OnboardingDataUncheckedCreateWithoutUserInput>
+    connectOrCreate?: OnboardingDataCreateOrConnectWithoutUserInput
+    connect?: OnboardingDataWhereUniqueInput
   }
 
   export type StringFieldUpdateOperationsInput = {
@@ -11037,6 +12511,16 @@ export namespace Prisma {
     deleteMany?: FriendshipScalarWhereInput | FriendshipScalarWhereInput[]
   }
 
+  export type OnboardingDataUpdateOneWithoutUserNestedInput = {
+    create?: XOR<OnboardingDataCreateWithoutUserInput, OnboardingDataUncheckedCreateWithoutUserInput>
+    connectOrCreate?: OnboardingDataCreateOrConnectWithoutUserInput
+    upsert?: OnboardingDataUpsertWithoutUserInput
+    disconnect?: OnboardingDataWhereInput | boolean
+    delete?: OnboardingDataWhereInput | boolean
+    connect?: OnboardingDataWhereUniqueInput
+    update?: XOR<XOR<OnboardingDataUpdateToOneWithWhereWithoutUserInput, OnboardingDataUpdateWithoutUserInput>, OnboardingDataUncheckedUpdateWithoutUserInput>
+  }
+
   export type ChallengeUncheckedUpdateManyWithoutUserNestedInput = {
     create?: XOR<ChallengeCreateWithoutUserInput, ChallengeUncheckedCreateWithoutUserInput> | ChallengeCreateWithoutUserInput[] | ChallengeUncheckedCreateWithoutUserInput[]
     connectOrCreate?: ChallengeCreateOrConnectWithoutUserInput | ChallengeCreateOrConnectWithoutUserInput[]
@@ -11133,6 +12617,16 @@ export namespace Prisma {
     update?: FriendshipUpdateWithWhereUniqueWithoutFriendInput | FriendshipUpdateWithWhereUniqueWithoutFriendInput[]
     updateMany?: FriendshipUpdateManyWithWhereWithoutFriendInput | FriendshipUpdateManyWithWhereWithoutFriendInput[]
     deleteMany?: FriendshipScalarWhereInput | FriendshipScalarWhereInput[]
+  }
+
+  export type OnboardingDataUncheckedUpdateOneWithoutUserNestedInput = {
+    create?: XOR<OnboardingDataCreateWithoutUserInput, OnboardingDataUncheckedCreateWithoutUserInput>
+    connectOrCreate?: OnboardingDataCreateOrConnectWithoutUserInput
+    upsert?: OnboardingDataUpsertWithoutUserInput
+    disconnect?: OnboardingDataWhereInput | boolean
+    delete?: OnboardingDataWhereInput | boolean
+    connect?: OnboardingDataWhereUniqueInput
+    update?: XOR<XOR<OnboardingDataUpdateToOneWithWhereWithoutUserInput, OnboardingDataUpdateWithoutUserInput>, OnboardingDataUncheckedUpdateWithoutUserInput>
   }
 
   export type UserCreateNestedOneWithoutFriendshipsInput = {
@@ -11433,6 +12927,28 @@ export namespace Prisma {
     update?: XOR<XOR<UserUpdateToOneWithWhereWithoutDailyHabitsInput, UserUpdateWithoutDailyHabitsInput>, UserUncheckedUpdateWithoutDailyHabitsInput>
   }
 
+  export type UserCreateNestedOneWithoutOnboardingInput = {
+    create?: XOR<UserCreateWithoutOnboardingInput, UserUncheckedCreateWithoutOnboardingInput>
+    connectOrCreate?: UserCreateOrConnectWithoutOnboardingInput
+    connect?: UserWhereUniqueInput
+  }
+
+  export type NullableIntFieldUpdateOperationsInput = {
+    set?: number | null
+    increment?: number
+    decrement?: number
+    multiply?: number
+    divide?: number
+  }
+
+  export type UserUpdateOneRequiredWithoutOnboardingNestedInput = {
+    create?: XOR<UserCreateWithoutOnboardingInput, UserUncheckedCreateWithoutOnboardingInput>
+    connectOrCreate?: UserCreateOrConnectWithoutOnboardingInput
+    upsert?: UserUpsertWithoutOnboardingInput
+    connect?: UserWhereUniqueInput
+    update?: XOR<XOR<UserUpdateToOneWithWhereWithoutOnboardingInput, UserUpdateWithoutOnboardingInput>, UserUncheckedUpdateWithoutOnboardingInput>
+  }
+
   export type NestedStringFilter<$PrismaModel = never> = {
     equals?: string | StringFieldRefInput<$PrismaModel>
     in?: string[] | ListStringFieldRefInput<$PrismaModel>
@@ -11648,6 +13164,22 @@ export namespace Prisma {
     _count?: NestedIntNullableFilter<$PrismaModel>
     _min?: NestedDateTimeNullableFilter<$PrismaModel>
     _max?: NestedDateTimeNullableFilter<$PrismaModel>
+  }
+
+  export type NestedIntNullableWithAggregatesFilter<$PrismaModel = never> = {
+    equals?: number | IntFieldRefInput<$PrismaModel> | null
+    in?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    notIn?: number[] | ListIntFieldRefInput<$PrismaModel> | null
+    lt?: number | IntFieldRefInput<$PrismaModel>
+    lte?: number | IntFieldRefInput<$PrismaModel>
+    gt?: number | IntFieldRefInput<$PrismaModel>
+    gte?: number | IntFieldRefInput<$PrismaModel>
+    not?: NestedIntNullableWithAggregatesFilter<$PrismaModel> | number | null
+    _count?: NestedIntNullableFilter<$PrismaModel>
+    _avg?: NestedFloatNullableFilter<$PrismaModel>
+    _sum?: NestedIntNullableFilter<$PrismaModel>
+    _min?: NestedIntNullableFilter<$PrismaModel>
+    _max?: NestedIntNullableFilter<$PrismaModel>
   }
 
   export type ChallengeCreateWithoutUserInput = {
@@ -11880,6 +13412,39 @@ export namespace Prisma {
     skipDuplicates?: boolean
   }
 
+  export type OnboardingDataCreateWithoutUserInput = {
+    id?: string
+    goal: string
+    challengeType: string
+    motivation: string
+    difficulty: string
+    challengeName?: string | null
+    dailyTarget?: number | null
+    reminderTime?: string | null
+    startDate?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OnboardingDataUncheckedCreateWithoutUserInput = {
+    id?: string
+    goal: string
+    challengeType: string
+    motivation: string
+    difficulty: string
+    challengeName?: string | null
+    dailyTarget?: number | null
+    reminderTime?: string | null
+    startDate?: string | null
+    createdAt?: Date | string
+    updatedAt?: Date | string
+  }
+
+  export type OnboardingDataCreateOrConnectWithoutUserInput = {
+    where: OnboardingDataWhereUniqueInput
+    create: XOR<OnboardingDataCreateWithoutUserInput, OnboardingDataUncheckedCreateWithoutUserInput>
+  }
+
   export type ChallengeUpsertWithWhereUniqueWithoutUserInput = {
     where: ChallengeWhereUniqueInput
     update: XOR<ChallengeUpdateWithoutUserInput, ChallengeUncheckedUpdateWithoutUserInput>
@@ -12085,6 +13650,45 @@ export namespace Prisma {
     data: XOR<FriendshipUpdateManyMutationInput, FriendshipUncheckedUpdateManyWithoutFriendInput>
   }
 
+  export type OnboardingDataUpsertWithoutUserInput = {
+    update: XOR<OnboardingDataUpdateWithoutUserInput, OnboardingDataUncheckedUpdateWithoutUserInput>
+    create: XOR<OnboardingDataCreateWithoutUserInput, OnboardingDataUncheckedCreateWithoutUserInput>
+    where?: OnboardingDataWhereInput
+  }
+
+  export type OnboardingDataUpdateToOneWithWhereWithoutUserInput = {
+    where?: OnboardingDataWhereInput
+    data: XOR<OnboardingDataUpdateWithoutUserInput, OnboardingDataUncheckedUpdateWithoutUserInput>
+  }
+
+  export type OnboardingDataUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    goal?: StringFieldUpdateOperationsInput | string
+    challengeType?: StringFieldUpdateOperationsInput | string
+    motivation?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    challengeName?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyTarget?: NullableIntFieldUpdateOperationsInput | number | null
+    reminderTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
+  export type OnboardingDataUncheckedUpdateWithoutUserInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    goal?: StringFieldUpdateOperationsInput | string
+    challengeType?: StringFieldUpdateOperationsInput | string
+    motivation?: StringFieldUpdateOperationsInput | string
+    difficulty?: StringFieldUpdateOperationsInput | string
+    challengeName?: NullableStringFieldUpdateOperationsInput | string | null
+    dailyTarget?: NullableIntFieldUpdateOperationsInput | number | null
+    reminderTime?: NullableStringFieldUpdateOperationsInput | string | null
+    startDate?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    updatedAt?: DateTimeFieldUpdateOperationsInput | Date | string
+  }
+
   export type UserCreateWithoutFriendshipsInput = {
     id?: string
     email: string
@@ -12099,6 +13703,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryCreateNestedManyWithoutUserInput
     dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutFriendshipsInput = {
@@ -12115,6 +13720,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryUncheckedCreateNestedManyWithoutUserInput
     dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipUncheckedCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataUncheckedCreateNestedOneWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutFriendshipsInput = {
@@ -12136,6 +13742,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryCreateNestedManyWithoutUserInput
     dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
     friendships?: FriendshipCreateNestedManyWithoutUserInput
+    onboarding?: OnboardingDataCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutFriendedByInput = {
@@ -12152,6 +13759,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryUncheckedCreateNestedManyWithoutUserInput
     dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
     friendships?: FriendshipUncheckedCreateNestedManyWithoutUserInput
+    onboarding?: OnboardingDataUncheckedCreateNestedOneWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutFriendedByInput = {
@@ -12184,6 +13792,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryUpdateManyWithoutUserNestedInput
     dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUpdateOneWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutFriendshipsInput = {
@@ -12200,6 +13809,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryUncheckedUpdateManyWithoutUserNestedInput
     dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUncheckedUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUncheckedUpdateOneWithoutUserNestedInput
   }
 
   export type UserUpsertWithoutFriendedByInput = {
@@ -12227,6 +13837,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryUpdateManyWithoutUserNestedInput
     dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUpdateManyWithoutUserNestedInput
+    onboarding?: OnboardingDataUpdateOneWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutFriendedByInput = {
@@ -12243,6 +13854,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryUncheckedUpdateManyWithoutUserNestedInput
     dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUncheckedUpdateManyWithoutUserNestedInput
+    onboarding?: OnboardingDataUncheckedUpdateOneWithoutUserNestedInput
   }
 
   export type UserCreateWithoutChallengesInput = {
@@ -12259,6 +13871,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
     friendships?: FriendshipCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutChallengesInput = {
@@ -12275,6 +13888,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
     friendships?: FriendshipUncheckedCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipUncheckedCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataUncheckedCreateNestedOneWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutChallengesInput = {
@@ -12403,6 +14017,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUpdateOneWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutChallengesInput = {
@@ -12419,6 +14034,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUncheckedUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUncheckedUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUncheckedUpdateOneWithoutUserNestedInput
   }
 
   export type DailyEntryUpsertWithWhereUniqueWithoutChallengeInput = {
@@ -12483,6 +14099,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
     friendships?: FriendshipCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutWaterEntriesInput = {
@@ -12499,6 +14116,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
     friendships?: FriendshipUncheckedCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipUncheckedCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataUncheckedCreateNestedOneWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutWaterEntriesInput = {
@@ -12578,6 +14196,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUpdateOneWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutWaterEntriesInput = {
@@ -12594,6 +14213,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUncheckedUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUncheckedUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUncheckedUpdateOneWithoutUserNestedInput
   }
 
   export type ChallengeUpsertWithoutWaterEntriesInput = {
@@ -12663,6 +14283,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
     friendships?: FriendshipCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutDailyEntriesInput = {
@@ -12679,6 +14300,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
     friendships?: FriendshipUncheckedCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipUncheckedCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataUncheckedCreateNestedOneWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutDailyEntriesInput = {
@@ -12758,6 +14380,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUpdateOneWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDailyEntriesInput = {
@@ -12774,6 +14397,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUncheckedUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUncheckedUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUncheckedUpdateOneWithoutUserNestedInput
   }
 
   export type ChallengeUpsertWithoutDailyTasksInput = {
@@ -12843,6 +14467,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
     friendships?: FriendshipCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutStreaksInput = {
@@ -12859,6 +14484,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
     friendships?: FriendshipUncheckedCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipUncheckedCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataUncheckedCreateNestedOneWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutStreaksInput = {
@@ -12938,6 +14564,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUpdateOneWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutStreaksInput = {
@@ -12954,6 +14581,7 @@ export namespace Prisma {
     dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUncheckedUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUncheckedUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUncheckedUpdateOneWithoutUserNestedInput
   }
 
   export type ChallengeUpsertWithoutStreaksInput = {
@@ -13023,6 +14651,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryCreateNestedManyWithoutUserInput
     friendships?: FriendshipCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataCreateNestedOneWithoutUserInput
   }
 
   export type UserUncheckedCreateWithoutDailyHabitsInput = {
@@ -13039,6 +14668,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryUncheckedCreateNestedManyWithoutUserInput
     friendships?: FriendshipUncheckedCreateNestedManyWithoutUserInput
     friendedBy?: FriendshipUncheckedCreateNestedManyWithoutFriendInput
+    onboarding?: OnboardingDataUncheckedCreateNestedOneWithoutUserInput
   }
 
   export type UserCreateOrConnectWithoutDailyHabitsInput = {
@@ -13071,6 +14701,7 @@ export namespace Prisma {
     waterEntries?: WaterEntryUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUpdateOneWithoutUserNestedInput
   }
 
   export type UserUncheckedUpdateWithoutDailyHabitsInput = {
@@ -13085,6 +14716,91 @@ export namespace Prisma {
     streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
     dailyEntries?: DailyEntryUncheckedUpdateManyWithoutUserNestedInput
     waterEntries?: WaterEntryUncheckedUpdateManyWithoutUserNestedInput
+    friendships?: FriendshipUncheckedUpdateManyWithoutUserNestedInput
+    friendedBy?: FriendshipUncheckedUpdateManyWithoutFriendNestedInput
+    onboarding?: OnboardingDataUncheckedUpdateOneWithoutUserNestedInput
+  }
+
+  export type UserCreateWithoutOnboardingInput = {
+    id?: string
+    email: string
+    password?: string | null
+    provider?: string
+    displayName?: string | null
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    challenges?: ChallengeCreateNestedManyWithoutUserInput
+    streaks?: StreakCreateNestedManyWithoutUserInput
+    dailyEntries?: DailyEntryCreateNestedManyWithoutUserInput
+    waterEntries?: WaterEntryCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitCreateNestedManyWithoutUserInput
+    friendships?: FriendshipCreateNestedManyWithoutUserInput
+    friendedBy?: FriendshipCreateNestedManyWithoutFriendInput
+  }
+
+  export type UserUncheckedCreateWithoutOnboardingInput = {
+    id?: string
+    email: string
+    password?: string | null
+    provider?: string
+    displayName?: string | null
+    avatarUrl?: string | null
+    createdAt?: Date | string
+    challenges?: ChallengeUncheckedCreateNestedManyWithoutUserInput
+    streaks?: StreakUncheckedCreateNestedManyWithoutUserInput
+    dailyEntries?: DailyEntryUncheckedCreateNestedManyWithoutUserInput
+    waterEntries?: WaterEntryUncheckedCreateNestedManyWithoutUserInput
+    dailyHabits?: DailyHabitUncheckedCreateNestedManyWithoutUserInput
+    friendships?: FriendshipUncheckedCreateNestedManyWithoutUserInput
+    friendedBy?: FriendshipUncheckedCreateNestedManyWithoutFriendInput
+  }
+
+  export type UserCreateOrConnectWithoutOnboardingInput = {
+    where: UserWhereUniqueInput
+    create: XOR<UserCreateWithoutOnboardingInput, UserUncheckedCreateWithoutOnboardingInput>
+  }
+
+  export type UserUpsertWithoutOnboardingInput = {
+    update: XOR<UserUpdateWithoutOnboardingInput, UserUncheckedUpdateWithoutOnboardingInput>
+    create: XOR<UserCreateWithoutOnboardingInput, UserUncheckedCreateWithoutOnboardingInput>
+    where?: UserWhereInput
+  }
+
+  export type UserUpdateToOneWithWhereWithoutOnboardingInput = {
+    where?: UserWhereInput
+    data: XOR<UserUpdateWithoutOnboardingInput, UserUncheckedUpdateWithoutOnboardingInput>
+  }
+
+  export type UserUpdateWithoutOnboardingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    challenges?: ChallengeUpdateManyWithoutUserNestedInput
+    streaks?: StreakUpdateManyWithoutUserNestedInput
+    dailyEntries?: DailyEntryUpdateManyWithoutUserNestedInput
+    waterEntries?: WaterEntryUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUpdateManyWithoutUserNestedInput
+    friendships?: FriendshipUpdateManyWithoutUserNestedInput
+    friendedBy?: FriendshipUpdateManyWithoutFriendNestedInput
+  }
+
+  export type UserUncheckedUpdateWithoutOnboardingInput = {
+    id?: StringFieldUpdateOperationsInput | string
+    email?: StringFieldUpdateOperationsInput | string
+    password?: NullableStringFieldUpdateOperationsInput | string | null
+    provider?: StringFieldUpdateOperationsInput | string
+    displayName?: NullableStringFieldUpdateOperationsInput | string | null
+    avatarUrl?: NullableStringFieldUpdateOperationsInput | string | null
+    createdAt?: DateTimeFieldUpdateOperationsInput | Date | string
+    challenges?: ChallengeUncheckedUpdateManyWithoutUserNestedInput
+    streaks?: StreakUncheckedUpdateManyWithoutUserNestedInput
+    dailyEntries?: DailyEntryUncheckedUpdateManyWithoutUserNestedInput
+    waterEntries?: WaterEntryUncheckedUpdateManyWithoutUserNestedInput
+    dailyHabits?: DailyHabitUncheckedUpdateManyWithoutUserNestedInput
     friendships?: FriendshipUncheckedUpdateManyWithoutUserNestedInput
     friendedBy?: FriendshipUncheckedUpdateManyWithoutFriendNestedInput
   }
@@ -13576,6 +15292,10 @@ export namespace Prisma {
      * @deprecated Use DailyHabitDefaultArgs instead
      */
     export type DailyHabitArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = DailyHabitDefaultArgs<ExtArgs>
+    /**
+     * @deprecated Use OnboardingDataDefaultArgs instead
+     */
+    export type OnboardingDataArgs<ExtArgs extends $Extensions.InternalArgs = $Extensions.DefaultArgs> = OnboardingDataDefaultArgs<ExtArgs>
 
   /**
    * Batch Payload for updateMany & deleteMany & createMany

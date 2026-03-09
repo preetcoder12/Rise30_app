@@ -4,6 +4,7 @@ plugins {
     id("org.jetbrains.kotlin.plugin.compose")
     kotlin("plugin.serialization") version "2.3.0"
     id("com.google.gms.google-services")
+    id("com.google.firebase.crashlytics")
 }
 
 android {
@@ -104,6 +105,9 @@ dependencies {
 
     // Firebase Analytics
     implementation("com.google.firebase:firebase-analytics")
+
+    // Firebase Crashlytics
+    implementation("com.google.firebase:firebase-crashlytics")
 
     // Firebase Authentication
     implementation("com.google.firebase:firebase-auth")
