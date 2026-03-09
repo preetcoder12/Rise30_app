@@ -22,6 +22,7 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.graphics.Color
 import androidx.compose.ui.graphics.ColorFilter
+import androidx.compose.ui.platform.LocalContext
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.input.KeyboardType
 import androidx.compose.ui.text.style.TextAlign
@@ -417,7 +418,7 @@ fun CreateChallengeScreen(
                             icon = selectedIcon,
                             targetValue = targetValue.toFloatOrNull(),
                             unit = unit.ifBlank { null },
-                            onSuccess = {
+                            onSuccess = { challengeId ->
                                 isLoading = false
                                 onChallengeCreated()
                             },
@@ -458,6 +459,7 @@ fun CreateChallengeScreen(
 
         }
     }
+
 }
 
 @Composable
@@ -625,6 +627,20 @@ private fun IconOption(
 }
 
 // API Function
+@Serializable
+data class CreateChallengeResponse(
+    val success: Boolean,
+    val challenge: CreatedChallengeData? = null,
+    val error: String? = null
+)
+
+@Serializable
+data class CreatedChallengeData(
+    val id: String,
+    val name: String,
+    val duration: Int
+)
+
 private suspend fun createChallenge(
     userId: String,
     name: String,
@@ -635,7 +651,7 @@ private suspend fun createChallenge(
     icon: String,
     targetValue: Float?,
     unit: String?,
-    onSuccess: () -> Unit,
+    onSuccess: (String) -> Unit,
     onError: (String) -> Unit
 ) {
     try {
@@ -652,15 +668,15 @@ private suspend fun createChallenge(
             unit = unit
         )
         
-        val response: HttpResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/challenges") {
+        val response: CreateChallengeResponse = ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/challenges") {
             contentType(ContentType.Application.Json)
             setBody(request)
-        }
+        }.body()
         
-        if (response.status.isSuccess()) {
-            onSuccess()
+        if (response.success && response.challenge != null) {
+            onSuccess(response.challenge.id)
         } else {
-            onError("Failed to create challenge: ${response.status}")
+            onError(response.error ?: "Failed to create challenge")
         }
     } catch (e: Exception) {
         onError(e.message ?: "Failed to create challenge")

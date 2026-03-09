@@ -302,8 +302,11 @@ fun ChallengeDetailScreen(
                             totalDays = progress?.totalDays ?: challenge?.duration ?: 30,
                             challengeColor = challengeColor,
                             onDayClick = { day ->
-                                selectedDay = day
-                                showDayDialog = true
+                                // Only allow clicking on days that have arrived (day <= currentDay)
+                                if (day.dayNumber <= (progress?.currentDay ?: 1)) {
+                                    selectedDay = day
+                                    showDayDialog = true
+                                }
                             }
                         )
                         
@@ -337,6 +340,7 @@ fun ChallengeDetailScreen(
     if (showDayDialog && selectedDay != null) {
         DayDetailDialog(
             dayEntry = selectedDay!!,
+            currentDay = progress?.currentDay ?: 1,
             challengeColor = challengeColor,
             onDismiss = { showDayDialog = false },
             onToggleComplete = { completed ->
@@ -680,9 +684,9 @@ private fun ChallengeDayGrid(
                         icon = "✓"
                     )
                     ModernLegendItem(
-                        color = Color(0xFF3A3A40),
-                        label = "Upcoming",
-                        icon = "○"
+                        color = Color(0xFF1A1A1E),
+                        label = "Locked",
+                        icon = "🔒"
                     )
                     ModernLegendItem(
                         color = challengeColor.copy(alpha = 0.4f),
@@ -713,6 +717,7 @@ private fun ChallengeDayGrid(
                         PremiumDayCell(
                             day = day,
                             isToday = day.dayNumber == currentDay,
+                            isFutureDay = day.dayNumber > currentDay,
                             challengeColor = challengeColor,
                             onClick = { onDayClick(day) }
                         )
@@ -727,6 +732,7 @@ private fun ChallengeDayGrid(
 private fun PremiumDayCell(
     day: DayEntry,
     isToday: Boolean,
+    isFutureDay: Boolean,
     challengeColor: Color,
     onClick: () -> Unit
 ) {
@@ -736,6 +742,7 @@ private fun PremiumDayCell(
         targetValue = when {
             day.completed -> challengeColor
             isToday -> challengeColor.copy(alpha = 0.25f)
+            isFutureDay -> Color(0xFF1A1A1E)  // Darker for future days
             else -> Color(0xFF2A2A30)
         },
         animationSpec = tween(300),
@@ -743,7 +750,7 @@ private fun PremiumDayCell(
     )
     
     val scale by animateFloatAsState(
-        targetValue = if (isToday) 1.1f else 1f,
+        targetValue = if (isToday && !isFutureDay) 1.1f else 1f,
         animationSpec = spring(
             dampingRatio = Spring.DampingRatioLowBouncy,
             stiffness = Spring.StiffnessLow
@@ -752,7 +759,7 @@ private fun PremiumDayCell(
     )
     
     val glowAlpha by animateFloatAsState(
-        targetValue = if (isToday) 0.6f else 0f,
+        targetValue = if (isToday && !isFutureDay) 0.6f else 0f,
         animationSpec = tween(400),
         label = "glowAlpha"
     )
@@ -782,11 +789,13 @@ private fun PremiumDayCell(
                 .background(backgroundColor)
                 .border(
                     width = when {
+                        isFutureDay -> 1.dp
                         isToday -> 2.dp
                         day.completed -> 0.dp
                         else -> 1.dp
                     },
                     color = when {
+                        isFutureDay -> Color(0xFF2A2A30)
                         isToday -> challengeColor
                         day.completed -> Color.Transparent
                         else -> Color(0xFF3A3A40)
@@ -794,14 +803,17 @@ private fun PremiumDayCell(
                     shape = CircleShape
                 )
                 .clickable(
+                    enabled = !isFutureDay,
                     interactionSource = interaction,
                     indication = rememberRipple(
                         color = challengeColor,
                         bounded = true
                     ),
                     onClick = {
-                        haptic.performHapticFeedback(HapticFeedbackType.LongPress)
-                        onClick()
+                        if (!isFutureDay) {
+                            haptic.performHapticFeedback(HapticFeedbackType.LongPress)
+                            onClick()
+                        }
                     }
                 ),
             contentAlignment = Alignment.Center
@@ -822,6 +834,12 @@ private fun PremiumDayCell(
                         fontWeight = FontWeight.Bold
                     )
                 }
+            } else if (isFutureDay) {
+                // Lock icon for future days
+                Text(
+                    text = "🔒",
+                    fontSize = 13.sp
+                )
             } else {
                 Text(
                     text = day.dayNumber.toString(),
@@ -1090,10 +1108,13 @@ private fun ChallengeAnalyticsSection(
 @Composable
 private fun DayDetailDialog(
     dayEntry: DayEntry,
+    currentDay: Int,
     challengeColor: Color,
     onDismiss: () -> Unit,
     onToggleComplete: (Boolean) -> Unit
 ) {
+    val isFutureDay = dayEntry.dayNumber > currentDay
+    
     AlertDialog(
         onDismissRequest = onDismiss,
         containerColor = CardDark,
@@ -1106,38 +1127,54 @@ private fun DayDetailDialog(
         },
         text = {
             Column {
-                Text(
-                    text = "Date: ${dayEntry.date}",
-                    color = Color.Gray
-                )
-                Spacer(modifier = Modifier.height(8.dp))
-                Text(
-                    text = if (dayEntry.completed) 
-                        "✅ Completed!" 
-                    else 
-                        "⏳ Not completed yet",
-                    color = if (dayEntry.completed) Color(0xFF66BB6A) else Color.Gray
-                )
-                if (!dayEntry.notes.isNullOrBlank()) {
+                if (isFutureDay) {
+                    Text(
+                        text = "🔒 This day hasn't arrived yet!",
+                        color = Color.Gray,
+                        fontSize = 14.sp
+                    )
                     Spacer(modifier = Modifier.height(8.dp))
                     Text(
-                        text = "Notes: ${dayEntry.notes}",
-                        color = Color.LightGray
+                        text = "You're currently on Day $currentDay. Keep going!",
+                        color = challengeColor,
+                        fontSize = 14.sp
                     )
+                } else {
+                    Text(
+                        text = "Date: ${dayEntry.date}",
+                        color = Color.Gray
+                    )
+                    Spacer(modifier = Modifier.height(8.dp))
+                    Text(
+                        text = if (dayEntry.completed) 
+                            "✅ Completed!" 
+                        else 
+                            "⏳ Not completed yet",
+                        color = if (dayEntry.completed) Color(0xFF66BB6A) else Color.Gray
+                    )
+                    if (!dayEntry.notes.isNullOrBlank()) {
+                        Spacer(modifier = Modifier.height(8.dp))
+                        Text(
+                            text = "Notes: ${dayEntry.notes}",
+                            color = Color.LightGray
+                        )
+                    }
                 }
             }
         },
         confirmButton = {
-            Button(
-                onClick = { onToggleComplete(!dayEntry.completed) },
-                colors = ButtonDefaults.buttonColors(
-                    containerColor = if (dayEntry.completed) Color(0xFFCF6679) else challengeColor,
-                    contentColor = Color.Black
-                )
-            ) {
-                Text(
-                    text = if (dayEntry.completed) "Mark Incomplete" else "Mark Complete"
-                )
+            if (!isFutureDay) {
+                Button(
+                    onClick = { onToggleComplete(!dayEntry.completed) },
+                    colors = ButtonDefaults.buttonColors(
+                        containerColor = if (dayEntry.completed) Color(0xFFCF6679) else challengeColor,
+                        contentColor = Color.Black
+                    )
+                ) {
+                    Text(
+                        text = if (dayEntry.completed) "Mark Incomplete" else "Mark Complete"
+                    )
+                }
             }
         },
         dismissButton = {

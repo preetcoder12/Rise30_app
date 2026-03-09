@@ -1076,9 +1076,14 @@ private fun PowerMorningSection(userId: String) {
     )
     
     val scope = rememberCoroutineScope()
+    val context = androidx.compose.ui.platform.LocalContext.current
     // SnapshotStateMap: individual key writes trigger recomposition immediately
     val doneState = remember { androidx.compose.runtime.snapshots.SnapshotStateMap<String, Boolean>() }
     val haptic = androidx.compose.ui.platform.LocalHapticFeedback.current
+    
+    // Track when all 3 rituals were completed for 24-hour reset logic
+    val prefs = remember { context.getSharedPreferences("ritual_prefs", android.content.Context.MODE_PRIVATE) }
+    var allCompletedTime by remember { mutableStateOf(prefs.getLong("all_completed_time", 0L)) }
 
     LaunchedEffect(userId) {
         try {
@@ -1097,20 +1102,25 @@ private fun PowerMorningSection(userId: String) {
         } catch (e: Exception) { /* use default false */ }
     }
 
-    // Auto-reset at midnight every day
-    LaunchedEffect(Unit) {
-        while (true) {
-            val now = java.util.Calendar.getInstance()
-            val midnight = java.util.Calendar.getInstance().apply {
-                add(java.util.Calendar.DAY_OF_MONTH, 1)
-                set(java.util.Calendar.HOUR_OF_DAY, 0)
-                set(java.util.Calendar.MINUTE, 0)
-                set(java.util.Calendar.SECOND, 0)
-                set(java.util.Calendar.MILLISECOND, 0)
+    // Auto-reset 24 hours after all 3 rituals are completed
+    LaunchedEffect(allCompletedTime) {
+        if (allCompletedTime > 0) {
+            val now = System.currentTimeMillis()
+            val timeSinceCompletion = now - allCompletedTime
+            val twentyFourHoursMs = 24 * 60 * 60 * 1000L
+            
+            if (timeSinceCompletion >= twentyFourHoursMs) {
+                // 24 hours passed, reset now
+                doneState.clear()
+                prefs.edit().remove("all_completed_time").apply()
+                allCompletedTime = 0L
+            } else {
+                // Wait for remaining time
+                delay(twentyFourHoursMs - timeSinceCompletion)
+                doneState.clear()
+                prefs.edit().remove("all_completed_time").apply()
+                allCompletedTime = 0L
             }
-            val msUntilMidnight = midnight.timeInMillis - now.timeInMillis
-            delay(msUntilMidnight.coerceAtLeast(1000L))
-            doneState.clear()  // New day — reset all rituals
         }
     }
 
@@ -1146,6 +1156,15 @@ private fun PowerMorningSection(userId: String) {
                                 ApiConfig.httpClient.post("${ApiConfig.BASE_URL}/api/habits/toggle") {
                                     contentType(ContentType.Application.Json)
                                     setBody(mapOf("userId" to userId, "name" to habitName, "completed" to true))
+                                }
+                                
+                                // Check if all 3 rituals are now completed
+                                val allCompleted = ritualHabitNames.all { doneState[it] == true }
+                                if (allCompleted && allCompletedTime == 0L) {
+                                    // Save the time when all 3 were completed
+                                    val completionTime = System.currentTimeMillis()
+                                    prefs.edit().putLong("all_completed_time", completionTime).apply()
+                                    allCompletedTime = completionTime
                                 }
                             } catch (e: Exception) { /* silent */ }
                         }

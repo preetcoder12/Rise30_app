@@ -155,8 +155,9 @@ fun ChallengesPage(
                         fontWeight = FontWeight.Bold
                     )
                     
+                    val activeCount = challenges.count { it.isActive && it.progress < 100 }
                     Text(
-                        text = "${challenges.size} Active",
+                        text = "$activeCount Active",
                         color = Accent,
                         fontSize = 16.sp, // 18 - 2
                         fontWeight = FontWeight.Medium

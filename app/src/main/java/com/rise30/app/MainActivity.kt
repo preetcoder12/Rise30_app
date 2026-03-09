@@ -1,6 +1,9 @@
 package com.rise30.app
 
+import android.Manifest
 import android.content.Intent
+import android.content.pm.PackageManager
+import android.os.Build
 import android.os.Bundle
 import androidx.activity.ComponentActivity
 import androidx.activity.compose.setContent
@@ -29,6 +32,7 @@ import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
 import androidx.compose.ui.unit.sp
+import androidx.core.content.ContextCompat
 import androidx.core.splashscreen.SplashScreen.Companion.installSplashScreen
 import androidx.lifecycle.ViewModel
 import androidx.lifecycle.viewModelScope
@@ -38,6 +42,8 @@ import com.google.android.gms.auth.api.signin.GoogleSignInOptions
 import com.google.android.gms.common.api.ApiException
 import com.rise30.app.streak.StreakViewModel
 import com.rise30.app.LemonYellow
+import com.rise30.app.util.NotificationHelper
+import com.rise30.app.util.NotificationScheduler
 import io.github.jan.supabase.auth.Auth
 import io.github.jan.supabase.auth.auth
 import io.github.jan.supabase.auth.providers.Google
@@ -142,6 +148,15 @@ class MainActivity : ComponentActivity() {
     private val streakViewModel: StreakViewModel by viewModels()
     private lateinit var googleSignInClient: GoogleSignInClient
     private lateinit var googleSignInLauncher: ActivityResultLauncher<Intent>
+    
+    // Permission launcher for notification permissions
+    private val notificationPermissionLauncher = registerForActivityResult(
+        ActivityResultContracts.RequestPermission()
+    ) { isGranted ->
+        if (isGranted) {
+            // Permission granted, notifications can be shown
+        }
+    }
 
     override fun onCreate(savedInstanceState: Bundle?) {
         // Install Android 12+ splash screen using Theme.Rise30.Splash
@@ -201,7 +216,7 @@ class MainActivity : ComponentActivity() {
                 var selectedOtherUserId by remember { mutableStateOf<String?>(null) }
                 
                 
-                LaunchedEffect(state.isLoggedIn, state.userId) {
+                LaunchedEffect(state.isLoggedIn, state.userId, state.info) {
                     val userId = state.userId
                     val email = state.email
                     
@@ -218,6 +233,16 @@ class MainActivity : ComponentActivity() {
                             currentTab = MainTab.Home
                             currentChallengeScreen = ChallengeScreen.None
                             wasLoggedIn = true
+                            
+                            // Request notification permission for new login
+                            requestNotificationPermission()
+                            
+                            // Show welcome notification for brand new accounts (email signup)
+                            if (state.info == "Account created!") {
+                                val userName = realDisplayName ?: email.substringBefore("@")
+                                NotificationHelper.showWelcomeNotification(this@MainActivity, userName)
+                                NotificationScheduler.scheduleMorningRitual(this@MainActivity, dayNumber = 1)
+                            }
                         }
                     } else if (!state.isLoggedIn) {
                         wasLoggedIn = false
@@ -483,6 +508,26 @@ class MainActivity : ComponentActivity() {
             SupabaseClient.refreshSessionIfNeeded()
         }
     }
+    
+    /**
+     * Request notification permission (Android 13+)
+     */
+    private fun requestNotificationPermission() {
+        if (Build.VERSION.SDK_INT >= Build.VERSION_CODES.TIRAMISU) {
+            when {
+                ContextCompat.checkSelfPermission(
+                    this,
+                    Manifest.permission.POST_NOTIFICATIONS
+                ) == PackageManager.PERMISSION_GRANTED -> {
+                    // Permission already granted
+                }
+                else -> {
+                    // Request permission
+                    notificationPermissionLauncher.launch(Manifest.permission.POST_NOTIFICATIONS)
+                }
+            }
+        }
+    }
 }
 
 data class AuthUiState(
@@ -574,6 +619,11 @@ class AuthViewModel : ViewModel() {
                 if (response.success && response.user != null) {
                     SessionManager.saveSession(context, response.user, response.token)
                     state = state.copy(isLoading = false, currentAccount = response.user, info = "Account created!")
+                    
+                    // Send warm welcome notification!
+                    val userName = email.substringBefore("@")
+                    NotificationHelper.showWelcomeNotification(context, userName)
+                    NotificationScheduler.scheduleMorningRitual(context, dayNumber = 1)
                 } else {
                     state = state.copy(isLoading = false, error = response.error ?: "Signup failed")
                 }
