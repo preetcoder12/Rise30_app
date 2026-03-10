@@ -19,6 +19,8 @@ import androidx.compose.ui.Modifier
 import androidx.compose.ui.draw.clip
 import androidx.compose.ui.draw.scale
 import androidx.compose.ui.graphics.Color
+import androidx.compose.ui.res.painterResource
+import androidx.compose.foundation.Image
 import androidx.compose.ui.text.font.FontWeight
 import androidx.compose.ui.text.style.TextAlign
 import androidx.compose.ui.unit.dp
@@ -202,20 +204,12 @@ private fun WelcomeScreen(
         Spacer(modifier = Modifier.weight(1f))
         
         // Logo
-        Box(
+        Image(
+            painter = painterResource(id = R.drawable.bg_removed_applogo),
+            contentDescription = "App Logo",
             modifier = Modifier
                 .size(120.dp)
-                .clip(RoundedCornerShape(30.dp))
-                .background(LemonYellow),
-            contentAlignment = Alignment.Center
-        ) {
-            Text(
-                text = "R30",
-                fontSize = 48.sp,
-                fontWeight = FontWeight.Bold,
-                color = Charcoal
-            )
-        }
+        )
         
         Spacer(modifier = Modifier.height(40.dp))
         
@@ -231,7 +225,7 @@ private fun WelcomeScreen(
         Spacer(modifier = Modifier.height(16.dp))
         
         Text(
-            text = "Track progress. Stay consistent. Win.",
+            text = "Track progress. Stay consistent. Achieve more.",
             fontSize = 18.sp,
             color = Color(0xFF8C8C8C),
             textAlign = TextAlign.Center
